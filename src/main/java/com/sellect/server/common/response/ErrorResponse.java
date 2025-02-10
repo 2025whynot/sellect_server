@@ -1,6 +1,7 @@
-package com.sellect.server.exception;
+package com.sellect.server.common.response;
 
-import com.sellect.server.exception.common.CommonException;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import lombok.AccessLevel;
 import lombok.Getter;

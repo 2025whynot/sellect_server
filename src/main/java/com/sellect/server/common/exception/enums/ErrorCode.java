@@ -1,4 +1,4 @@
-package com.sellect.server.exception;
+package com.sellect.server.common.exception.enums;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

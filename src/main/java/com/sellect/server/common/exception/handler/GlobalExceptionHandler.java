@@ -1,6 +1,8 @@
-package com.sellect.server.exception;
+package com.sellect.server.common.exception.handler;
 
-import com.sellect.server.exception.common.CommonException;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.ErrorCode;
+import com.sellect.server.common.response.ErrorResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +21,7 @@ import java.util.Set;
 
 @Slf4j
 @RestControllerAdvice
-public class ExceptionAdvice {
+public class GlobalExceptionHandler {
 
 	/**
 	 * javax.validation.Valid or @Validated 으로 binding error 발생시 발생한다.

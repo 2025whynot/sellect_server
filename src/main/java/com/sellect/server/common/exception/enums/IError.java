@@ -1,4 +1,6 @@
-package com.sellect.server.exception.common;
+package com.sellect.server.common.exception.enums;
+
+import com.sellect.server.common.exception.util.ErrMsgUtil;
 
 // for Internal Error (not for user api)
 public enum IError implements Error {

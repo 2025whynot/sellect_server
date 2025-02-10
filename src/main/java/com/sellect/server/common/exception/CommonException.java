@@ -1,4 +1,8 @@
-package com.sellect.server.exception.common;
+package com.sellect.server.common.exception;
+
+import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.common.exception.enums.Error;
+import com.sellect.server.common.exception.enums.IError;
 
 public class CommonException extends RuntimeException {
 

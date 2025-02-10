@@ -1,4 +1,4 @@
-package com.sellect.server.exception.common;
+package com.sellect.server.common.exception.util;
 
 public class ErrMsgUtil {
 	public static String parseMessage(String message, String... args) {

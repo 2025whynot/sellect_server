@@ -1,4 +1,4 @@
-package com.sellect.server.exception.common;
+package com.sellect.server.common.exception.enums;
 
 public interface Error {
 	String getCode();

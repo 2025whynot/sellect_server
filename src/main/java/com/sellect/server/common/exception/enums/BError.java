@@ -1,4 +1,6 @@
-package com.sellect.server.exception.common;
+package com.sellect.server.common.exception.enums;
+
+import com.sellect.server.common.exception.util.ErrMsgUtil;
 
 // For Business Logic
 public enum BError implements Error {
