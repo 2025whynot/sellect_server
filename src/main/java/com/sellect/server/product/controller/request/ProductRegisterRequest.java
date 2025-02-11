@@ -1,8 +1,13 @@
 package com.sellect.server.product.controller.request;
 
-import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.util.List;
 
 public record ProductRegisterRequest(
 
@@ -27,12 +32,8 @@ public record ProductRegisterRequest(
     Integer stock
 
 ) {
-
-    public static List<ProductRegisterRequest> fromList(List<ProductRegisterRequest> requests) {
-        return requests;
-    }
-
     // 가격 변환 메서드
+    @JsonIgnore
     public BigDecimal getPriceAsBigDecimal() {
         return new BigDecimal(price);
     }

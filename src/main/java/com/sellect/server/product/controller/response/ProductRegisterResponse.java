@@ -4,18 +4,17 @@ import com.sellect.server.product.domain.Product;
 import java.util.List;
 
 public record ProductRegisterResponse(
-    Long productId
+    List<ProductRegisterSuccessResponse> success,
+    List<ProductRegisterFailureResponse> failed
 ) {
 
-    public static ProductRegisterResponse from(Product product) {
+    public static ProductRegisterResponse from(
+        List<Product> successProducts,
+        List<ProductRegisterFailureResponse> failedProducts
+    ) {
         return new ProductRegisterResponse(
-            product.getId()
+            ProductRegisterSuccessResponse.fromList(successProducts), // 성공 상품 리스트 반환
+            failedProducts
         );
-    }
-
-    public static List<ProductRegisterResponse> fromList(List<Product> products) {
-        return products.stream()
-            .map(ProductRegisterResponse::from)
-            .toList();
     }
 }

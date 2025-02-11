@@ -21,7 +21,7 @@ public class ProductRepositoryImpl implements ProductRepository{
     }
 
     @Override
-    public Boolean isDuplicateProduct(Long sellerId, String name, LocalDateTime deleteAt) {
+    public boolean isDuplicateProduct(Long sellerId, String name, LocalDateTime deleteAt) {
         return productJpaRepository.existsBySellerIdAndNameAndDeleteAt(sellerId, name, null);
     }
 }

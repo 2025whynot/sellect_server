@@ -9,7 +9,7 @@ public interface ProductRepository {
     List<Product> saveAll(List<Product> products);
 
     // 중복 상품 검사 체크
-    Boolean isDuplicateProduct(Long sellerId, String name,
+    boolean isDuplicateProduct(Long sellerId, String name,
         LocalDateTime deleteAt);
 
 }
