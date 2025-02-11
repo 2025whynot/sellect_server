@@ -5,14 +5,12 @@ import com.sellect.server.tmp.dto.response.ProductSearchResponse;
 import com.sellect.server.tmp.entity.Product;
 import com.sellect.server.tmp.mapper.ProductSearchMapper;
 import com.sellect.server.tmp.service.ProductSearchService;
-import com.sellect.server.tmp.service.ProductSimpleSearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
