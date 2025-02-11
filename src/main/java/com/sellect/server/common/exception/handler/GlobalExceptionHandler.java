@@ -8,7 +8,6 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -61,7 +60,7 @@ public class GlobalExceptionHandler {
 	 * @PathVariable에서 string -> int/long 등의 숫자 타입 binding 못할 경우
 	 */
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)
-	protected ApiResponse<ErrorResponse> handleMethodArgumentTypeMismatchException(
+	protected ApiResponse handleMethodArgumentTypeMismatchException(
 			MethodArgumentTypeMismatchException e) {
 		log.error("handleMethodArgumentTypeMismatchException {}", e.getMessage());
 		final ErrorResponse response = ErrorResponse.of(e);
@@ -73,7 +72,7 @@ public class GlobalExceptionHandler {
 	 * 또한, 숫자가 int 혹은 long type 등의 범위를 벗어나는 경우 발생
 	 */
 	@ExceptionHandler(HttpMessageNotReadableException.class)
-	protected ApiResponse<ErrorResponse> handleHttpMessageNotReadableExceptionException(
+	protected ApiResponse handleHttpMessageNotReadableExceptionException(
 			HttpMessageNotReadableException e) {
 		log.error("handleHttpMessageNotReadableExceptionException {}", e.getMessage());
 		final ErrorResponse response = ErrorResponse.of(e);
@@ -84,7 +83,7 @@ public class GlobalExceptionHandler {
 	 * 지원하지 않은 HTTP method 호출 할 경우 발생
 	 */
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-	protected ApiResponse<ErrorResponse> handleHttpRequestMethodNotSupportedException(
+	protected ApiResponse handleHttpRequestMethodNotSupportedException(
 			HttpRequestMethodNotSupportedException e) {
 		log.error("handleHttpRequestMethodNotSupportedException {}", e.getMessage());
 		final ErrorResponse response = ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED);
@@ -92,14 +91,14 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(CommonException.class)
-	public ApiResponse<ErrorResponse> handleCommonException(final CommonException e) {
+	public ApiResponse handleCommonException(final CommonException e) {
 		log.error("CommonException {}", e.getMessage());
 		final ErrorResponse response = ErrorResponse.of(e);
 		return ApiResponse.onFailure(response, HttpStatus.valueOf(response.getStatus()));
 	}
 
 	@ExceptionHandler(Exception.class)
-	protected ApiResponse<ErrorResponse> handleUnExpectException(Exception e) {
+	protected ApiResponse handleUnExpectException(Exception e) {
 		log.error("UnExpectException {}", e.getMessage());
 		final ErrorResponse response = ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR);
 		return ApiResponse.onFailure(response, HttpStatus.INTERNAL_SERVER_ERROR);
