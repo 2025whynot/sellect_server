@@ -19,11 +19,12 @@ public class ProductSearchService {
     private final CategoryRepository categoryRepository;
 
     public List<Product> searchByProductName(String keyword) {
-        return productRepository.findByNameLike(keyword);
+        return productRepository.findContainingName(keyword);
     }
 
     public List<Product> searchByCategory(String keyword) {
-        List<Long> categoryIds = categoryRepository.findByNameLike(keyword).stream()
+        List<Long> categoryIds = categoryRepository.findContainingName(keyword)
+                .stream()
                 .map(Category::getId)
                 .toList();
         return productRepository.findByIdIn(categoryIds);
