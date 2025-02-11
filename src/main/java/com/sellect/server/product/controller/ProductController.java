@@ -1,9 +1,10 @@
 package com.sellect.server.product.controller;
 
 import com.sellect.server.common.response.ApiResponse;
-import com.sellect.server.product.controller.application.ProductService;
+import com.sellect.server.product.application.ProductService;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
 import com.sellect.server.product.controller.response.ProductRegisterResponse;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +26,7 @@ public class ProductController {
     // todo : sellerId token 에서 가져오도록 변경할 것!!
     // todo : 상품 이미지 관련 로직 추가할 것!!
     public ApiResponse<ProductRegisterResponse> registerMultiple(Long sellerId,
-        @RequestBody List<ProductRegisterRequest> requests) {
+        @Valid @RequestBody List<ProductRegisterRequest> requests) {
 
         ProductRegisterResponse result = productService.registerMultiple(sellerId,
             requests);

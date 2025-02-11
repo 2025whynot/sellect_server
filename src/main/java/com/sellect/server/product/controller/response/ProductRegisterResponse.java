@@ -4,8 +4,8 @@ import com.sellect.server.product.domain.Product;
 import java.util.List;
 
 public record ProductRegisterResponse(
-    List<ProductRegisterSuccessResponse> success,
-    List<ProductRegisterFailureResponse> failed
+    List<ProductRegisterSuccessResponse> successProducts,
+    List<ProductRegisterFailureResponse> failedProducts
 ) {
 
     public static ProductRegisterResponse from(
