@@ -1,8 +1,8 @@
 package com.sellect.server.tmp;
 
-import com.sellect.server.common.exception.ApiResponse;
-import com.sellect.server.common.exception.GlobalException;
-import com.sellect.server.common.exception.ResponseStatus;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.tmp.controller.response.TmpRequest;
 import com.sellect.server.tmp.controller.response.TmpResponse;
 import jakarta.validation.Valid;
@@ -21,23 +21,14 @@ public class TmpController {
 
         TmpResponse tmpResponse = new TmpResponse(1L);
 
-        return ApiResponse.OK(tmpResponse);
+        return ApiResponse.ok(tmpResponse);
     }
 
     @GetMapping("/error")
     public ApiResponse<TmpResponse> registerProduct2() {
 
         TmpResponse tmpResponse = new TmpResponse(1L);
-
-        GlobalException member = new GlobalException(ResponseStatus.TOKEN_NOT_VALID);
-
-        if (true) {
-            throw member;
-        }
-        // service 에서 사용 예시
-//        Option option = optionRepository.findById(cartOptionModifyDto.getOptionId())
-//                .orElseThrow(() -> new GlobalException(ResponseStatus.NO_EXIST_OPTION));
-        return ApiResponse.OK(tmpResponse);
+        throw new CommonException(BError.NOT_VALID, "token");
     }
 
     @PostMapping("/field-error")
@@ -46,7 +37,7 @@ public class TmpController {
         TmpRequest tmpRequest = new TmpRequest(request.name(), request.name2(), request.name3());
         TmpResponse tmpResponse = new TmpResponse(1L);
 
-        return ApiResponse.OK(tmpResponse);
+        return ApiResponse.ok(tmpResponse);
     }
 
 }
