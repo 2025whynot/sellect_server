@@ -6,31 +6,22 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA와 충돌 방지
 @AllArgsConstructor(access = AccessLevel.PRIVATE) // @Builder 사용 시 명확한 객체 생성
 public class Product {
 
-    private Long id;
-
-    private Long sellerId;
-
-    private Long categoryId;
-
-    private Long brandId;
-
-    private BigDecimal price;
-
-    private String name;
-
-    private Integer stock;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deleteAt;
+    private final Long id;
+    private final Long sellerId;
+    private final Long categoryId;
+    private final Long brandId;
+    private final BigDecimal price;
+    private final String name;
+    private final Integer stock;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
+    private final LocalDateTime deleteAt;
 
     public static Product register(Long sellerId, Long categoryId, Long brandId, BigDecimal price, String name, Integer stock) {
         return Product.builder()
