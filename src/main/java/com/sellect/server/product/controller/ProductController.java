@@ -1,7 +1,7 @@
 package com.sellect.server.product.controller;
 
 import com.sellect.server.common.response.ApiResponse;
-import com.sellect.server.product.controller.application.ProductService;
+import com.sellect.server.product.application.ProductService;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
 import com.sellect.server.product.controller.response.ProductRegisterResponse;
 import java.util.List;

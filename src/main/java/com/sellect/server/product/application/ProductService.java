@@ -1,4 +1,4 @@
-package com.sellect.server.product.controller.application;
+package com.sellect.server.product.application;
 
 import com.sellect.server.category.repository.CategoryRepository;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
