@@ -40,6 +40,22 @@ public class Product {
 
     // todo : 일단 KEEP
     // === 비즈니스 로직 ===
+    /**
+     * 상품 정보 업데이트 메서드
+     */
+    public Product modify(BigDecimal price, String name, Integer stock) {
+        return Product.builder()
+            .id(this.id)
+            .sellerId(this.sellerId)
+            .categoryId(this.categoryId)
+            .brandId(this.brandId)
+            .price(price)
+            .name(name)
+            .stock(stock)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now()) // 수정 시간 업데이트
+            .build();
+    }
 
     /**
      * 재고 감소 후 새로운 Product 인스턴스를 반환 (불변성 유지)
@@ -79,4 +95,6 @@ public class Product {
             .deleteAt(LocalDateTime.now()) // 삭제 시간 업데이트
             .build();
     }
+
+
 }
