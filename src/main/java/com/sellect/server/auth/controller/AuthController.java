@@ -24,6 +24,12 @@ public class AuthController {
         return ApiResponse.ok(null);
     }
 
+    @PostMapping("/login")
+    public ApiResponse<?> login(){
+//        userAuthService.login();
+        return ApiResponse.ok(null);
+    }
+
 
     @PostMapping("/seller/signup")
     public ApiResponse<Void> sellerSignUp(@RequestBody UserSignUpRequest request) {

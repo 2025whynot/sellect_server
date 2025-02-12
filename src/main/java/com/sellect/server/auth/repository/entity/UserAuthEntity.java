@@ -40,4 +40,16 @@ public class UserAuthEntity extends BaseTimeEntity {
                 .deleteAt(userAuth.getDeleteAt())
                 .build();
     }
+
+    public UserAuth toModel() {
+        return UserAuth.builder()
+                .id(this.id)
+                .user(this.user.toModel())
+                .email(this.email)
+                .password(this.password)
+                .createdAt(this.getCreatedAt())
+                .updatedAt(this.getUpdatedAt())
+                .deleteAt(this.getDeleteAt())
+                .build();
+    }
 }
