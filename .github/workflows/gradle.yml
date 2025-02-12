@@ -10,50 +10,77 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        
-    - name: make application.yml
-      run: |
-        cd ./src/main/resources
-        touch ./application.yml
-        echo "${{ secrets.DATABASE }}" >> ./application.yml
-      shell: bash
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    # gradle을 캐싱 - 시간 단축
-    - name: Gradle Caching
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
-    
-    - name: Grant Execute Permission For Gradlew
-      run: chmod +x gradlew
+      - name: make application.yml
+        run: |
+          cd ./src/main/resources
+          touch ./application.yml
+          echo "DATABASE=${{ secrets.DATABASE }}" > ./application.yml
+        shell: bash
 
-    - name: Build With Gradle
-      run: ./gradlew build -x test
+      # gradle을 캐싱 - 시간 단축
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant Execute Permission For Gradlew
+        run: chmod +x gradlew
+
+      - name: Build With Gradle
+        run: ./gradlew build -x test
       
-    # build Test
-    - name: 테스트 코드 실행
-      run: ./gradlew --info test
+      # build Test
+      - name: 테스트 코드 실행
+        run: ./gradlew --info test
 
-    - name: Publish Unit Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v1
-      if: ${{ always() }}
-      with:
-        files: build/test-results/**/*.xml
-        
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v3
-      if: success() || failure() # always run even if the previous step fails
-      with:
-        report_paths: '**/build/test-results/test/TEST-*.xml'
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: ${{ always() }}
+        with:
+          files: build/test-results/**/*.xml
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+
+      - name: Docker build & Push
+        run: |
+          docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t ${{ secrets.DOCKER_ID }}/sellect-app .
+          docker push ${{ secrets.DOCKER_ID }}/sellect-app
+
+      - name: Deploy Images with Docker compose
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.EC2_HOST }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          envs: DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME
+          script_stop: true
+          script: |
+            cd /home/ubuntu
+            sudo rm -rf sellect_server
+            git clone https://github.com/2025whynot/sellect_server.git
+            
+            # 최신 docker-compose.yml 가져오기
+            cd /home/ubuntu/compose
+            
+            # Docker compose 실행
+            sudo docker-compose down
+            sudo docker pull ${{ secrets.DOCKER_REPO }}/sellect-app
+            sudo docker-compose up -d
