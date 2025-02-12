@@ -1,8 +1,9 @@
 package com.sellect.server.product.repository;
 
-import com.sellect.server.product.domain.Product;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.sellect.server.product.domain.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +15,7 @@ public class ProductRepositoryImpl implements ProductRepository{
 
     @Override
     public List<Product> saveAll(List<Product> products) {
-        List<ProductEntity> savedEntities = productJpaRepository.saveAll(
+        List<com.sellect.server.product.repository.ProductEntity> savedEntities = productJpaRepository.saveAll(
             products.stream().map(ProductEntity::from).toList()
         );
         return savedEntities.stream().map(ProductEntity::toModel).toList();
@@ -23,5 +24,19 @@ public class ProductRepositoryImpl implements ProductRepository{
     @Override
     public boolean isDuplicateProduct(Long sellerId, String name, LocalDateTime deleteAt) {
         return productJpaRepository.existsBySellerIdAndNameAndDeleteAt(sellerId, name, null);
+    }
+
+    @Override
+    public List<Product> findContainingName(String keyword) {
+        return productJpaRepository.findContainingName(keyword).stream()
+                .map(ProductEntity::toModel)
+                .toList();
+    }
+
+    @Override
+    public List<Product> findByIdIn(List<Long> ids) {
+        return productJpaRepository.findByIdIn(ids).stream()
+                .map(ProductEntity::toModel)
+                .toList();
     }
 }

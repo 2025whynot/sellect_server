@@ -12,8 +12,18 @@ public class FakeCategoryRepository implements CategoryRepository {
     @Override
     public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
         return data.stream()
-            .anyMatch(category -> category.getId().equals(categoryId) &&
-                (deleteAt == null || category.getDeleteAt() == null));
+                .anyMatch(category -> category.getId().equals(categoryId) &&
+                        (deleteAt == null || category.getDeleteAt() == null));
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        return false;
+    }
+
+    @Override
+    public List<Category> findContainingName(String keyword) {
+        return List.of();
     }
 
     public void save(Category category) {

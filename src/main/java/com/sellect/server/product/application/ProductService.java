@@ -24,7 +24,7 @@ public class ProductService {
     // todo : 이미지 고려 안 함 아직 S3 없음
     @Transactional
     public ProductRegisterResponse registerMultiple(Long sellerId,
-        List<ProductRegisterRequest> requests) {
+                                                    List<ProductRegisterRequest> requests) {
         List<Product> successProducts = new ArrayList<>();
         List<ProductRegisterFailureResponse> failedProducts = new ArrayList<>();
 
@@ -35,7 +35,7 @@ public class ProductService {
             // 요청 내 상품 기준 중복 검사
             if (!requestProductNames.add(request.name())) {
                 failedProducts.add(
-                    ProductRegisterFailureResponse.from(request.name(), "요청 내 중복된 상품명")
+                        ProductRegisterFailureResponse.from(request.name(), "요청 내 중복된 상품명")
                 );
                 continue;
             }
@@ -43,28 +43,28 @@ public class ProductService {
             // 존재하지 않는 카테고리 체크
             if (!categoryRepository.isExistCategory(request.categoryId(), null)) {
                 System.out.println(
-                    categoryRepository.isExistCategory(request.categoryId(), null));
+                        categoryRepository.isExistCategory(request.categoryId(), null));
                 failedProducts.add(
-                    ProductRegisterFailureResponse.from(request.name(), "존재하지 않는 카테고리"));
+                        ProductRegisterFailureResponse.from(request.name(), "존재하지 않는 카테고리"));
                 continue;
             }
 
             // 등록된 상품 기준 중복 검사 (sellerId, productName 기준)
             if (productRepository.isDuplicateProduct(sellerId, request.name(), null)) {
                 failedProducts.add(
-                    ProductRegisterFailureResponse.from(request.name(), "중복 상품"));
+                        ProductRegisterFailureResponse.from(request.name(), "중복 상품"));
                 continue;
             }
 
             // todo : 상품당 이미지는 필수
 
             successProducts.add(Product.register(
-                sellerId,
-                request.categoryId(),
-                request.brandId(),
-                request.getPriceAsBigDecimal(), // String -> BigDecimal 변환
-                request.name(),
-                request.stock()
+                    sellerId,
+                    request.categoryId(),
+                    request.brandId(),
+                    request.getPriceAsBigDecimal(), // String -> BigDecimal 변환
+                    request.name(),
+                    request.stock()
             ));
 
         }

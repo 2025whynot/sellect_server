@@ -30,6 +30,6 @@ public class ProductController {
 
         ProductRegisterResponse result = productService.registerMultiple(sellerId,
             requests);
-        return ApiResponse.OK(result);
+        return ApiResponse.ok(result);
     }
 }

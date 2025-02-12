@@ -1,6 +1,7 @@
-package com.sellect.server.tmp.service;
+package com.sellect.server.search.service;
 
-import com.sellect.server.tmp.entity.Product;
+
+import com.sellect.server.product.domain.Product;
 
 import java.util.List;
 

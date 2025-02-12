@@ -20,7 +20,7 @@ class ProductServiceTest {
     private final FakeProductRepository productRepository = new FakeProductRepository();
     private final FakeCategoryRepository categoryRepository = new FakeCategoryRepository();
     private final ProductService productService = new ProductService(productRepository,
-        categoryRepository);
+            categoryRepository);
 
     @BeforeEach
     void setUp() {
@@ -38,12 +38,12 @@ class ProductServiceTest {
             // Given
             Long sellerId = 1L;
             categoryRepository.save(Category.builder()
-                .id(10L)
-                .build());
+                    .id(10L)
+                    .build());
 
             List<ProductRegisterRequest> requests = List.of(
-                new ProductRegisterRequest(10L, 1L, "10000", "상품A", 10),
-                new ProductRegisterRequest(10L, 2L, "20000", "상품B", 20)
+                    new ProductRegisterRequest(10L, 1L, "10000", "상품A", 10),
+                    new ProductRegisterRequest(10L, 2L, "20000", "상품B", 20)
             );
 
             // When
@@ -60,12 +60,12 @@ class ProductServiceTest {
             // Given
             Long sellerId = 1L;
             categoryRepository.save(Category.builder()
-                .id(10L)
-                .build());
+                    .id(10L)
+                    .build());
 
             List<ProductRegisterRequest> requests = List.of(
-                new ProductRegisterRequest(10L, 1L, "10000", "상품A", 10),
-                new ProductRegisterRequest(10L, 2L, "20000", "상품A", 20) // 중복된 상품명
+                    new ProductRegisterRequest(10L, 1L, "10000", "상품A", 10),
+                    new ProductRegisterRequest(10L, 2L, "20000", "상품A", 20) // 중복된 상품명
             );
 
             // When
@@ -84,7 +84,7 @@ class ProductServiceTest {
             Long sellerId = 1L;
 
             List<ProductRegisterRequest> requests = List.of(
-                new ProductRegisterRequest(999L, 1L, "10000", "상품A", 10) // 존재하지 않는 카테고리
+                    new ProductRegisterRequest(999L, 1L, "10000", "상품A", 10) // 존재하지 않는 카테고리
             );
 
             // When
@@ -102,22 +102,22 @@ class ProductServiceTest {
             // Given
             Long sellerId = 1L;
             categoryRepository.save(Category.builder()
-                .id(10L)
-                .build());
+                    .id(10L)
+                    .build());
 
             productRepository.save(
-                Product.builder()
-                    .sellerId(sellerId)
-                    .categoryId(10L)
-                    .brandId(1L)
-                    .price(new BigDecimal("10000"))
-                    .name("상품A")
-                    .stock(10)
-                    .build()
+                    Product.builder()
+                            .sellerId(sellerId)
+                            .categoryId(10L)
+                            .brandId(1L)
+                            .price(new BigDecimal("10000"))
+                            .name("상품A")
+                            .stock(10)
+                            .build()
             );
 
             List<ProductRegisterRequest> requests = List.of(
-                new ProductRegisterRequest(10L, 1L, "20000", "상품A", 20) // 중복된 상품명
+                    new ProductRegisterRequest(10L, 1L, "20000", "상품A", 20) // 중복된 상품명
             );
 
             // When

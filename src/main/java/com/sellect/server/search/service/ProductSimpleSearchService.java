@@ -1,11 +1,11 @@
-package com.sellect.server.tmp.service;
+package com.sellect.server.search.service;
 
+import com.sellect.server.category.domain.Category;
+import com.sellect.server.category.repository.CategoryRepository;
+import com.sellect.server.product.domain.Product;
+import com.sellect.server.product.repository.ProductRepository;
 import com.sellect.server.tmp.entity.Brand;
-import com.sellect.server.tmp.entity.Category;
-import com.sellect.server.tmp.entity.Product;
 import com.sellect.server.tmp.repository.BrandRepository;
-import com.sellect.server.tmp.repository.CategoryRepository;
-import com.sellect.server.tmp.repository.ProductTempRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductSimpleSearchService implements ProductSearchService {
 
-    private final ProductTempRepository productRepository;
+    private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
 

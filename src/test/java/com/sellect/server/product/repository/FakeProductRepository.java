@@ -18,9 +18,19 @@ public class FakeProductRepository implements ProductRepository {
     @Override
     public boolean isDuplicateProduct(Long sellerId, String name, LocalDateTime deleteAt) {
         return data.stream()
-            .anyMatch(product -> product.getSellerId().equals(sellerId) &&
-                product.getName().equals(name) &&
-                (deleteAt == null || product.getDeleteAt() == null));
+                .anyMatch(product -> product.getSellerId().equals(sellerId) &&
+                        product.getName().equals(name) &&
+                        (deleteAt == null || product.getDeleteAt() == null));
+    }
+
+    @Override
+    public List<Product> findContainingName(String keyword) {
+        return List.of();
+    }
+
+    @Override
+    public List<Product> findByIdIn(List<Long> ids) {
+        return List.of();
     }
 
     public List<Product> save(Product product) {

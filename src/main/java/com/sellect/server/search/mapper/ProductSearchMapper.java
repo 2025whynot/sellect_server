@@ -1,7 +1,7 @@
-package com.sellect.server.tmp.mapper;
+package com.sellect.server.search.mapper;
 
-import com.sellect.server.tmp.dto.response.ProductSearchResponse;
-import com.sellect.server.tmp.entity.Product;
+import com.sellect.server.product.domain.Product;
+import com.sellect.server.search.controller.response.ProductSearchResponse;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
