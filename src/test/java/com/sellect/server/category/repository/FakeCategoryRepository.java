@@ -18,17 +18,22 @@ public class FakeCategoryRepository implements CategoryRepository {
 
     @Override
     public boolean existsByName(String name) {
-        return false;
+        return data.stream()
+                .anyMatch(category -> category.getName().equals(name));
     }
 
     @Override
     public List<Category> findContainingName(String keyword) {
-        return List.of();
+        return data.stream()
+                .filter(category -> category.getName().contains(keyword))
+                .toList();
     }
 
     @Override
     public Category findByName(String name) {
-        return null;
+        return data.stream()
+                .filter(category -> category.getName().equals(name))
+                .findFirst().orElse(null);
     }
 
     public void save(Category category) {
