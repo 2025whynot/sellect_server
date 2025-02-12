@@ -20,4 +20,10 @@ public class SellerAuthRepositoryImpl implements SellerAuthRepository {
         SellerAuthEntity sellerAuthEntity = SellerAuthEntity.from(sellerEntity, sellerAuth);
         sellerAuthJpaRepository.save(sellerAuthEntity);
     }
+
+    @Override
+    public SellerAuth findByEmail(String email) {
+        SellerAuthEntity sellerAuth = sellerAuthJpaRepository.findByEmail(email).orElseThrow();
+        return sellerAuth.toModel();
+    }
 }

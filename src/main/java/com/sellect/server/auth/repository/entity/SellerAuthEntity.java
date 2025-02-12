@@ -37,5 +37,17 @@ public class SellerAuthEntity extends BaseTimeEntity {
                 .deleteAt(sellerAuth.getDeleteAt())
                 .build();
     }
+
+    public SellerAuth toModel(){
+        return SellerAuth.builder()
+                .id(this.id)
+                .seller(this.seller.toModel())
+                .email(this.email)
+                .password(this.password)
+                .createdAt(this.getCreatedAt())
+                .updatedAt(this.getUpdatedAt())
+                .deleteAt(this.getDeleteAt())
+                .build();
+    }
 }
 

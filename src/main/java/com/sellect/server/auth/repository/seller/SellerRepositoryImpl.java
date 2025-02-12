@@ -22,4 +22,10 @@ public class SellerRepositoryImpl implements SellerRepository {
         SellerEntity result = sellerJpaRepository.save(sellerEntity);
         return result.toModel();
     }
+
+    @Override
+    public Seller findById(Long id) {
+        SellerEntity sellerEntity = sellerJpaRepository.findById(id).orElseThrow();
+        return sellerEntity.toModel();
+    }
 }

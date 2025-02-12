@@ -53,5 +53,19 @@ public class AuthController {
         return ApiResponse.ok(null);
     }
 
+    @PostMapping("/seller/login")
+    public ResponseEntity<Void> sellerLogin(@RequestBody LoginRequest request, HttpServletResponse response) {
+        String accessToken = sellerAuthService.login(request);
+        ResponseCookie cookie = ResponseCookie.from("access_token", accessToken)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(Duration.ofMinutes(60))
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(null);
+    }
 
 }
