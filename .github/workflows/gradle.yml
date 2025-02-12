@@ -81,5 +81,5 @@ jobs:
 
             # Docker compose 실행
             sudo docker-compose down
-            sudo docker pull ${{ secrets.DOCKER_REPO }}/sellect-app
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
             sudo docker-compose up -d
