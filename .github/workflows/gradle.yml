@@ -71,15 +71,14 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           envs: DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME
-          script_stop: true
           script: |
             cd /home/ubuntu
             sudo rm -rf sellect_server
             git clone https://github.com/2025whynot/sellect_server.git
-            
+
             # 최신 docker-compose.yml 가져오기
             cd /home/ubuntu/compose
-            
+
             # Docker compose 실행
             sudo docker-compose down
             sudo docker pull ${{ secrets.DOCKER_REPO }}/sellect-app
