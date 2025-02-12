@@ -1,13 +1,16 @@
 package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Product;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -50,5 +53,15 @@ public class ProductRepositoryImpl implements ProductRepository{
     public Page<Product> findByIdIn(List<Long> ids, Pageable pageable) {
         return productJpaRepository.findByIdIn(ids, pageable)
                 .map(ProductEntity::toModel);
+    }
+  
+    public Optional<Product> findById(Long productId) {
+        return productJpaRepository.findByIdAndDeleteAt(productId, null)
+            .map(ProductEntity::toModel);
+    }
+
+    @Override
+    public Product save(Product product) {
+        return productJpaRepository.save(ProductEntity.from(product)).toModel();
     }
 }

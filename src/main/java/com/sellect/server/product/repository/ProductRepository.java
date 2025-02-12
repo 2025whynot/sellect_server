@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductRepository {
 
@@ -23,4 +24,8 @@ public interface ProductRepository {
 
     Page<Product> findByIdIn(List<Long> ids, Pageable pageable);
 
+    // 상품 단건 조회
+    Optional<Product> findById(Long productId);
+
+    Product save(Product product);
 }
