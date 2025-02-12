@@ -105,15 +105,17 @@ class ProductServiceTest {
                 .id(10L)
                 .build());
 
-            productRepository.save(
-                Product.builder()
-                    .sellerId(sellerId)
-                    .categoryId(10L)
-                    .brandId(1L)
-                    .price(new BigDecimal("10000"))
-                    .name("상품A")
-                    .stock(10)
-                    .build()
+            productRepository.saveAll(
+                List.of(
+                    Product.builder()
+                        .sellerId(sellerId)
+                        .categoryId(10L)
+                        .brandId(1L)
+                        .price(new BigDecimal("10000"))
+                        .name("상품A")
+                        .stock(10)
+                        .build()
+                )
             );
 
             List<ProductRegisterRequest> requests = List.of(

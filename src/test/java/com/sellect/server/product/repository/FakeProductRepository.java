@@ -4,6 +4,7 @@ import com.sellect.server.product.domain.Product;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FakeProductRepository implements ProductRepository {
 
@@ -23,10 +24,18 @@ public class FakeProductRepository implements ProductRepository {
                 (deleteAt == null || product.getDeleteAt() == null));
     }
 
-    public List<Product> save(Product product) {
-        data.add(product);
-        return new ArrayList<>(data);
+    // todo : 상품 수정 테스트 시 구현
+    @Override
+    public Optional<Product> findById(Long productId) {
+        return Optional.empty();
     }
+
+    // todo: 상품 수정 테스트 시 구현
+    @Override
+    public Product save(Product product) {
+        return null;
+    }
+
 
     public List<Product> findAll() {
         return new ArrayList<>(data);
