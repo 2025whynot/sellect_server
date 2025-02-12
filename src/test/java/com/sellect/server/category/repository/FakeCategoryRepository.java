@@ -26,6 +26,11 @@ public class FakeCategoryRepository implements CategoryRepository {
         return List.of();
     }
 
+    @Override
+    public Category findByName(String name) {
+        return null;
+    }
+
     public void save(Category category) {
         data.add(category);
     }

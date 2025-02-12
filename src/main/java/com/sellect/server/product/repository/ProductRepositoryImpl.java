@@ -1,11 +1,11 @@
 package com.sellect.server.product.repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.sellect.server.product.domain.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,6 +29,20 @@ public class ProductRepositoryImpl implements ProductRepository{
     @Override
     public List<Product> findContainingName(String keyword) {
         return productJpaRepository.findContainingName(keyword).stream()
+                .map(ProductEntity::toModel)
+                .toList();
+    }
+
+    @Override
+    public List<Product> findByCategoryId(Long categoryId) {
+        return productJpaRepository.findByCategoryId(categoryId).stream()
+                .map(ProductEntity::toModel)
+                .toList();
+    }
+
+    @Override
+    public List<Product> findByBrandId(Long brandId) {
+        return productJpaRepository.findByBrandId(brandId).stream()
                 .map(ProductEntity::toModel)
                 .toList();
     }

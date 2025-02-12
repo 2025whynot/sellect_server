@@ -2,8 +2,8 @@ package com.sellect.server.category.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-import com.sellect.server.category.domain.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,5 +17,8 @@ public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, Lon
     boolean existsByName(String name);
 
     @Query("SELECT c FROM CategoryEntity c where c.name LIKE %:keyword%")
-    List<Category> findContainingName(@Param("keyword") String keyword);
+    List<CategoryEntity> findContainingName(@Param("keyword") String keyword);
+
+    Optional<CategoryEntity> findByName(String name);
+
 }

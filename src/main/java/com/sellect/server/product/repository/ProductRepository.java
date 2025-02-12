@@ -15,6 +15,10 @@ public interface ProductRepository {
 
     List<Product> findContainingName(String keyword);
 
+    List<Product> findByCategoryId(Long categoryId);
+
+    List<Product> findByBrandId(Long brandId);
+
     List<Product> findByIdIn(List<Long> ids);
 
 }

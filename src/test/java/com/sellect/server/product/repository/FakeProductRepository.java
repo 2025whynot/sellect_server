@@ -29,6 +29,16 @@ public class FakeProductRepository implements ProductRepository {
     }
 
     @Override
+    public List<Product> findByCategoryId(Long categoryId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Product> findByBrandId(Long brandId) {
+        return List.of();
+    }
+
+    @Override
     public List<Product> findByIdIn(List<Long> ids) {
         return List.of();
     }

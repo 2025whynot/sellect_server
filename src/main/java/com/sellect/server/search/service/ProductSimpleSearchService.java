@@ -1,8 +1,6 @@
 package com.sellect.server.search.service;
 
-import com.sellect.server.brand.domain.Brand;
 import com.sellect.server.brand.repository.BrandRepository;
-import com.sellect.server.category.domain.Category;
 import com.sellect.server.category.repository.CategoryRepository;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.ProductRepository;
@@ -39,19 +37,13 @@ public class ProductSimpleSearchService implements ProductSearchService {
     }
 
     private List<Product> searchByCategory(String keyword) {
-        List<Long> categoryIds = categoryRepository.findContainingName(keyword)
-                .stream()
-                .map(Category::getId)
-                .toList();
-        return productRepository.findByIdIn(categoryIds);
+        Long categoryId = categoryRepository.findByName(keyword).getId();
+        return productRepository.findByCategoryId(categoryId);
     }
 
     private List<Product> searchByBrand(String keyword) {
-        List<Long> brandIds = brandRepository.findContainingName(keyword)
-                .stream()
-                .map(Brand::getId)
-                .toList();
-        return productRepository.findByIdIn(brandIds);
+        Long brandId = brandRepository.findByName(keyword).getId();
+        return productRepository.findByBrandId(brandId);
     }
 
 }

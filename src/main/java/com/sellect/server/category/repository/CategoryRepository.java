@@ -12,4 +12,6 @@ public interface CategoryRepository {
     boolean existsByName(String name);
 
     List<Category> findContainingName(String keyword);
+
+    Category findByName(String name);
 }

@@ -15,6 +15,10 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     @Query("SELECT p FROM ProductEntity p where p.name LIKE %:keyword%")
     List<ProductEntity> findContainingName(@Param("keyword") String keyword);
 
+    List<ProductEntity> findByCategoryId(Long categoryId);
+
+    List<ProductEntity> findByBrandId(Long brandId);
+
     List<ProductEntity> findByIdIn(List<Long> ids);
 
 }
