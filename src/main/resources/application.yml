@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sellect_db_dev
+    username: root
+    password: local_admin
+  jpa:
+    show-sql: true # SQL 쿼리 로그 출력
+    properties:
+      hibernate:
+        format_sql: true # SQL 쿼리 로그를 보기 좋게 포맷팅
+        dialect: org.hibernate.dialect.MySQL8Dialect

@@ -1,7 +1,7 @@
 package com.sellect.server.common.response;
 
 import com.sellect.server.common.exception.CommonException;
-import com.sellect.server.common.exception.enums.ErrorCode;
+import com.sellect.server.common.exception.util.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,22 +19,22 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ErrorResponse {
 
-	private String message;
 	private int status;
-	private List<FieldError> errors;
 	private String code;
+	private String message;
+	private List<FieldError> errors;
 
 	private ErrorResponse(final ErrorCode code, final List<FieldError> errors) {
-		this.message = code.getMessage();
 		this.status = code.getStatus();
-		this.errors = errors;
 		this.code = code.getCode();
+		this.message = code.getMessage();
+		this.errors = errors;
 	}
 
 	private ErrorResponse(final ErrorCode code) {
-		this.message = code.getMessage();
 		this.status = code.getStatus();
 		this.code = code.getCode();
+		this.message = code.getMessage();
 		this.errors = new ArrayList<>();
 	}
 
@@ -57,11 +57,11 @@ public class ErrorResponse {
 	public static ErrorResponse of(MethodArgumentTypeMismatchException e) {
 		final String value = e.getValue() == null ? "" : e.getValue().toString();
 		final List<FieldError> errors = FieldError.of(e.getName(), value, e.getErrorCode());
-		return new ErrorResponse(ErrorCode.INVALID_TYPE_VALUE, errors);
+		return new ErrorResponse(ErrorCode.INVALID_VALUE_TYPE, errors);
 	}
 
 	public static ErrorResponse of(HttpMessageNotReadableException e) {
-		return new ErrorResponse(ErrorCode.INVALID_TYPE_VALUE);
+		return new ErrorResponse(ErrorCode.INVALID_VALUE_TYPE);
 	}
 
 	public static ErrorResponse of(CommonException e) {

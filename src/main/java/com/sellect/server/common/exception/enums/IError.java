@@ -1,21 +1,21 @@
 package com.sellect.server.common.exception.enums;
 
+
 import com.sellect.server.common.exception.util.ErrMsgUtil;
 
-// for Internal Error (not for user api)
 public enum IError implements Error {
 
-	RESOURCE_NOT_EXIST("I000", "resource is not Exist"),
-	RESOURCE_NOT_ALIVE("I001", "resource is not Alive"),
-	GROUP_NOT_EXIST("I010", "group is not Exist"),
-	AGENT_NOT_EXIST("I020", "agent is not Exist"),
-	AGENT_NOT_ALIVE("I021", "agent is not Alive"),
-	PARAMETER_NOT_EXIST("I030", "parameter is not Exist"),
-	FIELD_NOT_EXIST("I040", "field is not Exist"),
-	FIELD_NOT_ALLOWED("I042", "field is not Allowed");
+	RESOURCE_NOT_EXIST("I000", "resource does not exist"),
+	RESOURCE_NOT_ALIVE("I001", "resource is not alive"),
+	GROUP_NOT_EXIST("I010", "group does not exist"),
+	AGENT_NOT_EXIST("I020", "agent does not exist"),
+	AGENT_NOT_ALIVE("I021", "agent is not alive"),
+	PARAMETER_NOT_EXIST("I030", "parameter does not exist"),
+	FIELD_NOT_EXIST("I040", "field does not exist"),
+	FIELD_NOT_ALLOWED("I042", "field is not allowed");
 
-	private String errCode;
-	private String msg;
+	private final String errCode;
+	private final String msg;
 
 	@Override
 	public String getCode() {
