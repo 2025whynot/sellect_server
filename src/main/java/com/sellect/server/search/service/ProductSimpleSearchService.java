@@ -1,11 +1,11 @@
 package com.sellect.server.search.service;
 
+import com.sellect.server.brand.domain.Brand;
+import com.sellect.server.brand.repository.BrandRepository;
 import com.sellect.server.category.domain.Category;
 import com.sellect.server.category.repository.CategoryRepository;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.ProductRepository;
-import com.sellect.server.tmp.entity.Brand;
-import com.sellect.server.tmp.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
