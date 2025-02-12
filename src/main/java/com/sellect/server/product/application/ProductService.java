@@ -105,4 +105,19 @@ public class ProductService {
 
         return ProductModifyResponse.from(modifiedProduct);
     }
+
+    @Transactional
+    public void remove(Long sellerId, Long productId) {
+
+        // 삭제할 상품이 존재하는지 확인
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new RuntimeException("상품이 존제하지 않습니다."));
+
+        // 유저의 상품이 맞는지 확인
+        if (!product.getSellerId().equals(sellerId)) {
+            throw new RuntimeException("상품을 수정할 권한이 없습니다.");
+        }
+
+        productRepository.save(product.remove());
+    }
 }
