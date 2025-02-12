@@ -61,8 +61,8 @@ jobs:
       - name: Docker build & Push
         run: |
           docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t ${{ secrets.DOCKER_ID }}/sellect-app .
-          docker push ${{ secrets.DOCKER_ID }}/sellect-app
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/sellect-app .
+          docker push ${{ secrets.DOCKER_USERNAME }}/sellect-app
 
       - name: Deploy Images with Docker compose
         uses: appleboy/ssh-action@master
