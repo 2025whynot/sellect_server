@@ -1,6 +1,8 @@
 package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,12 +15,12 @@ public interface ProductRepository {
     boolean isDuplicateProduct(Long sellerId, String name,
         LocalDateTime deleteAt);
 
-    List<Product> findContainingName(String keyword);
+    Page<Product> findContainingName(String keyword, Pageable pageable);
 
-    List<Product> findByCategoryId(Long categoryId);
+    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
 
-    List<Product> findByBrandId(Long brandId);
+    Page<Product> findByBrandId(Long brandId, Pageable pageable);
 
-    List<Product> findByIdIn(List<Long> ids);
+    Page<Product> findByIdIn(List<Long> ids, Pageable pageable);
 
 }

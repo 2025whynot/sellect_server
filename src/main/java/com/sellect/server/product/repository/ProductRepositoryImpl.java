@@ -2,6 +2,8 @@ package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Product;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -27,30 +29,26 @@ public class ProductRepositoryImpl implements ProductRepository{
     }
 
     @Override
-    public List<Product> findContainingName(String keyword) {
-        return productJpaRepository.findContainingName(keyword).stream()
-                .map(ProductEntity::toModel)
-                .toList();
+    public Page<Product> findContainingName(String keyword, Pageable pageable) {
+        return productJpaRepository.findContainingName(keyword, pageable)
+                .map(ProductEntity::toModel);
     }
 
     @Override
-    public List<Product> findByCategoryId(Long categoryId) {
-        return productJpaRepository.findByCategoryId(categoryId).stream()
-                .map(ProductEntity::toModel)
-                .toList();
+    public Page<Product> findByCategoryId(Long categoryId, Pageable pageable) {
+        return productJpaRepository.findByCategoryId(categoryId, pageable)
+                .map(ProductEntity::toModel);
     }
 
     @Override
-    public List<Product> findByBrandId(Long brandId) {
-        return productJpaRepository.findByBrandId(brandId).stream()
-                .map(ProductEntity::toModel)
-                .toList();
+    public Page<Product> findByBrandId(Long brandId, Pageable pageable) {
+        return productJpaRepository.findByBrandId(brandId, pageable)
+                .map(ProductEntity::toModel);
     }
 
     @Override
-    public List<Product> findByIdIn(List<Long> ids) {
-        return productJpaRepository.findByIdIn(ids).stream()
-                .map(ProductEntity::toModel)
-                .toList();
+    public Page<Product> findByIdIn(List<Long> ids, Pageable pageable) {
+        return productJpaRepository.findByIdIn(ids, pageable)
+                .map(ProductEntity::toModel);
     }
 }

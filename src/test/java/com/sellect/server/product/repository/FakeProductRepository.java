@@ -1,6 +1,9 @@
 package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,23 +27,23 @@ public class FakeProductRepository implements ProductRepository {
     }
 
     @Override
-    public List<Product> findContainingName(String keyword) {
-        return List.of();
+    public Page<Product> findContainingName(String keyword, Pageable pageable) {
+        return null;
     }
 
     @Override
-    public List<Product> findByCategoryId(Long categoryId) {
-        return List.of();
+    public Page<Product> findByCategoryId(Long categoryId, Pageable pageable) {
+        return null;
     }
 
     @Override
-    public List<Product> findByBrandId(Long brandId) {
-        return List.of();
+    public Page<Product> findByBrandId(Long brandId, Pageable pageable) {
+        return null;
     }
 
     @Override
-    public List<Product> findByIdIn(List<Long> ids) {
-        return List.of();
+    public Page<Product> findByIdIn(List<Long> ids, Pageable pageable) {
+        return null;
     }
 
     public List<Product> save(Product product) {
