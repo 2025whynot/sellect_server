@@ -20,6 +20,11 @@ public record ApiResponse<T>(
         return new ApiResponse<>(true, 200, "", "", null, result);
     }
 
+    // 요청에 성공한 경우 - noContent 일 경우
+    public static <T> ApiResponse<T> ok() {
+        return new ApiResponse<>(true, 200, "", "", null, null);
+    }
+
     //요청에 실패한 경우
     public static <T> ApiResponse<T> onFailure(ErrorResponse errorResponse, HttpStatus httpStatus) {
         return new ApiResponse<>(

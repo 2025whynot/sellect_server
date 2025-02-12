@@ -24,16 +24,26 @@ public class FakeProductRepository implements ProductRepository {
                 (deleteAt == null || product.getDeleteAt() == null));
     }
 
-    // todo : 상품 수정 테스트 시 구현
     @Override
     public Optional<Product> findById(Long productId) {
-        return Optional.empty();
+        return data.stream()
+            .filter(product -> product.getId().equals(productId))
+            .filter(product -> product.getDeleteAt() == null)
+            .findFirst();
     }
 
-    // todo: 상품 수정 테스트 시 구현
     @Override
     public Product save(Product product) {
-        return null;
+        findById(product.getId()).ifPresentOrElse(
+            existingProduct -> {
+                // 기존 데이터 업데이트 (삭제 후 재등록)
+                data.remove(existingProduct);
+                data.add(product);
+            },
+            () -> data.add(product) // 새로운 데이터 추가
+        );
+
+        return product;
     }
 
 

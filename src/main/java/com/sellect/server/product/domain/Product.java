@@ -81,7 +81,7 @@ public class Product {
     /**
      * 삭제 상태로 변경 후 새로운 Product 인스턴스를 반환 (불변성 유지)
      */
-    public Product markAsDeleted() {
+    public Product remove() {
         return Product.builder()
             .id(this.id)
             .sellerId(this.sellerId)
