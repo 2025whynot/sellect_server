@@ -1,5 +1,6 @@
 package com.sellect.server.auth.controller;
 
+import com.sellect.server.auth.controller.application.SellerAuthService;
 import com.sellect.server.auth.controller.application.UserAuthService;
 import com.sellect.server.auth.controller.request.UserSignUpRequest;
 import com.sellect.server.common.response.ApiResponse;
@@ -15,10 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/auth")
 public class AuthController {
     private final UserAuthService userAuthService;
+    private final SellerAuthService sellerAuthService;
 
     @PostMapping("/signup")
     public ApiResponse<Void> signup(@RequestBody UserSignUpRequest request) {
         userAuthService.signUp(request);
+        return ApiResponse.ok(null);
+    }
+
+
+    @PostMapping("/seller/signup")
+    public ApiResponse<Void> sellerSignUp(@RequestBody UserSignUpRequest request) {
+        sellerAuthService.signUp(request);
         return ApiResponse.ok(null);
     }
 
