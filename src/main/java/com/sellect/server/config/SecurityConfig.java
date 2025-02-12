@@ -23,7 +23,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/auth/signup").permitAll()
+                        .requestMatchers("/v1/auth/login").permitAll()
                         .requestMatchers("/v1/auth/seller/signup").permitAll()
+                        .requestMatchers("/v1/auth/seller/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)// HTTP Basic 인증 비활성화
