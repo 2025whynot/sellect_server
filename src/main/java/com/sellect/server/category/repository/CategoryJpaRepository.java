@@ -12,13 +12,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CategoryJpaRepository extends JpaRepository<CategoryEntity, Long> {
 
-    boolean existsByIdAndDeleteAt(Long categoryId, LocalDateTime deleteAt);
+  boolean existsByIdAndDeleteAt(Long categoryId, LocalDateTime deleteAt);
 
-    boolean existsByName(String name);
+  boolean existsByName(String name);
 
-    @Query("SELECT c FROM CategoryEntity c where c.name LIKE %:keyword%")
-    List<CategoryEntity> findContainingName(@Param("keyword") String keyword);
+  @Query("SELECT c FROM CategoryEntity c where c.name LIKE %:keyword%")
+  List<CategoryEntity> findContainingName(@Param("keyword") String keyword);
 
-    Optional<CategoryEntity> findByName(String name);
+  Optional<CategoryEntity> findByName(String name);
 
 }

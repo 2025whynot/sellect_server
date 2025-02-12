@@ -7,5 +7,5 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface ProductSearchMapper {
 
-    ProductSearchResponse toProductSearchResponse(Product product);
+  ProductSearchResponse toProductSearchResponse(Product product);
 }

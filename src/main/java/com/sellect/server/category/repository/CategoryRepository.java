@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface CategoryRepository {
 
-    boolean isExistCategory(Long categoryId, LocalDateTime deleteAt);
+  boolean isExistCategory(Long categoryId, LocalDateTime deleteAt);
 
-    boolean existsByName(String name);
+  boolean existsByName(String name);
 
-    List<Category> findContainingName(String keyword);
+  List<Category> findContainingName(String keyword);
 
-    Category findByName(String name);
+  Category findByName(String name);
 }

@@ -19,20 +19,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ProductSearchController {
 
-    private final ProductSearchService productSearchService;
-    private final ProductSearchMapper productSearchMapper;
+  private final ProductSearchService productSearchService;
+  private final ProductSearchMapper productSearchMapper;
 
-    @GetMapping
-    public ApiResponse<Page<ProductSearchResponse>> searchByKeyword(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(value = "sort_prop", defaultValue = "id") String sortProp,
-            @RequestParam(value = "sort_type", defaultValue = "desc") String sortType
-    ) {
-        // TODO: page 사이즈 하드코딩 제거 및 최댓값 설정
-        PageRequest pageRequest = PageRequest.of(page, 10, Sort.by(Sort.Direction.fromString(sortType), sortProp));
-        Page<Product> products = productSearchService.searchByKeyword(keyword, pageRequest);
-        return ApiResponse.ok(products.map(productSearchMapper::toProductSearchResponse));
-    }
+  @GetMapping
+  public ApiResponse<Page<ProductSearchResponse>> searchByKeyword(
+      @RequestParam String keyword,
+      @RequestParam(defaultValue = "0") Integer page,
+      @RequestParam(value = "sort_prop", defaultValue = "id") String sortProp,
+      @RequestParam(value = "sort_type", defaultValue = "desc") String sortType
+  ) {
+    // TODO: page 사이즈 하드코딩 제거 및 최댓값 설정
+    PageRequest pageRequest = PageRequest.of(page, 10,
+        Sort.by(Sort.Direction.fromString(sortType), sortProp));
+    Page<Product> products = productSearchService.searchByKeyword(keyword, pageRequest);
+    return ApiResponse.ok(products.map(productSearchMapper::toProductSearchResponse));
+  }
 
 }

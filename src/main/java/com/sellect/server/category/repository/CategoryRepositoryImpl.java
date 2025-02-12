@@ -14,31 +14,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryRepositoryImpl implements CategoryRepository {
 
-    private final CategoryJpaRepository categoryJpaRepository;
-    private final CategoryMapper categoryMapper;
+  private final CategoryJpaRepository categoryJpaRepository;
+  private final CategoryMapper categoryMapper;
 
-    @Override
-    public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
-        return categoryJpaRepository.existsByIdAndDeleteAt(categoryId, null);
-    }
+  @Override
+  public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
+    return categoryJpaRepository.existsByIdAndDeleteAt(categoryId, null);
+  }
 
-    @Override
-    public boolean existsByName(String name) {
-        return categoryJpaRepository.existsByName(name);
-    }
+  @Override
+  public boolean existsByName(String name) {
+    return categoryJpaRepository.existsByName(name);
+  }
 
-    @Override
-    public List<Category> findContainingName(String keyword) {
-        return categoryJpaRepository.findContainingName(keyword).stream()
-                .map(categoryMapper::toModel)
-                .toList();
-    }
+  @Override
+  public List<Category> findContainingName(String keyword) {
+    return categoryJpaRepository.findContainingName(keyword).stream()
+        .map(categoryMapper::toModel)
+        .toList();
+  }
 
-    @Override
-    public Category findByName(String name) {
-        CategoryEntity categoryEntity = categoryJpaRepository.findByName(name)
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "category name"));
-        return categoryMapper.toModel(categoryEntity);
-    }
+  @Override
+  public Category findByName(String name) {
+    CategoryEntity categoryEntity = categoryJpaRepository.findByName(name)
+        .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "category name"));
+    return categoryMapper.toModel(categoryEntity);
+  }
 
 }

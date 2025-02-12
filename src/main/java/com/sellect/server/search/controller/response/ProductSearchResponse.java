@@ -4,10 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record ProductSearchResponse(
-        BigDecimal price,
-        String name,
-        Integer stock,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+    BigDecimal price,
+    String name,
+    Integer stock,
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {
+
 }
