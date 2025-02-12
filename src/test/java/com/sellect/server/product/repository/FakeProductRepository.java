@@ -24,7 +24,6 @@ public class FakeProductRepository implements ProductRepository {
                 (deleteAt == null || product.getDeleteAt() == null));
     }
 
-    // todo : 상품 수정 테스트 시 구현
     @Override
     public Optional<Product> findById(Long productId) {
         return data.stream()
@@ -33,7 +32,6 @@ public class FakeProductRepository implements ProductRepository {
             .findFirst();
     }
 
-    // todo: 상품 수정 테스트 시 구현
     @Override
     public Product save(Product product) {
         findById(product.getId()).ifPresentOrElse(
