@@ -74,6 +74,6 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           envs: COMPOSE
           script: |
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
             sudo docker-compose -f $COMPOSE down
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
             sudo docker-compose -f $COMPOSE up -d
