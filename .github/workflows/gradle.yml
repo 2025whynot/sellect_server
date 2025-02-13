@@ -4,31 +4,28 @@ on:
   push:
     branches: [ "feature/cicd" ]
 
+# 테스트 결과 작성을 위해 쓰기권한 추가
 permissions: write-all
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Checkout the code
       - uses: actions/checkout@v3
 
-      # Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Create application.yml file with database details
-      - name: Create application.yml
+      - name: make application.yml
         run: |
           cd ./src/main/resources
           touch ./application.yml
           echo "DATABASE=${{ secrets.DATABASE }}" > ./application.yml
         shell: bash
 
-      # Gradle Caching to speed up build time
+      # gradle을 캐싱 - 시간 단축
       - name: Gradle Caching
         uses: actions/cache@v3
         with:
@@ -39,104 +36,44 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # Grant execute permission for gradlew
       - name: Grant Execute Permission For Gradlew
         run: chmod +x gradlew
 
-      # Build the project using Gradle
       - name: Build With Gradle
         run: ./gradlew build -x test
 
-      # Run tests
-      - name: Run Tests
+      # build Test
+      - name: 테스트 코드 실행
         run: ./gradlew --info test
 
-      # Publish Unit Test Results
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: ${{ always() }}
         with:
           files: build/test-results/**/*.xml
 
-      # Publish Test Report
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v3
-        if: success() || failure()  # always run even if the previous step fails
+        if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
 
-      # Docker build & Push
       - name: Docker build & Push
         run: |
           docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/sellect-app .
           docker push ${{ secrets.DOCKER_USERNAME }}/sellect-app
 
-  # Job for pull request merge to develop branch
-  deploy:
-    if: github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      # Checkout the code
-      - uses: actions/checkout@v4
-
-      # Set up JDK 17
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      # Set up Gradle for optimal use
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
-
-      # Create application-prod.yml file
-      - name: Create application-prod.yml
-        run: |
-          mkdir -p ./src/main/resources
-          cd ./src/main/resources
-          touch ./application.yml
-          echo '${{ secrets.PROPERTIES_PROD }}' > ./application.yml
-        shell: bash
-
-      # Grant execute permission for gradlew
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      # Build with Gradle Wrapper
-      - name: Build with Gradle Wrapper
-        run: ./gradlew build -x test
-
-      # Docker build & push to production
-      - name: Docker build & push to prod
-        run: |
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/hobbiedo-read-only . 
-          docker push ${{ secrets.DOCKER_USERNAME }}/hobbiedo-read-only
-
-      # Deploy Images with Docker Compose to production
-      - name: Deploy Images with Docker compose
+      - name: Deploy
         uses: appleboy/ssh-action@master
         with:
-          username: ubuntu
-          host: ${{ secrets.EC2_HOST }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          envs: DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME
-          script: |
-            cd /home/ubuntu
-            sudo rm -rf sellect_server
-            git clone https://github.com/2025whynot/sellect_server.git
-            mkdir -p /home/ubuntu/compose
-            if [ -f /home/ubuntu/compose/docker-compose.yml ]; then
-              rm /home/ubuntu/compose/docker-compose.yml
-            fi
-            cp /home/ubuntu/sellect_server/docker-compose.yml /home/ubuntu/compose/docker-compose.yml
-            cd /home/ubuntu/compose
-            sudo docker-compose down || true
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
-            sudo docker-compose up -d
-            sudo docker ps -a
+            host: ${{ secrets.EC2_HOST }}
+            username: ubuntu
+            key: ${{ secrets.EC2_PRIVATE_KEY }}
+
+            script: |
+              sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+              sudo docker rm -f $(sudo docker ps -qa) || true
+              sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
+              sudo docker-compose up -d
+              sudo docker image prune -f
