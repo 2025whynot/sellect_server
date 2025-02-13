@@ -72,8 +72,23 @@ jobs:
             key: ${{ secrets.EC2_PRIVATE_KEY }}
 
             script: |
+              set -x  # 모든 명령어 출력 활성화
+              echo "Starting Docker login"
               sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+              echo "Docker login successful"
+              
+              echo "Removing all containers"
               sudo docker rm -f $(sudo docker ps -qa) || true
+              echo "Containers removed (if any)"
+              
+              echo "Pulling latest Docker image"
               sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
+              echo "Docker image pulled successfully"
+
+              echo "Starting containers with docker-compose"
               sudo docker-compose up -d
+              echo "Docker containers started with docker-compose"
+
+              echo "Pruning unused Docker images"
               sudo docker image prune -f
+              echo "Docker image prune completed"
