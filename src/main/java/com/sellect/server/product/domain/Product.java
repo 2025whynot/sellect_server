@@ -23,7 +23,8 @@ public class Product {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
 
-    public static Product register(Long sellerId, Long categoryId, Long brandId, BigDecimal price, String name, Integer stock) {
+    public static Product register(Long sellerId, Long categoryId, Long brandId, BigDecimal price,
+        String name, Integer stock) {
         return Product.builder()
             .sellerId(sellerId)
             .categoryId(categoryId)
@@ -37,9 +38,9 @@ public class Product {
             .build();
     }
 
-
     // todo : 일단 KEEP
     // === 비즈니스 로직 ===
+
     /**
      * 상품 정보 업데이트 메서드
      */

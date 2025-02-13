@@ -16,6 +16,26 @@ public class FakeCategoryRepository implements CategoryRepository {
                 (deleteAt == null || category.getDeleteAt() == null));
     }
 
+    @Override
+    public boolean existsByName(String name) {
+        return data.stream()
+            .anyMatch(category -> category.getName().equals(name));
+    }
+
+    @Override
+    public List<Category> findContainingName(String keyword) {
+        return data.stream()
+            .filter(category -> category.getName().contains(keyword))
+            .toList();
+    }
+
+    @Override
+    public Category findByName(String name) {
+        return data.stream()
+            .filter(category -> category.getName().equals(name))
+            .findFirst().orElse(null);
+    }
+
     public void save(Category category) {
         data.add(category);
     }

@@ -1,10 +1,15 @@
 package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class FakeProductRepository implements ProductRepository {
 
@@ -46,6 +51,37 @@ public class FakeProductRepository implements ProductRepository {
         return product;
     }
 
+    @Override
+    public Page<Product> findContainingName(String keyword, Pageable pageable) {
+        List<Product> findProducts = data.stream()
+            .filter(product -> product.getName().contains(keyword))
+            .collect(Collectors.toList());
+        return new PageImpl<>(findProducts, pageable, findProducts.size());
+    }
+
+    @Override
+    public Page<Product> findByCategoryId(Long categoryId, Pageable pageable) {
+        List<Product> findProducts = data.stream()
+            .filter(product -> product.getCategoryId().equals(categoryId))
+            .collect(Collectors.toList());
+        return new PageImpl<>(findProducts, pageable, findProducts.size());
+    }
+
+    @Override
+    public Page<Product> findByBrandId(Long brandId, Pageable pageable) {
+        List<Product> findProducts = data.stream()
+            .filter(product -> product.getBrandId().equals(brandId))
+            .collect(Collectors.toList());
+        return new PageImpl<>(findProducts, pageable, findProducts.size());
+    }
+
+    @Override
+    public Page<Product> findByIdIn(List<Long> ids, Pageable pageable) {
+        List<Product> findProducts = data.stream()
+            .filter(product -> ids.contains(product.getId()))
+            .collect(Collectors.toList());
+        return new PageImpl<>(findProducts, pageable, findProducts.size());
+    }
 
     public List<Product> findAll() {
         return new ArrayList<>(data);

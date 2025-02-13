@@ -23,28 +23,31 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JsonConfig {
+
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
 
         objectMapper.registerModule(
-                new Jdk8Module()); // jdk 8 버전 이후 클래스들을(ex. Optional 등...) 파싱하거나 serialize, deserialize 하기 위해
+            new Jdk8Module()); // jdk 8 버전 이후 클래스들을(ex. Optional 등...) 파싱하거나 serialize, deserialize 하기 위해
         objectMapper.registerModule(new JavaTimeModule()); // localDate 등...
 
         // java.sql.Time 커스텀 설정
         SimpleModule timeModule = new SimpleModule();
         timeModule.addSerializer(Time.class, new JsonSerializer<>() {
             @Override
-            public void serialize(Time value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            public void serialize(Time value, JsonGenerator gen, SerializerProvider serializers)
+                throws IOException {
                 gen.writeString(value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
             }
         });
         timeModule.addDeserializer(Time.class, new JsonDeserializer<>() {
             @Override
             public Time deserialize(JsonParser p, DeserializationContext ctxt)
-                    throws IOException, JsonProcessingException {
+                throws IOException, JsonProcessingException {
                 String timeString = p.getText();
-                LocalTime localTime = LocalTime.parse(timeString, DateTimeFormatter.ofPattern("HH:mm"));
+                LocalTime localTime = LocalTime.parse(timeString,
+                    DateTimeFormatter.ofPattern("HH:mm"));
                 return Time.valueOf(localTime);
             }
         });
@@ -53,7 +56,7 @@ public class JsonConfig {
         objectMapper.registerModule(timeModule);
 
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                false); // 모르는 json field에 대해서는 무시한다는 뜻 , 즉, 쓸모없는 데이터도 같이 올 경우 에러를 발생할건지, 아니면 무시할건지를 정하는 옵션
+            false); // 모르는 json field에 대해서는 무시한다는 뜻 , 즉, 쓸모없는 데이터도 같이 올 경우 에러를 발생할건지, 아니면 무시할건지를 정하는 옵션
 
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 

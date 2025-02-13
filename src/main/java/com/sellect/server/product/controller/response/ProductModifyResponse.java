@@ -10,6 +10,7 @@ public record ProductModifyResponse(
     Integer stock
 
 ) {
+
     public static ProductModifyResponse from(Product product) {
         return new ProductModifyResponse(
             product.getId(),

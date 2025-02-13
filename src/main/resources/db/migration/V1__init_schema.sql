@@ -6,7 +6,7 @@ CREATE TABLE `cart`
     `stock`      INT      NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -18,7 +18,7 @@ CREATE TABLE `data_user_behavior`
     `purchased`        JSON NULL,
     `created_at`       DATETIME NULL,
     `updated_at`       DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at`       DATETIME NULL
+    `delete_at`        DATETIME NULL
 );
 
 CREATE TABLE `user_received_coupon`
@@ -28,7 +28,7 @@ CREATE TABLE `user_received_coupon`
     `coupon_id`  BIGINT   NOT NULL,
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE `payment`
     `orders_id`  BIGINT         NOT NULL,
     `price`      DECIMAL(10, 2) NOT NULL,
     `created_at` DATETIME NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -50,7 +50,7 @@ CREATE TABLE `category`
     `depth`      TINYINT NULL,
     `created_at` DATETIME NULL,
     `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -61,7 +61,7 @@ CREATE TABLE `review_helpful_vote`
     `user_id`    BIGINT   NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -73,7 +73,7 @@ CREATE TABLE `user_auth`
     `password`   VARCHAR(255) NOT NULL,
     `created_at` DATETIME     NOT NULL,
     `updated_at` DATETIME     NOT NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -86,7 +86,7 @@ CREATE TABLE `product_image`
     `sequence`       INT UNSIGNED NOT NULL,
     `created_at`     DATETIME     NOT NULL,
     `updated_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at`     DATETIME NULL,
+    `delete_at`      DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -97,7 +97,7 @@ CREATE TABLE `preferred_brand`
     `brand_id`   BIGINT NOT NULL,
     `created_at` DATETIME NULL,
     `updated_at` DATETIME NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -107,7 +107,7 @@ CREATE TABLE `brand`
     `name`       VARCHAR(255) NOT NULL,
     `created_at` DATETIME NULL,
     `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -119,7 +119,7 @@ CREATE TABLE `orders`
     `price`                   DECIMAL(10, 2) NOT NULL,
     `order_number`            VARCHAR(50)    NOT NULL,
     `created_at`              DATETIME       NOT NULL,
-    `deleted_at`              DATETIME NULL,
+    `delete_at`               DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -132,7 +132,7 @@ CREATE TABLE `coupon`
     `expired_at`    DATETIME NOT NULL,
     `created_at`    DATETIME NOT NULL,
     `updated_at`    DATETIME NOT NULL,
-    `deleted_at`    DATETIME NULL,
+    `delete_at`     DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -143,7 +143,7 @@ CREATE TABLE `order_item`
     `product_id` BIGINT NOT NULL,
     `quantity`   INT UNSIGNED NOT NULL,
     `created_at` DATETIME NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -154,7 +154,7 @@ CREATE TABLE `seller`
     `nickname`   VARCHAR(255) NOT NULL,
     `created_at` DATETIME     NOT NULL,
     `updated_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -166,7 +166,7 @@ CREATE TABLE `seller_auth`
     `password`   VARCHAR(255) NOT NULL,
     `created_at` DATETIME     NOT NULL,
     `updated_at` DATETIME     NOT NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -181,7 +181,7 @@ CREATE TABLE `product`
     `stock`       INT UNSIGNED NOT NULL,
     `created_at`  DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`  DATETIME       NOT NULL,
-    `deleted_at`  DATETIME NULL,
+    `delete_at`   DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -192,7 +192,7 @@ CREATE TABLE `user`
     `nickname`   VARCHAR(50) NOT NULL,
     `created_at` DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME    NOT NULL,
-    `deleted_at` DATETIME NULL,
+    `delete_at`  DATETIME NULL,
     PRIMARY KEY (`id`)
 );
 
@@ -206,6 +206,6 @@ CREATE TABLE `review`
     `helpful_vote_count` INT NULL,
     `created_at`         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`         DATETIME NOT NULL,
-    `deleted_at`         DATETIME NULL,
+    `delete_at`          DATETIME NULL,
     PRIMARY KEY (`id`)
 );
