@@ -12,8 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long> {
 
-    boolean existsBySellerIdAndNameAndDeleteAt(Long sellerId, String name,
-        LocalDateTime deleteAt);
+    boolean existsBySellerEntityIdAndNameAndDeleteAtIsNull(Long sellerId, String name);
 
     @Query("SELECT p FROM ProductEntity p where p.name LIKE %:keyword%")
     Page<ProductEntity> findContainingName(@Param("keyword") String keyword, Pageable pageable);

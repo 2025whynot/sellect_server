@@ -1,5 +1,8 @@
 package com.sellect.server.product.domain;
 
+import com.sellect.server.auth.domain.User;
+import com.sellect.server.brand.domain.Brand;
+import com.sellect.server.category.domain.Category;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -13,9 +16,9 @@ import lombok.Getter;
 public class Product {
 
     private final Long id;
-    private final Long sellerId;
-    private final Long categoryId;
-    private final Long brandId;
+    private final User seller;
+    private final Category category;
+    private final Brand brand;
     private final BigDecimal price;
     private final String name;
     private final Integer stock;
@@ -23,12 +26,12 @@ public class Product {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
 
-    public static Product register(Long sellerId, Long categoryId, Long brandId, BigDecimal price,
+    public static Product register(User seller, Category category, Brand brand, BigDecimal price,
         String name, Integer stock) {
         return Product.builder()
-            .sellerId(sellerId)
-            .categoryId(categoryId)
-            .brandId(brandId)
+            .seller(seller)
+            .category(category)
+            .brand(brand)
             .price(price)
             .name(name)
             .stock(stock)
@@ -47,9 +50,9 @@ public class Product {
     public Product modify(BigDecimal price, String name, Integer stock) {
         return Product.builder()
             .id(this.id)
-            .sellerId(this.sellerId)
-            .categoryId(this.categoryId)
-            .brandId(this.brandId)
+            .seller(this.seller)
+            .category(this.category)
+            .brand(this.brand)
             .price(price)
             .name(name)
             .stock(stock)
@@ -67,9 +70,9 @@ public class Product {
         }
         return Product.builder()
             .id(this.id)
-            .sellerId(this.sellerId)
-            .categoryId(this.categoryId)
-            .brandId(this.brandId)
+            .seller(this.seller)
+            .category(this.category)
+            .brand(this.brand)
             .price(this.price)
             .name(this.name)
             .stock(this.stock - quantity) // 변경된 값 적용
@@ -85,9 +88,9 @@ public class Product {
     public Product remove() {
         return Product.builder()
             .id(this.id)
-            .sellerId(this.sellerId)
-            .categoryId(this.categoryId)
-            .brandId(this.brandId)
+            .seller(this.seller)
+            .category(this.category)
+            .brand(this.brand)
             .price(this.price)
             .name(this.name)
             .stock(this.stock)
@@ -96,6 +99,4 @@ public class Product {
             .deleteAt(LocalDateTime.now()) // 삭제 시간 업데이트
             .build();
     }
-
-
 }

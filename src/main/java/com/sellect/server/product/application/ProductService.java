@@ -1,5 +1,9 @@
 package com.sellect.server.product.application;
 
+import com.sellect.server.auth.domain.User;
+import com.sellect.server.brand.domain.Brand;
+import com.sellect.server.brand.repository.BrandRepository;
+import com.sellect.server.category.domain.Category;
 import com.sellect.server.category.repository.CategoryRepository;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
@@ -24,11 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
 
     // todo : 이미지 고려 안 함 아직 S3 없음
     @Transactional
-    public ProductRegisterResponse registerMultiple(Long sellerId,
+    public ProductRegisterResponse registerMultiple(User seller,
         List<ProductRegisterRequest> requests) {
         List<Product> successProducts = new ArrayList<>();
         List<ProductRegisterFailureResponse> failedProducts = new ArrayList<>();
@@ -45,17 +50,24 @@ public class ProductService {
                 continue;
             }
 
+            Optional<Category> optionalCategory = categoryRepository.findById(request.categoryId());
             // 존재하지 않는 카테고리 체크
-            if (!categoryRepository.isExistCategory(request.categoryId(), null)) {
-                System.out.println(
-                    categoryRepository.isExistCategory(request.categoryId(), null));
+            if (optionalCategory.isEmpty()) {
                 failedProducts.add(
                     ProductRegisterFailureResponse.from(request.name(), "존재하지 않는 카테고리"));
                 continue;
             }
 
+            // 존재하지 않는 브랜드 체크
+            Optional<Brand> optionalBrand = brandRepository.findById(request.brandId());
+            if (optionalBrand.isEmpty()) {
+                failedProducts.add(
+                    ProductRegisterFailureResponse.from(request.name(), "존재하지 않는 브랜드"));
+                continue;
+            }
+
             // 등록된 상품 기준 중복 검사 (sellerId, productName 기준)
-            if (productRepository.isDuplicateProduct(sellerId, request.name(), null)) {
+            if (productRepository.isDuplicateProduct(seller.getId(), request.name())) {
                 failedProducts.add(
                     ProductRegisterFailureResponse.from(request.name(), "중복 상품"));
                 continue;
@@ -64,9 +76,9 @@ public class ProductService {
             // todo : 상품당 이미지는 필수
 
             successProducts.add(Product.register(
-                sellerId,
-                request.categoryId(),
-                request.brandId(),
+                seller,
+                optionalCategory.get(),
+                optionalBrand.get(),
                 request.getPriceAsBigDecimal(), // String -> BigDecimal 변환
                 request.name(),
                 request.stock()
@@ -92,7 +104,7 @@ public class ProductService {
             .orElseThrow(() -> new RuntimeException("상품이 존제하지 않습니다."));
 
         // 유저의 상품이 맞는지 확인
-        if (!product.getSellerId().equals(sellerId)) {
+        if (!product.getSeller().getId().equals(sellerId)) {
             throw new RuntimeException("상품을 수정할 권한이 없습니다.");
         }
 
@@ -116,7 +128,7 @@ public class ProductService {
             .orElseThrow(() -> new RuntimeException("상품이 존제하지 않습니다."));
 
         // 유저의 상품이 맞는지 확인
-        if (!product.getSellerId().equals(sellerId)) {
+        if (!product.getSeller().getId().equals(sellerId)) {
             throw new RuntimeException("상품을 수정할 권한이 없습니다.");
         }
 
@@ -125,7 +137,8 @@ public class ProductService {
 
     // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
     @Transactional(readOnly = true)
-    public List<Product> search(ProductSearchCondition condition, int page, int size, ProductSortType sortType) {
+    public List<Product> search(ProductSearchCondition condition, int page, int size,
+        ProductSortType sortType) {
         return productRepository.search(condition, page, size, sortType);
     }
 }

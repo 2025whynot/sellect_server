@@ -38,12 +38,12 @@ public class CategoryEntity extends BaseTimeEntity {
 
     private Integer depth;
 
-    public CategoryEntity from(Category category) {
+    public static CategoryEntity from(Category category) {
         return CategoryEntity.builder()
             .id(category.getId())
             .name(category.getName())
             // todo: 한 번 더 체크할 부분 this.from(xx)
-            .parent(category.getParent() == null ? null : this.from(category.getParent()))
+            .parent(category.getParent() == null ? null : from(category.getParent()))
             .depth(category.getDepth())
             .createdAt(category.getCreatedAt())
             .updatedAt(category.getUpdatedAt())
