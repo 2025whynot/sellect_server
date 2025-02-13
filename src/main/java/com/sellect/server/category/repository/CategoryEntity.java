@@ -36,8 +36,20 @@ public class CategoryEntity extends BaseTimeEntity {
     @JoinColumn(name = "parent_id")
     private CategoryEntity parent;
 
-    @Column(nullable = true)
     private Integer depth;
+
+    public CategoryEntity from(Category category) {
+        return CategoryEntity.builder()
+            .id(category.getId())
+            .name(category.getName())
+            // todo: 한 번 더 체크할 부분 this.from(xx)
+            .parent(category.getParent() == null ? null : this.from(category.getParent()))
+            .depth(category.getDepth())
+            .createdAt(category.getCreatedAt())
+            .updatedAt(category.getUpdatedAt())
+            .deleteAt(category.getDeleteAt())
+            .build();
+    }
 
     public Category toModel() {
         return Category.builder()
