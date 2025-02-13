@@ -1,7 +1,7 @@
 package com.sellect.server.common.resolver;
 
-import com.sellect.server.auth.domain.Seller;
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.common.infrastructure.annotation.AuthSeller;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import org.springframework.core.MethodParameter;
@@ -28,15 +28,13 @@ public class AuthenticationResolver implements HandlerMethodArgumentResolver {
             return null;
         }
         Object principal = authentication.getPrincipal();
-        if (parameter.hasParameterAnnotation(AuthUser.class)) {
-            if (principal instanceof User) {
-                return principal;
-            }
-        }
 
-        if (parameter.hasParameterAnnotation(AuthSeller.class)) {
-            if (principal instanceof Seller) {
-                return principal;
+        if (principal instanceof User user) {
+            if (parameter.hasParameterAnnotation(AuthUser.class) && user.getRole() == Role.USER) {
+                return user;
+            }
+            if (parameter.hasParameterAnnotation(AuthSeller.class) && user.getRole() == Role.SELLER) {
+                return user;
             }
         }
 
