@@ -1,6 +1,8 @@
 package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Product;
+import com.sellect.server.product.domain.ProductSearchCondition;
+import com.sellect.server.product.domain.ProductSortType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,14 @@ import java.util.stream.Collectors;
 public class FakeProductRepository implements ProductRepository {
 
     private final List<Product> data = new ArrayList<>();
+
+    // todo : 상품 조회 테스트 작성 시 구현
+    // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
+    @Override
+    public List<Product> search(ProductSearchCondition condition, int page, int size,
+        ProductSortType sortType) {
+        return null;
+    }
 
     @Override
     public List<Product> saveAll(List<Product> products) {
