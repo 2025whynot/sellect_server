@@ -8,8 +8,6 @@ import com.sellect.server.auth.repository.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
 @RequiredArgsConstructor
 public class UserAuthRepositoryImpl implements UserAuthRepository {
@@ -17,17 +15,23 @@ public class UserAuthRepositoryImpl implements UserAuthRepository {
     private final UserAuthJpaRepository userAuthJpaRepository;
 
     @Override
-    public void save(UserAuth userAuth) {
+    public UserAuth save(UserAuth userAuth) {
         User user = userAuth.getUser();
         UserEntity userEntity = UserEntity.from(user);
         UserAuthEntity userAuthEntity = UserAuthEntity.from(userEntity, userAuth);
-        userAuthJpaRepository.save(userAuthEntity);
+        UserAuthEntity saved = userAuthJpaRepository.save(userAuthEntity);
+        return saved.toModel();
     }
 
     @Override
     public UserAuth findByEmail(String email) {
         UserAuthEntity byEmail = userAuthJpaRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 정보"));
+            .orElseThrow(() -> new RuntimeException("존재하지 않는 정보"));
         return byEmail.toModel();
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userAuthJpaRepository.existsByEmailAndDeleteAtIsNull(email);
     }
 }

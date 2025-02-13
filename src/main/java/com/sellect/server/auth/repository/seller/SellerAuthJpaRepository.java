@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface SellerAuthJpaRepository extends JpaRepository<SellerAuthEntity, Long> {
     Optional<SellerAuthEntity> findByEmail(String email);
+    boolean existsByEmailAndDeleteAtIsNull(String email);
 }

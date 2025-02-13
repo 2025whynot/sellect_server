@@ -25,7 +25,8 @@ public class SellerRepositoryImpl implements SellerRepository {
 
     @Override
     public Seller findById(Long id) {
-        SellerEntity sellerEntity = sellerJpaRepository.findById(id).orElseThrow();
+        // todo: 이메일이 존재하지 않는 커스텀 exception
+        SellerEntity sellerEntity = sellerJpaRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("이메일 또는 패스워드가 존재하지 않습니다."));
         return sellerEntity.toModel();
     }
 }

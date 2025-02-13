@@ -22,6 +22,9 @@ public class SellerAuthService {
 
     @Transactional(rollbackOn = RuntimeException.class)
     public void signUp(UserSignUpRequest request) {
+        if (sellerAuthRepository.existByEmail(request.email())) {
+            throw new IllegalArgumentException("Email already exists");
+        }
         Seller savedSeller = sellerRepository.save(Seller.register(request.nickname()));
         String encryptPassword = passwordEncoder.encode(request.password());
         SellerAuth sellerAuth = SellerAuth.signUp(savedSeller, request.email(), encryptPassword);
@@ -32,7 +35,7 @@ public class SellerAuthService {
         SellerAuth sellerAuth = sellerAuthRepository.findByEmail(request.email());
         if (!passwordEncoder.matches(request.password(), sellerAuth.getPassword())) {
             // todo
-            throw new RuntimeException("패스워드 안맞음");
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
         Seller seller = sellerRepository.findById(sellerAuth.getSeller().getId());
 

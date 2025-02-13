@@ -23,7 +23,13 @@ public class SellerAuthRepositoryImpl implements SellerAuthRepository {
 
     @Override
     public SellerAuth findByEmail(String email) {
-        SellerAuthEntity sellerAuth = sellerAuthJpaRepository.findByEmail(email).orElseThrow();
+        // todo: 존재하지 않는 이메일
+        SellerAuthEntity sellerAuth = sellerAuthJpaRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("이메일이 존재하지 않습니다."));
         return sellerAuth.toModel();
+    }
+
+    @Override
+    public boolean existByEmail(String email) {
+        return sellerAuthJpaRepository.existsByEmailAndDeleteAtIsNull(email);
     }
 }
