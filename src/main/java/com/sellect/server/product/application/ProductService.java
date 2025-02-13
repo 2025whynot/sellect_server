@@ -7,6 +7,8 @@ import com.sellect.server.product.controller.response.ProductModifyResponse;
 import com.sellect.server.product.controller.response.ProductRegisterFailureResponse;
 import com.sellect.server.product.controller.response.ProductRegisterResponse;
 import com.sellect.server.product.domain.Product;
+import com.sellect.server.product.domain.ProductSearchCondition;
+import com.sellect.server.product.domain.ProductSortType;
 import com.sellect.server.product.repository.ProductRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -119,5 +121,11 @@ public class ProductService {
         }
 
         productRepository.save(product.remove());
+    }
+
+    // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
+    @Transactional(readOnly = true)
+    public List<Product> search(ProductSearchCondition condition, int page, int size, ProductSortType sortType) {
+        return productRepository.search(condition, page, size, sortType);
     }
 }
