@@ -1,5 +1,7 @@
 package com.sellect.server.product.controller;
 
+import com.sellect.server.auth.domain.User;
+import com.sellect.server.common.infrastructure.annotation.AuthSeller;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.product.application.ProductService;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
@@ -36,10 +38,10 @@ public class ProductController {
     // todo : sellerId token 에서 가져오도록 변경할 것!!
     // todo : 상품 이미지 관련 로직 추가할 것!!
     // todo : seller 완료 후엔 수정
-    public ApiResponse<ProductRegisterResponse> registerMultiple(Long sellerId,
+    public ApiResponse<ProductRegisterResponse> registerMultiple(@AuthSeller User seller,
         @Valid @RequestBody List<ProductRegisterRequest> requests) {
 
-        ProductRegisterResponse result = productService.registerMultiple(sellerId,
+        ProductRegisterResponse result = productService.registerMultiple(seller,
             requests);
         return ApiResponse.ok(result);
     }
@@ -49,11 +51,11 @@ public class ProductController {
      */
     @PatchMapping("/products/{productId}")
     public ApiResponse<ProductModifyResponse> modify(
-        Long sellerId, // todo : seller 완료 후엔 수정
+        @AuthSeller User seller,
         @PathVariable Long productId,
         @Valid @RequestBody ProductModifyRequest request
     ) {
-        ProductModifyResponse response = productService.modify(sellerId, productId, request);
+        ProductModifyResponse response = productService.modify(seller.getId(), productId, request);
         return ApiResponse.ok(response);
     }
 
@@ -62,10 +64,10 @@ public class ProductController {
      */
     @DeleteMapping("/products/{productId}")
     public ApiResponse<Void> remove(
-        Long sellerId, // todo : seller 완료 후엔 수정
+        @AuthSeller User seller,
         @PathVariable Long productId
     ) {
-        productService.remove(sellerId, productId);
+        productService.remove(seller.getId(), productId);
         return ApiResponse.ok();
     }
 

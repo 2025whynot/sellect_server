@@ -4,6 +4,7 @@ import com.sellect.server.brand.domain.Brand;
 import com.sellect.server.brand.mapper.BrandMapper;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +16,12 @@ public class BrandRepositoryImpl implements BrandRepository {
 
     private final BrandJpaRepository brandJpaRepository;
     private final BrandMapper brandMapper;
+
+    @Override
+    public Optional<Brand> findById(Long brandId) {
+        return brandJpaRepository.findByIdAndDeleteAtIsNull(brandId)
+            .map(BrandEntity::toModel);
+    }
 
     @Override
     public Brand findByName(String name) {
