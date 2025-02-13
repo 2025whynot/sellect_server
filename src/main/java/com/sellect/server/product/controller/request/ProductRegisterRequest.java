@@ -32,6 +32,7 @@ public record ProductRegisterRequest(
     Integer stock
 
 ) {
+
     // 가격 변환 메서드
     @JsonIgnore
     public BigDecimal getPriceAsBigDecimal() {

@@ -9,8 +9,8 @@ public record ProductRegisterSuccessResponse(
 ) {
 
     /*
-    * 개별 상품을 성공 응답 객체로 변환
-    * */
+     * 개별 상품을 성공 응답 객체로 변환
+     * */
     public static ProductRegisterSuccessResponse from(Product product) {
         return new ProductRegisterSuccessResponse(
             product.getId(),

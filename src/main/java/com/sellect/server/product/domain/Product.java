@@ -23,7 +23,8 @@ public class Product {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
 
-    public static Product register(Long sellerId, Long categoryId, Long brandId, BigDecimal price, String name, Integer stock) {
+    public static Product register(Long sellerId, Long categoryId, Long brandId, BigDecimal price,
+        String name, Integer stock) {
         return Product.builder()
             .sellerId(sellerId)
             .categoryId(categoryId)
@@ -37,9 +38,25 @@ public class Product {
             .build();
     }
 
-
     // todo : 일단 KEEP
     // === 비즈니스 로직 ===
+
+    /**
+     * 상품 정보 업데이트 메서드
+     */
+    public Product modify(BigDecimal price, String name, Integer stock) {
+        return Product.builder()
+            .id(this.id)
+            .sellerId(this.sellerId)
+            .categoryId(this.categoryId)
+            .brandId(this.brandId)
+            .price(price)
+            .name(name)
+            .stock(stock)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now()) // 수정 시간 업데이트
+            .build();
+    }
 
     /**
      * 재고 감소 후 새로운 Product 인스턴스를 반환 (불변성 유지)
@@ -65,7 +82,7 @@ public class Product {
     /**
      * 삭제 상태로 변경 후 새로운 Product 인스턴스를 반환 (불변성 유지)
      */
-    public Product markAsDeleted() {
+    public Product remove() {
         return Product.builder()
             .id(this.id)
             .sellerId(this.sellerId)
@@ -79,4 +96,6 @@ public class Product {
             .deleteAt(LocalDateTime.now()) // 삭제 시간 업데이트
             .build();
     }
+
+
 }
