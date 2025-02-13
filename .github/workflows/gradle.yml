@@ -1,8 +1,10 @@
 name: CI with Gradle
 
 on:
+  pull_request:
+    branches: [ "develop" ]
   push:
-    branches: [ "feature/git-actions" ]
+    branches: [ "develop" ]
 
 # 테스트 결과 작성을 위해 쓰기권한 추가
 permissions: write-all
