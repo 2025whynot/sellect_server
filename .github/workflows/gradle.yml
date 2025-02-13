@@ -60,9 +60,14 @@ jobs:
 
       - name: Docker build & Push
         run: |
+          # 로그인
+          echo "Logging in to Docker Hub..."
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/sellect-app .
-          docker push ${{ secrets.DOCKER_USERNAME }}/sellect-app
+          
+          # 이미지 빌드 및 푸시
+          echo "Building and pushing Docker image..."
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/sellect-app:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/sellect-app:latest
 
       - name: Deploy
         uses: appleboy/ssh-action@master
@@ -74,6 +79,15 @@ jobs:
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           envs: COMPOSE
           script: |
+            # Docker login in EC2
+            echo "Logging in to Docker Hub on EC2..."
+            docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            
+            # Docker Compose 다운 및 이미지 Pull
+            echo "Stopping Docker Compose and pulling latest image..."
             sudo docker-compose -f $COMPOSE down
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sellect-app:latest
+            
+            # Docker Compose up
+            echo "Starting Docker Compose with the latest image..."
             sudo docker-compose -f $COMPOSE up -d
