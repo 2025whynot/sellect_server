@@ -4,11 +4,18 @@ import com.sellect.server.brand.domain.Brand;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class MockBrandRepository implements BrandRepository {
+public class FakeBrandRepository implements BrandRepository {
 
     private final List<Brand> data = new ArrayList<>();
+
+    // todo: 테스트 작성 시 구현해야함
+    @Override
+    public Optional<Brand> findById(Long brandId) {
+        return Optional.empty();
+    }
 
     @Override
     public Brand findByName(String name) {

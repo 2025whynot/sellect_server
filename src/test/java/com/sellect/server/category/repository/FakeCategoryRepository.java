@@ -1,19 +1,18 @@
 package com.sellect.server.category.repository;
 
 import com.sellect.server.category.domain.Category;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FakeCategoryRepository implements CategoryRepository {
 
     private final List<Category> data = new ArrayList<>();
 
+    // todo : 테스트 작성 시 구현해야 함
     @Override
-    public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
-        return data.stream()
-            .anyMatch(category -> category.getId().equals(categoryId) &&
-                (deleteAt == null || category.getDeleteAt() == null));
+    public Optional<Category> findById(Long categoryId) {
+        return Optional.empty();
     }
 
     @Override
