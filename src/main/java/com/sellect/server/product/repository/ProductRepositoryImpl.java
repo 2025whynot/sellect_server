@@ -105,13 +105,13 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Page<Product> findByCategoryId(Long categoryId, Pageable pageable) {
-        return productJpaRepository.findByCategoryId(categoryId, pageable)
+        return productJpaRepository.findByCategoryEntityId(categoryId, pageable)
             .map(ProductEntity::toModel);
     }
 
     @Override
     public Page<Product> findByBrandId(Long brandId, Pageable pageable) {
-        return productJpaRepository.findByBrandId(brandId, pageable)
+        return productJpaRepository.findByBrandEntityId(brandId, pageable)
             .map(ProductEntity::toModel);
     }
 

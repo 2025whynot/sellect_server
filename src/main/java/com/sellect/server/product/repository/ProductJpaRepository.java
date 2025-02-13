@@ -17,9 +17,9 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     @Query("SELECT p FROM ProductEntity p where p.name LIKE %:keyword%")
     Page<ProductEntity> findContainingName(@Param("keyword") String keyword, Pageable pageable);
 
-    Page<ProductEntity> findByCategoryId(Long categoryId, Pageable pageable);
+    Page<ProductEntity> findByCategoryEntityId(Long categoryId, Pageable pageable);
 
-    Page<ProductEntity> findByBrandId(Long brandId, Pageable pageable);
+    Page<ProductEntity> findByBrandEntityId(Long brandId, Pageable pageable);
 
     Page<ProductEntity> findByIdIn(List<Long> ids, Pageable pageable);
 
