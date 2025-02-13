@@ -7,7 +7,6 @@ import com.sellect.server.search.controller.response.ProductSearchResponse;
 import com.sellect.server.search.mapper.SearchMapper;
 import com.sellect.server.search.service.AutoCompleteService;
 import com.sellect.server.search.service.ProductSearchService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,8 +40,10 @@ public class SearchController {
     }
 
     @GetMapping("/auto-complete")
-    public ApiResponse<AutoCompleteResponse> autoCompleteSearch(@RequestParam(value = "q") String query) {
-        return ApiResponse.ok(new AutoCompleteResponse(autoCompleteService.getAutoCompleteResult(query)));
+    public ApiResponse<AutoCompleteResponse> autoCompleteSearch(
+        @RequestParam(value = "q") String query) {
+        return ApiResponse.ok(
+            new AutoCompleteResponse(autoCompleteService.getAutoCompleteResult(query)));
     }
 
 }
