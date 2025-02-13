@@ -11,12 +11,12 @@ public record ProductModifyResponse(
 
 ) {
 
-  public static ProductModifyResponse from(Product product) {
-    return new ProductModifyResponse(
-        product.getId(),
-        product.getName(),
-        product.getPrice(),
-        product.getStock()
-    );
-  }
+    public static ProductModifyResponse from(Product product) {
+        return new ProductModifyResponse(
+            product.getId(),
+            product.getName(),
+            product.getPrice(),
+            product.getStock()
+        );
+    }
 }

@@ -7,44 +7,44 @@ import java.util.List;
 
 public class FakeCategoryRepository implements CategoryRepository {
 
-  private final List<Category> data = new ArrayList<>();
+    private final List<Category> data = new ArrayList<>();
 
-  @Override
-  public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
-    return data.stream()
-        .anyMatch(category -> category.getId().equals(categoryId) &&
-            (deleteAt == null || category.getDeleteAt() == null));
-  }
+    @Override
+    public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
+        return data.stream()
+            .anyMatch(category -> category.getId().equals(categoryId) &&
+                (deleteAt == null || category.getDeleteAt() == null));
+    }
 
-  @Override
-  public boolean existsByName(String name) {
-    return data.stream()
-        .anyMatch(category -> category.getName().equals(name));
-  }
+    @Override
+    public boolean existsByName(String name) {
+        return data.stream()
+            .anyMatch(category -> category.getName().equals(name));
+    }
 
-  @Override
-  public List<Category> findContainingName(String keyword) {
-    return data.stream()
-        .filter(category -> category.getName().contains(keyword))
-        .toList();
-  }
+    @Override
+    public List<Category> findContainingName(String keyword) {
+        return data.stream()
+            .filter(category -> category.getName().contains(keyword))
+            .toList();
+    }
 
-  @Override
-  public Category findByName(String name) {
-    return data.stream()
-        .filter(category -> category.getName().equals(name))
-        .findFirst().orElse(null);
-  }
+    @Override
+    public Category findByName(String name) {
+        return data.stream()
+            .filter(category -> category.getName().equals(name))
+            .findFirst().orElse(null);
+    }
 
-  public void save(Category category) {
-    data.add(category);
-  }
+    public void save(Category category) {
+        data.add(category);
+    }
 
-  public List<Category> findAll() {
-    return new ArrayList<>(data);
-  }
+    public List<Category> findAll() {
+        return new ArrayList<>(data);
+    }
 
-  public void clear() {
-    data.clear();
-  }
+    public void clear() {
+        data.clear();
+    }
 }

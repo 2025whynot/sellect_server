@@ -16,35 +16,35 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ProductSimpleSearchService implements ProductSearchService {
 
-  private final ProductRepository productRepository;
-  private final CategoryRepository categoryRepository;
-  private final BrandRepository brandRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final BrandRepository brandRepository;
 
-  // TODO: 정렬 기준 -> 신상품순(기본), 가격순, 좋아요순, 후기순 등에 따라 정렬 기능 추가
-  @Override
-  @Transactional(readOnly = true)
-  public Page<Product> searchByKeyword(String keyword, Pageable pageable) {
-    if (categoryRepository.existsByName(keyword)) {
-      return searchByCategory(keyword, pageable);
+    // TODO: 정렬 기준 -> 신상품순(기본), 가격순, 좋아요순, 후기순 등에 따라 정렬 기능 추가
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Product> searchByKeyword(String keyword, Pageable pageable) {
+        if (categoryRepository.existsByName(keyword)) {
+            return searchByCategory(keyword, pageable);
+        }
+        if (brandRepository.existsByName(keyword)) {
+            return searchByBrand(keyword, pageable);
+        }
+        return searchByProductName(keyword, pageable);
     }
-    if (brandRepository.existsByName(keyword)) {
-      return searchByBrand(keyword, pageable);
+
+    private Page<Product> searchByProductName(String keyword, Pageable pageable) {
+        return productRepository.findContainingName(keyword, pageable);
     }
-    return searchByProductName(keyword, pageable);
-  }
 
-  private Page<Product> searchByProductName(String keyword, Pageable pageable) {
-    return productRepository.findContainingName(keyword, pageable);
-  }
+    private Page<Product> searchByCategory(String keyword, Pageable pageable) {
+        Long categoryId = categoryRepository.findByName(keyword).getId();
+        return productRepository.findByCategoryId(categoryId, pageable);
+    }
 
-  private Page<Product> searchByCategory(String keyword, Pageable pageable) {
-    Long categoryId = categoryRepository.findByName(keyword).getId();
-    return productRepository.findByCategoryId(categoryId, pageable);
-  }
-
-  private Page<Product> searchByBrand(String keyword, Pageable pageable) {
-    Long brandId = brandRepository.findByName(keyword).getId();
-    return productRepository.findByBrandId(brandId, pageable);
-  }
+    private Page<Product> searchByBrand(String keyword, Pageable pageable) {
+        Long brandId = brandRepository.findByName(keyword).getId();
+        return productRepository.findByBrandId(brandId, pageable);
+    }
 
 }

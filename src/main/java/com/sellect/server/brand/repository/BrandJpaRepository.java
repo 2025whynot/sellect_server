@@ -9,10 +9,10 @@ import java.util.Optional;
 
 public interface BrandJpaRepository extends JpaRepository<BrandEntity, Long> {
 
-  Optional<BrandEntity> findByName(String name);
+    Optional<BrandEntity> findByName(String name);
 
-  @Query("SELECT b FROM BrandEntity b WHERE b.name LIKE %:keyword%")
-  List<BrandEntity> findContainingName(@Param("keyword") String keyword);
+    @Query("SELECT b FROM BrandEntity b WHERE b.name LIKE %:keyword%")
+    List<BrandEntity> findContainingName(@Param("keyword") String keyword);
 
-  Boolean existsByName(String name);
+    Boolean existsByName(String name);
 }

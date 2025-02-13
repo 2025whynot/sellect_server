@@ -33,9 +33,9 @@ public record ProductRegisterRequest(
 
 ) {
 
-  // 가격 변환 메서드
-  @JsonIgnore
-  public BigDecimal getPriceAsBigDecimal() {
-    return new BigDecimal(price);
-  }
+    // 가격 변환 메서드
+    @JsonIgnore
+    public BigDecimal getPriceAsBigDecimal() {
+        return new BigDecimal(price);
+    }
 }

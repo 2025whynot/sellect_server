@@ -21,25 +21,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-  @Bean
-  public ModelResolver modelResolver(ObjectMapper objectMapper) {
-    return new ModelResolver(objectMapper);
-  }
+    @Bean
+    public ModelResolver modelResolver(ObjectMapper objectMapper) {
+        return new ModelResolver(objectMapper);
+    }
 
-  @Bean
-  public OpenAPI api() {
-    SecurityScheme apiKey = new SecurityScheme()
-        .type(SecurityScheme.Type.HTTP)
-        .in(SecurityScheme.In.HEADER)
-        .name("Authorization")
-        .scheme("bearer")
-        .bearerFormat("JWT");
+    @Bean
+    public OpenAPI api() {
+        SecurityScheme apiKey = new SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .in(SecurityScheme.In.HEADER)
+            .name("Authorization")
+            .scheme("bearer")
+            .bearerFormat("JWT");
 
-    SecurityRequirement securityRequirement = new SecurityRequirement()
-        .addList("Bearer Token");
+        SecurityRequirement securityRequirement = new SecurityRequirement()
+            .addList("Bearer Token");
 
-    return new OpenAPI()
-        .components(new Components().addSecuritySchemes("Bearer Token", apiKey))
-        .addSecurityItem(securityRequirement);
-  }
+        return new OpenAPI()
+            .components(new Components().addSecuritySchemes("Bearer Token", apiKey))
+            .addSecurityItem(securityRequirement);
+    }
 }

@@ -25,29 +25,29 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "category")
 public class CategoryEntity extends BaseTimeEntity {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(nullable = false, length = 255)
-  private String name;
+    @Column(nullable = false, length = 255)
+    private String name;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "parent_id")
-  private CategoryEntity parent;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private CategoryEntity parent;
 
-  @Column(nullable = true)
-  private Integer depth;
+    @Column(nullable = true)
+    private Integer depth;
 
-  public Category toModel() {
-    return Category.builder()
-        .id(this.id)
-        .name(this.name)
-        .parent(this.parent == null ? null : this.parent.toModel())
-        .depth(this.depth)
-        .createdAt(this.getCreatedAt())
-        .updatedAt(this.getUpdatedAt())
-        .deleteAt(this.getDeleteAt())
-        .build();
-  }
+    public Category toModel() {
+        return Category.builder()
+            .id(this.id)
+            .name(this.name)
+            .parent(this.parent == null ? null : this.parent.toModel())
+            .depth(this.depth)
+            .createdAt(this.getCreatedAt())
+            .updatedAt(this.getUpdatedAt())
+            .deleteAt(this.getDeleteAt())
+            .build();
+    }
 }

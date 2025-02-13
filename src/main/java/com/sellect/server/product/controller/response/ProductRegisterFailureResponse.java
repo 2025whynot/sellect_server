@@ -5,7 +5,7 @@ public record ProductRegisterFailureResponse(
     String reason
 ) {
 
-  public static ProductRegisterFailureResponse from(String name, String reason) {
-    return new ProductRegisterFailureResponse(name, reason);
-  }
+    public static ProductRegisterFailureResponse from(String name, String reason) {
+        return new ProductRegisterFailureResponse(name, reason);
+    }
 }

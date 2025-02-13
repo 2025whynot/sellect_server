@@ -23,8 +23,8 @@ public record ProductModifyRequest(
 
 ) {
 
-  @JsonIgnore
-  public BigDecimal getPriceAsBigDecimal() {
-    return price != null ? new BigDecimal(price) : null;
-  }
+    @JsonIgnore
+    public BigDecimal getPriceAsBigDecimal() {
+        return price != null ? new BigDecimal(price) : null;
+    }
 }

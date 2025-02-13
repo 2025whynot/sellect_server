@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface BrandRepository {
 
-  Brand findByName(String name);
+    Brand findByName(String name);
 
-  List<Brand> findContainingName(String keyword);
+    List<Brand> findContainingName(String keyword);
 
-  Boolean existsByName(String name);
+    Boolean existsByName(String name);
 }

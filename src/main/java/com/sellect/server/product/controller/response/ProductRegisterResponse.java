@@ -8,13 +8,13 @@ public record ProductRegisterResponse(
     List<ProductRegisterFailureResponse> failedProducts
 ) {
 
-  public static ProductRegisterResponse from(
-      List<Product> successProducts,
-      List<ProductRegisterFailureResponse> failedProducts
-  ) {
-    return new ProductRegisterResponse(
-        ProductRegisterSuccessResponse.fromList(successProducts), // 성공 상품 리스트 반환
-        failedProducts
-    );
-  }
+    public static ProductRegisterResponse from(
+        List<Product> successProducts,
+        List<ProductRegisterFailureResponse> failedProducts
+    ) {
+        return new ProductRegisterResponse(
+            ProductRegisterSuccessResponse.fromList(successProducts), // 성공 상품 리스트 반환
+            failedProducts
+        );
+    }
 }
