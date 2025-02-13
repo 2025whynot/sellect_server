@@ -1,5 +1,6 @@
 package com.sellect.server.auth.controller.application;
 
+import com.sellect.server.auth.controller.request.LoginRequest;
 import com.sellect.server.auth.controller.request.UserSignUpRequest;
 import com.sellect.server.auth.domain.UserAuth;
 import com.sellect.server.auth.repository.FakeUserAuthRepository;
@@ -94,4 +95,59 @@ class UserAuthServiceTest {
             assertEquals("Email already exists", thrown.getMessage());
         }
     }
+
+    @Nested
+    @DisplayName("User 로그인 테스트")
+    class UserLoginRequestTest {
+
+        @Test
+        @DisplayName("성공적으로 로그인할 수 있다")
+        void willSuccess() {
+            // given
+            UserSignUpRequest signUpRequest = new UserSignUpRequest("user@user.com", "user123", "useruser");
+            userAuthService.signUp(signUpRequest);
+
+            LoginRequest loginRequest = new LoginRequest("user@user.com", "user123");
+
+            // when
+            String token = userAuthService.login(loginRequest);
+
+            // then
+            assertNotNull(token);
+            assertTrue(jwtUtil.isTokenValid(token));
+        }
+
+        @Test
+        @DisplayName("이메일이 존재하지 않으면 로그인 실패")
+        void emailNotFound() {
+            // given
+            LoginRequest loginRequest = new LoginRequest("unknown@user.com", "password123");
+
+            // when & then
+            IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+                userAuthService.login(loginRequest);
+            });
+
+            assertEquals("User not found", thrown.getMessage());
+        }
+
+        @Test
+        @DisplayName("비밀번호가 틀리면 로그인 실패")
+        void wrongPassword() {
+            // given
+            UserSignUpRequest signUpRequest = new UserSignUpRequest("user@user.com", "user123", "correctpassword");
+            userAuthService.signUp(signUpRequest);
+
+            LoginRequest loginRequest = new LoginRequest("user@user.com", "wrongpassword");
+
+            // when & then
+            IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+                userAuthService.login(loginRequest);
+            });
+
+            assertEquals("Invalid password", thrown.getMessage());
+        }
+    }
+
+
 }

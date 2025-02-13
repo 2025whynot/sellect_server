@@ -16,6 +16,7 @@ public class FakeUserAuthRepository implements UserAuthRepository {
             userAuth = UserAuth.builder()
                 .id(sequence++)
                 .email(userAuth.getEmail())
+                .user(userAuth.getUser())
                 .password(userAuth.getPassword())
                 .createdAt(userAuth.getCreatedAt())
                 .updatedAt(userAuth.getUpdatedAt())
@@ -32,7 +33,7 @@ public class FakeUserAuthRepository implements UserAuthRepository {
         return userAuthStore.values().stream()
             .filter(userAuth -> userAuth.getEmail().equals(email))
             .findFirst()
-            .orElse(null);
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     @Override
