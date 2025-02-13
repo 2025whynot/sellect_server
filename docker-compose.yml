@@ -1,0 +1,7 @@
+services:
+  app:
+    container_name: sellect-app
+    image: your-username/sellect-app:latest  # 올바른 이미지 이름과 태그 확인
+    restart: always
+    ports:
+      - "8080:8080"
