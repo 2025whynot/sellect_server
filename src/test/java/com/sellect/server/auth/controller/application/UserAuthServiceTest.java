@@ -5,6 +5,7 @@ import com.sellect.server.auth.controller.request.UserSignUpRequest;
 import com.sellect.server.auth.domain.UserAuth;
 import com.sellect.server.auth.repository.FakeUserAuthRepository;
 import com.sellect.server.auth.repository.FakeUserRepository;
+import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.auth.repository.user.UserAuthRepository;
 import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.infrastructure.jwt.JwtUtil;
@@ -15,12 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserAuthServiceTest {
 
@@ -40,56 +36,73 @@ class UserAuthServiceTest {
             passwordEncoder);
     }
 
-
     @Nested
-    @DisplayName("User 회원가입 테스트")
+    @DisplayName("회원가입 테스트")
     class UserSignUpRequestTest {
 
         @Test
-        @DisplayName("성공적으로 유저를 등록한다")
-        void willSuccess() {
-            UserSignUpRequest request = new UserSignUpRequest("user@user.com", "user123",
-                "useruser");
-
-            // when
-            userAuthService.signUp(request);
-
-            // then
-            UserAuth savedUserAuth = userAuthRepository.findByEmail(request.email());
-            assertNotNull(savedUserAuth);
-            assertEquals(request.email(), savedUserAuth.getEmail());
+        @DisplayName("성공적으로 USER를 등록한다")
+        void willSuccessUser() {
+            testSignUp(Role.USER, "user@user.com", "user123", "useruser");
         }
 
         @Test
-        @DisplayName("패스워드는 암호화한다.")
+        @DisplayName("성공적으로 SELLER를 등록한다")
+        void willSuccessSeller() {
+            testSignUp(Role.SELLER, "seller@seller.com", "seller123", "sellerseller");
+        }
+
+        private void testSignUp(Role role, String email, String password, String nickname) {
+            // given
+            UserSignUpRequest request = new UserSignUpRequest(email, password, nickname);
+
+            // when
+            userAuthService.signUp(request, role);
+
+            // then
+            UserAuth savedUserAuth = userAuthRepository.findByEmail(email).orElseThrow();
+            assertNotNull(savedUserAuth);
+            assertEquals(email, savedUserAuth.getEmail());
+        }
+
+        @Test
+        @DisplayName("패스워드는 암호화된다.")
         void encryptPassword() {
+            testPasswordEncryption(Role.USER, "user@user.com", "user123", "useruser");
+            testPasswordEncryption(Role.SELLER, "seller@seller.com", "seller123", "sellerseller");
+        }
+
+        private void testPasswordEncryption(Role role, String email, String password,
+            String nickname) {
             // given
-            UserSignUpRequest request = new UserSignUpRequest("user@user.com", "user123",
-                "useruser");
+            UserSignUpRequest request = new UserSignUpRequest(email, password, nickname);
 
             // when
-            userAuthService.signUp(request);
+            userAuthService.signUp(request, role);
 
             // then
-            UserAuth savedUserAuth = userAuthRepository.findByEmail(request.email());
+            UserAuth savedUserAuth = userAuthRepository.findByEmail(email).orElseThrow();
             assertNotNull(savedUserAuth);
-            assertNotEquals(request.password(), savedUserAuth.getPassword());
-            assertTrue(passwordEncoder.matches(request.password(), savedUserAuth.getPassword()));
+            assertNotEquals(password, savedUserAuth.getPassword());
+            assertTrue(passwordEncoder.matches(password, savedUserAuth.getPassword()));
         }
 
         @Test
-        @DisplayName("이메일은 중복되면 안된다.")
-        void canNotDuplicateEmail() {
+        @DisplayName("이메일은 중복될 수 없다")
+        void cannotDuplicateEmail() {
+            testDuplicateEmail(Role.USER, "duplicate@user.com", "user123", "useruser");
+            testDuplicateEmail(Role.SELLER, "duplicate@seller.com", "seller123", "sellerseller");
+        }
+
+        private void testDuplicateEmail(Role role, String email, String password, String nickname) {
             // given
-            UserSignUpRequest request1 = new UserSignUpRequest("user@user.com", "user123",
-                "useruser");
-            UserSignUpRequest request2 = new UserSignUpRequest("user@user.com", "user456",
-                "anotheruser");
-            userAuthService.signUp(request1);
+            UserSignUpRequest request1 = new UserSignUpRequest(email, password, nickname);
+            UserSignUpRequest request2 = new UserSignUpRequest(email, "newPass", "newNick");
+            userAuthService.signUp(request1, role);
 
             // when & then
             IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-                userAuthService.signUp(request2);
+                userAuthService.signUp(request2, role);
             });
 
             assertEquals("Email already exists", thrown.getMessage());
@@ -97,20 +110,30 @@ class UserAuthServiceTest {
     }
 
     @Nested
-    @DisplayName("User 로그인 테스트")
+    @DisplayName("로그인 테스트")
     class UserLoginRequestTest {
 
         @Test
-        @DisplayName("성공적으로 로그인할 수 있다")
-        void willSuccess() {
-            // given
-            UserSignUpRequest signUpRequest = new UserSignUpRequest("user@user.com", "user123", "useruser");
-            userAuthService.signUp(signUpRequest);
+        @DisplayName("USER가 성공적으로 로그인한다")
+        void willSuccessUser() {
+            testLoginSuccess(Role.USER, "user@user.com", "user123", "useruser");
+        }
 
-            LoginRequest loginRequest = new LoginRequest("user@user.com", "user123");
+        @Test
+        @DisplayName("SELLER가 성공적으로 로그인한다")
+        void willSuccessSeller() {
+            testLoginSuccess(Role.SELLER, "seller@seller.com", "seller123", "sellerseller");
+        }
+
+        private void testLoginSuccess(Role role, String email, String password, String nickname) {
+            // given
+            UserSignUpRequest signUpRequest = new UserSignUpRequest(email, password, nickname);
+            userAuthService.signUp(signUpRequest, role);
+
+            LoginRequest loginRequest = new LoginRequest(email, password);
 
             // when
-            String token = userAuthService.login(loginRequest);
+            String token = userAuthService.login(loginRequest, role);
 
             // then
             assertNotNull(token);
@@ -120,34 +143,39 @@ class UserAuthServiceTest {
         @Test
         @DisplayName("이메일이 존재하지 않으면 로그인 실패")
         void emailNotFound() {
-            // given
-            LoginRequest loginRequest = new LoginRequest("unknown@user.com", "password123");
-
-            // when & then
-            IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-                userAuthService.login(loginRequest);
-            });
-
-            assertEquals("User not found", thrown.getMessage());
+            testLoginFailure(Role.USER, "unknown@user.com", "password123", "User not found");
+            testLoginFailure(Role.SELLER, "unknown@seller.com", "password123", "User not found");
         }
 
         @Test
         @DisplayName("비밀번호가 틀리면 로그인 실패")
         void wrongPassword() {
             // given
-            UserSignUpRequest signUpRequest = new UserSignUpRequest("user@user.com", "user123", "correctpassword");
-            userAuthService.signUp(signUpRequest);
+            UserSignUpRequest signUpRequest = new UserSignUpRequest("user@user.com", "user123",
+                "correctpassword");
+            userAuthService.signUp(signUpRequest, Role.USER);
 
             LoginRequest loginRequest = new LoginRequest("user@user.com", "wrongpassword");
 
             // when & then
             IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
-                userAuthService.login(loginRequest);
+                userAuthService.login(loginRequest, Role.USER);
             });
 
             assertEquals("Invalid password", thrown.getMessage());
         }
+
+        private void testLoginFailure(Role role, String email, String password,
+            String expectedMessage) {
+            // given
+            LoginRequest loginRequest = new LoginRequest(email, password);
+
+            // when & then
+            IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+                userAuthService.login(loginRequest, role);
+            });
+
+            assertEquals(expectedMessage, thrown.getMessage());
+        }
     }
-
-
 }

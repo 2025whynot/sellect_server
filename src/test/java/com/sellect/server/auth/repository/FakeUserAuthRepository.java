@@ -4,6 +4,7 @@ import com.sellect.server.auth.domain.UserAuth;
 import com.sellect.server.auth.repository.user.UserAuthRepository;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class FakeUserAuthRepository implements UserAuthRepository {
 
@@ -29,11 +30,13 @@ public class FakeUserAuthRepository implements UserAuthRepository {
     }
 
     @Override
-    public UserAuth findByEmail(String email) {
-        return userAuthStore.values().stream()
+    public Optional<UserAuth> findByEmail(String email) {
+        UserAuth foundUser = userAuthStore.values().stream()
             .filter(userAuth -> userAuth.getEmail().equals(email))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return Optional.ofNullable(foundUser);
     }
 
     @Override

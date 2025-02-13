@@ -4,6 +4,7 @@ import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class FakeUserRepository implements UserRepository {
 
@@ -11,11 +12,13 @@ public class FakeUserRepository implements UserRepository {
     private long sequence = 1L;
 
     @Override
-    public User findByUuid(String uuid) {
-        return userStore.values().stream()
+    public Optional<User> findByUuid(String uuid) {
+        User foundUser = userStore.values().stream()
             .filter(user -> user.getUuid().equals(uuid))
             .findFirst()
             .orElse(null);
+
+        return Optional.ofNullable(foundUser);
     }
 
     @Override
@@ -25,6 +28,7 @@ public class FakeUserRepository implements UserRepository {
                 .id(sequence++)
                 .uuid(user.getUuid())
                 .nickname(user.getNickname())
+                .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .deletedAt(user.getDeletedAt())
@@ -35,8 +39,9 @@ public class FakeUserRepository implements UserRepository {
     }
 
     @Override
-    public User findById(Long id) {
-        return userStore.get(id);
+    public Optional<User> findById(Long id) {
+        User user = userStore.get(id);
+        return Optional.ofNullable(user);
     }
 }
 

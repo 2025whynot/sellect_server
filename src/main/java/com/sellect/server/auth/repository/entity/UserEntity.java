@@ -3,6 +3,7 @@ package com.sellect.server.auth.repository.entity;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.BaseTimeEntity;
 import jakarta.persistence.*;
+
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -24,27 +25,32 @@ public class UserEntity extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String nickname;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Role role;
 
     public static UserEntity from(User user) {
         return UserEntity.builder()
-                .id(user.getId())
-                .uuid(user.getUuid())
-                .nickname(user.getNickname())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .deleteAt(user.getDeletedAt())
-                .build();
+            .id(user.getId())
+            .uuid(user.getUuid())
+            .nickname(user.getNickname())
+            .role(user.getRole())
+            .createdAt(user.getCreatedAt())
+            .updatedAt(user.getUpdatedAt())
+            .deleteAt(user.getDeletedAt())
+            .build();
     }
 
-    public User toModel(){
+    public User toModel() {
         return User.builder()
-                .id(this.id)
-                .uuid(this.uuid)
-                .nickname(this.nickname)
-                .createdAt(this.getCreatedAt())
-                .updatedAt(this.getUpdatedAt())
-                .deletedAt(this.getDeleteAt())
-                .build();
+            .id(this.id)
+            .uuid(this.uuid)
+            .nickname(this.nickname)
+            .role(this.role)
+            .createdAt(this.getCreatedAt())
+            .updatedAt(this.getUpdatedAt())
+            .deletedAt(this.getDeleteAt())
+            .build();
     }
 }
 

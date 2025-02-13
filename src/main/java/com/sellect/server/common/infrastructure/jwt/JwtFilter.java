@@ -1,15 +1,12 @@
 package com.sellect.server.common.infrastructure.jwt;
 
-import com.sellect.server.auth.domain.Seller;
 import com.sellect.server.auth.domain.User;
-import com.sellect.server.auth.repository.seller.SellerRepository;
 import com.sellect.server.auth.repository.user.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +26,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
-    private final SellerRepository sellerRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -38,36 +34,23 @@ public class JwtFilter extends OncePerRequestFilter {
         if (token != null && jwtUtil.isTokenValid(token)) {
 
             String uuid = jwtUtil.extractUuid(token);
-            String role = jwtUtil.extractRole(token);
 
-            Object userDetails = null;
-            List<GrantedAuthority> authorities = new ArrayList<>();
-            if ("USER".equals(role)) {
-                User byUuid = userRepository.findByUuid(uuid);
-                if (byUuid != null) {
-                    userDetails = byUuid;
-                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-                }
-            } else if ("SELLER".equals(role)) {
-                Seller byUuid = sellerRepository.findByUuid(uuid);
-                if (byUuid != null) {
-                    userDetails = byUuid;
-                    authorities.add(new SimpleGrantedAuthority("ROLE_SELLER"));
-                }
-            }
-
-            if (userDetails != null) {
+            // todo: exception 던지기
+            User user = userRepository.findByUuid(uuid).orElse(null);
+            if (user != null) {
+                List<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, authorities);
+                    user, null, authorities);
                 authentication.setDetails(
                     new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
             }
         }
 
         filterChain.doFilter(request, response);
     }
-
 
 }
 

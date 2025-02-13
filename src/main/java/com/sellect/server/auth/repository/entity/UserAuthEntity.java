@@ -1,5 +1,6 @@
 package com.sellect.server.auth.repository.entity;
 
+import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.domain.UserAuth;
 import com.sellect.server.common.BaseTimeEntity;
 import jakarta.persistence.*;
@@ -29,10 +30,10 @@ public class UserAuthEntity extends BaseTimeEntity {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    public static UserAuthEntity from (UserEntity user, UserAuth userAuth) {
+    public static UserAuthEntity from (User user, UserAuth userAuth) {
         return UserAuthEntity.builder()
                 .id(user.getId())
-                .user(user)
+                .user(UserEntity.from(user))
                 .email(userAuth.getEmail())
                 .password(userAuth.getPassword())
                 .createdAt(userAuth.getCreatedAt())
