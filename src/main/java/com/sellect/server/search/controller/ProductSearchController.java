@@ -36,7 +36,7 @@ public class ProductSearchController {
         return ApiResponse.ok(products.map(productSearchMapper::toProductSearchResponse));
     }
 
-    @GetMapping
+    @GetMapping("/auto-complete")
     public ApiResponse autoCompleteSearch(@RequestParam(value = "q") String query) {
         return ApiResponse.ok();
     }

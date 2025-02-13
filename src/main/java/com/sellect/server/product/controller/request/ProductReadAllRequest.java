@@ -2,7 +2,6 @@ package com.sellect.server.product.controller.request;
 
 import com.sellect.server.product.domain.ProductSearchCondition;
 import com.sellect.server.product.domain.ProductSortType;
-import java.math.BigDecimal;
 import lombok.Builder;
 
 // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
@@ -11,8 +10,8 @@ public record ProductReadAllRequest(
     String keyword,
     Long categoryId,
     Long brandId,
-    BigDecimal minPrice,
-    BigDecimal maxPrice,
+    Integer minPrice,
+    Integer maxPrice,
     ProductSortType sortType // 정렬 옵션
 ) {
 
