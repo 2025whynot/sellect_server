@@ -16,7 +16,20 @@ public class Review {
     private final User user;
     private final Product product;
     private final float rating;
+    private final String description;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
+
+    public static Review register(User user, Product product, float rating, String description) {
+        return Review.builder()
+            .user(user)
+            .product(product)
+            .rating(rating)
+            .description(description)
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(null)
+            .build();
+    }
 }
