@@ -1,9 +1,7 @@
 package com.sellect.server.product.repository;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.List;
-
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +21,6 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
 
     Page<ProductEntity> findByIdIn(List<Long> ids, Pageable pageable);
 
-    Optional<ProductEntity> findByIdAndDeleteAt(Long productId, LocalDateTime deleteAt);
+    Optional<ProductEntity> findByIdAndDeleteAtIsNull(Long productId);
 
 }

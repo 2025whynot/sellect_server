@@ -38,14 +38,17 @@ public class ReviewEntity extends BaseTimeEntity {
     @JoinColumn(name = "product_id")
     private ProductEntity productEntity;
 
+    private String description;
+
     private float rating;
 
-    public ReviewEntity from(Review review) {
+    public static ReviewEntity from(Review review) {
         return ReviewEntity.builder()
             .id(review.getId())
             .userEntity(UserEntity.from(review.getUser()))
             .productEntity(ProductEntity.from(review.getProduct()))
             .rating(review.getRating())
+            .description(review.getDescription())
             .createdAt(review.getCreatedAt())
             .updatedAt(review.getUpdatedAt())
             .deleteAt(review.getDeleteAt())
@@ -58,6 +61,7 @@ public class ReviewEntity extends BaseTimeEntity {
             .user(this.userEntity.toModel())
             .product(this.productEntity.toModel())
             .rating(this.rating)
+            .description(this.description)
             .createdAt(this.getCreatedAt())
             .updatedAt(this.getUpdatedAt())
             .deleteAt(this.getDeleteAt())

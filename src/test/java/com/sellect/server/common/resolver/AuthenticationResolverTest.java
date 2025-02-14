@@ -1,5 +1,11 @@
 package com.sellect.server.common.resolver;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.common.infrastructure.annotation.AuthSeller;
@@ -13,10 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AuthenticationResolverTest {
 
@@ -38,7 +40,7 @@ class AuthenticationResolverTest {
             .role(Role.USER)
             .createdAt(null)
             .updatedAt(null)
-            .deletedAt(null)
+            .deleteAt(null)
             .build();
         mockAuthentication(user);
         MethodParameter methodParameter = mockMethodParameter(AuthUser.class);
@@ -62,7 +64,7 @@ class AuthenticationResolverTest {
             .role(Role.SELLER)
             .createdAt(null)
             .updatedAt(null)
-            .deletedAt(null)
+            .deleteAt(null)
             .build();
 
         mockAuthentication(seller);
@@ -87,7 +89,7 @@ class AuthenticationResolverTest {
             .role(Role.SELLER)
             .createdAt(null)
             .updatedAt(null)
-            .deletedAt(null)
+            .deleteAt(null)
             .build();
         mockAuthentication(seller);
         MethodParameter methodParameter = mockMethodParameter(AuthUser.class);
@@ -110,7 +112,7 @@ class AuthenticationResolverTest {
             .role(Role.USER)
             .createdAt(null)
             .updatedAt(null)
-            .deletedAt(null)
+            .deleteAt(null)
             .build();
         mockAuthentication(seller);
         MethodParameter methodParameter = mockMethodParameter(AuthSeller.class);
