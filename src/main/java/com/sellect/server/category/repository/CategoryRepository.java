@@ -1,13 +1,12 @@
 package com.sellect.server.category.repository;
 
 import com.sellect.server.category.domain.Category;
-
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface CategoryRepository {
 
-    boolean isExistCategory(Long categoryId, LocalDateTime deleteAt);
+    Optional<Category> findById(Long categoryId);
 
     boolean existsByName(String name);
 

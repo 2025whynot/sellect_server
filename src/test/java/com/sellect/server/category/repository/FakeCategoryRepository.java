@@ -1,20 +1,13 @@
 package com.sellect.server.category.repository;
 
 import com.sellect.server.category.domain.Category;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FakeCategoryRepository implements CategoryRepository {
 
     private final List<Category> data = new ArrayList<>();
-
-    @Override
-    public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
-        return data.stream()
-            .anyMatch(category -> category.getId().equals(categoryId) &&
-                (deleteAt == null || category.getDeleteAt() == null));
-    }
 
     @Override
     public boolean existsByName(String name) {
@@ -36,8 +29,24 @@ public class FakeCategoryRepository implements CategoryRepository {
             .findFirst().orElse(null);
     }
 
-    public void save(Category category) {
-        data.add(category);
+    public Category save(Category category) {
+        findById(category.getId()).ifPresentOrElse(
+            existingCategory -> {
+                // 기존 데이터 업데이트 (삭제 후 재등록)
+                data.remove(existingCategory);
+                data.add(category);
+            },
+            () -> data.add(category) // 새로운 데이터 추가
+        );
+
+        return category;
+    }
+
+    public Optional<Category> findById(Long categoryId) {
+        return data.stream()
+            .filter(category -> category.getId().equals(categoryId))
+            .filter(category -> category.getDeleteAt() == null)
+            .findFirst();
     }
 
     public List<Category> findAll() {

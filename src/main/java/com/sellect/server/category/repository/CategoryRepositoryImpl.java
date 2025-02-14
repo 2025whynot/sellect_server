@@ -4,11 +4,10 @@ import com.sellect.server.category.domain.Category;
 import com.sellect.server.category.mapper.CategoryMapper;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -17,9 +16,16 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     private final CategoryJpaRepository categoryJpaRepository;
     private final CategoryMapper categoryMapper;
 
+//    @Override
+//    public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
+//        return categoryJpaRepository.existsByIdAndDeleteAt(categoryId, null);
+//    }
+
+
     @Override
-    public boolean isExistCategory(Long categoryId, LocalDateTime deleteAt) {
-        return categoryJpaRepository.existsByIdAndDeleteAt(categoryId, null);
+    public Optional<Category> findById(Long categoryId) {
+        return categoryJpaRepository.findByIdAndDeleteAtIsNull(categoryId)
+            .map(CategoryEntity::toModel);
     }
 
     @Override
