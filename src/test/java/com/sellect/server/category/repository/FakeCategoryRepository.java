@@ -9,12 +9,6 @@ public class FakeCategoryRepository implements CategoryRepository {
 
     private final List<Category> data = new ArrayList<>();
 
-    // todo : 테스트 작성 시 구현해야 함
-    @Override
-    public Optional<Category> findById(Long categoryId) {
-        return Optional.empty();
-    }
-
     @Override
     public boolean existsByName(String name) {
         return data.stream()
@@ -35,8 +29,24 @@ public class FakeCategoryRepository implements CategoryRepository {
             .findFirst().orElse(null);
     }
 
-    public void save(Category category) {
-        data.add(category);
+    public Category save(Category category) {
+        findById(category.getId()).ifPresentOrElse(
+            existingCategory -> {
+                // 기존 데이터 업데이트 (삭제 후 재등록)
+                data.remove(existingCategory);
+                data.add(category);
+            },
+            () -> data.add(category) // 새로운 데이터 추가
+        );
+
+        return category;
+    }
+
+    public Optional<Category> findById(Long categoryId) {
+        return data.stream()
+            .filter(category -> category.getId().equals(categoryId))
+            .filter(category -> category.getDeleteAt() == null)
+            .findFirst();
     }
 
     public List<Category> findAll() {
