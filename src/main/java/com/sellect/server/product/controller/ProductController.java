@@ -3,7 +3,9 @@ package com.sellect.server.product.controller;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.infrastructure.annotation.AuthSeller;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.product.application.ProductImageService;
 import com.sellect.server.product.application.ProductService;
+import com.sellect.server.product.controller.request.ProductImageModifyRequest;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
 import com.sellect.server.product.controller.response.ProductModifyResponse;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequestMapping("/api/v1")
 @RestController
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductImageService productImageService;
 
     /*
      * 상품 등록 (복수 지원)
@@ -96,6 +100,19 @@ public class ProductController {
 
         // todo : ProductReadResponse에 잘 맵핑해서 보낼 것
         return productService.search(condition, page, size, sortType);
+    }
+
+    /*
+     * 상품 이미지 수정 API
+     * */
+    @PostMapping("/products/images")
+    public ApiResponse<Void> modifyProductImages(
+        @AuthSeller User seller,
+        @RequestParam("images") List<MultipartFile> images,
+        @RequestBody ProductImageModifyRequest request
+    ) {
+        productImageService.modify(seller.getId(), request, images);
+        return ApiResponse.ok();
     }
 
 }

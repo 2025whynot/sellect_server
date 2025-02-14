@@ -5,6 +5,9 @@ import com.sellect.server.brand.domain.Brand;
 import com.sellect.server.brand.repository.BrandRepository;
 import com.sellect.server.category.domain.Category;
 import com.sellect.server.category.repository.CategoryRepository;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.product.controller.request.ImageContextUpdateRequest;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
 import com.sellect.server.product.controller.response.ProductModifyResponse;
@@ -17,6 +20,7 @@ import com.sellect.server.product.repository.ProductRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -141,4 +145,5 @@ public class ProductService {
         ProductSortType sortType) {
         return productRepository.search(condition, page, size, sortType);
     }
+
 }

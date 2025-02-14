@@ -18,7 +18,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED(405, "C008", "Method Not Allowed"),
     INTERNAL_SERVER_ERROR(500, "C009", "Server Error"),
 
-    // Business
+    // Business Common
     BUSINESS_ERROR(400, "B000", "Business Error");
 
     private final int status;

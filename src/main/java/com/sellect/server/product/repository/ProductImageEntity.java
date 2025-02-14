@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,9 +42,9 @@ public class ProductImageEntity extends BaseTimeEntity {
     @Column(nullable = false)
     private boolean representative;
 
-    // todo: columDefinition UNSIGNED INTEGER 추가 후 사용하세요.
-    @Column(nullable = false)
-    private Integer sequence;
+    private String uuid;
+    private String prev;
+    private String next;
 
     public static ProductImageEntity from(ProductImage productImage, Product product) {
         return ProductImageEntity.builder()
@@ -51,7 +52,9 @@ public class ProductImageEntity extends BaseTimeEntity {
             .productEntity(ProductEntity.from(product))
             .imageUrl(productImage.getImageUrl())
             .representative(productImage.isRepresentative())
-            .sequence(productImage.getSequence())
+            .uuid(productImage.getUuid())
+            .prev(productImage.getPrev())
+            .next(productImage.getNext())
             .createdAt(productImage.getCreatedAt())
             .updatedAt(productImage.getUpdatedAt())
             .deleteAt(productImage.getDeleteAt())
@@ -64,7 +67,9 @@ public class ProductImageEntity extends BaseTimeEntity {
             .product(this.productEntity.toModel())
             .imageUrl(this.imageUrl)
             .representative(this.representative)
-            .sequence(this.sequence)
+            .uuid(this.uuid)
+            .prev(this.prev)
+            .next(this.next)
             .createdAt(this.getCreatedAt())
             .updatedAt(this.getUpdatedAt())
             .deleteAt(this.getDeleteAt())

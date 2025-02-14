@@ -14,6 +14,7 @@ public enum IError implements Error {
     FIELD_NOT_EXIST("I040", "field does not exist"),
     FIELD_NOT_ALLOWED("I042", "field is not allowed");
 
+
     private final String errCode;
     private final String msg;
 
