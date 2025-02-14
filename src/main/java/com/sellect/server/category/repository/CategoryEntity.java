@@ -4,12 +4,9 @@ import com.sellect.server.category.domain.Category;
 import com.sellect.server.common.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -32,9 +29,7 @@ public class CategoryEntity extends BaseTimeEntity {
     @Column(nullable = false, length = 255)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private CategoryEntity parent;
+    private Long parentId;
 
     private Integer depth;
 
@@ -42,8 +37,7 @@ public class CategoryEntity extends BaseTimeEntity {
         return CategoryEntity.builder()
             .id(category.getId())
             .name(category.getName())
-            // todo: 한 번 더 체크할 부분 this.from(xx)
-            .parent(category.getParent() == null ? null : from(category.getParent()))
+            .parentId(category.getParentId())
             .depth(category.getDepth())
             .createdAt(category.getCreatedAt())
             .updatedAt(category.getUpdatedAt())
@@ -55,7 +49,7 @@ public class CategoryEntity extends BaseTimeEntity {
         return Category.builder()
             .id(this.id)
             .name(this.name)
-            .parent(this.parent == null ? null : this.parent.toModel())
+            .parentId(this.parentId)
             .depth(this.depth)
             .createdAt(this.getCreatedAt())
             .updatedAt(this.getUpdatedAt())

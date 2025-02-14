@@ -10,7 +10,7 @@ public class Category {
 
     private final Long id;
     private final String name;
-    private final Category parent;
+    private final Long parentId;
     private final Integer depth;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
@@ -19,11 +19,11 @@ public class Category {
     /**
      * 카테고리 등록
      */
-    public static Category create(String name, Category parent) {
+    public static Category create(String name, Category parentCategory) {
         return Category.builder()
             .name(name)
-            .parent(parent)
-            .depth(parent == null ? 0 : parent.getDepth() + 1)
+            .parentId(parentCategory == null ? null : parentCategory.getParentId())
+            .depth(parentCategory == null ? 0 : parentCategory.getDepth() + 1)
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .deleteAt(null)
