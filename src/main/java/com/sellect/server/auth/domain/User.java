@@ -20,7 +20,7 @@ public class User {
     private final Role role;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
-    private final LocalDateTime deletedAt;
+    private final LocalDateTime deleteAt;
 
     public static User register(String nickname, Role role) {
         return User.builder()
@@ -29,21 +29,8 @@ public class User {
             .role(role)
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
-            .deletedAt(null)
+            .deleteAt(null)
             .build();
-    }
-
-
-    @Override
-    public String toString() {
-        return "User{" +
-            "id=" + id +
-            ", uuid='" + uuid + '\'' +
-            ", nickname='" + nickname + '\'' +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", deletedAt=" + deletedAt +
-            '}';
     }
 }
 
