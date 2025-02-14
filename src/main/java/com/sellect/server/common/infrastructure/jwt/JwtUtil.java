@@ -13,11 +13,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtUtil {
 
-    private static final Long ACCESS_TOKEN_EXPIRATION_TIME = 15 * 60 * 1000L;
+    private final Long ACCESS_TOKEN_EXPIRATION_TIME;
     private final SecretKey secretKey;
 
-    public JwtUtil(@Value("${jwt.secret}") String SECRET_KEY) {
+
+    public JwtUtil(@Value("${jwt.secret}") String SECRET_KEY, @Value("${jwt.expiration}") Long EXPIRATION_TIME) {
         this.secretKey = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        this.ACCESS_TOKEN_EXPIRATION_TIME = EXPIRATION_TIME;
     }
 
 

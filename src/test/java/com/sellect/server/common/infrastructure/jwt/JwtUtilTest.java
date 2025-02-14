@@ -23,7 +23,7 @@ class JwtUtilTest {
     @BeforeEach
     void setUp() {
         secretKey = Keys.hmacShaKeyFor(TEST_SECRET_KEY.getBytes(StandardCharsets.UTF_8));
-        jwtUtil = new JwtUtil(TEST_SECRET_KEY);
+        jwtUtil = new JwtUtil(TEST_SECRET_KEY, 1000L);
     }
 
     @Nested
