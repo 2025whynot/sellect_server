@@ -25,7 +25,10 @@ public class ProductImageService {
     private final ProductImageRepository productImageRepository;
 
     @Transactional
-    public void modify(Long sellerId, ProductImageModifyRequest request, List<MultipartFile> images) {
+    public void modifyProductImages(
+        Long sellerId,
+        ProductImageModifyRequest request,
+        List<MultipartFile> images) {
 
         Long productId = request.productId();
         List<String> toDelete = request.toDelete();
@@ -40,7 +43,7 @@ public class ProductImageService {
                 "seller doesn't have permission to modify product images");
         }
 
-        // 상품 이미지 삭제 (soft delete)
+        // 상품 이미지 삭제
         toDelete.forEach(uuid -> {
             ProductImage productImage = productImageRepository.findByProductIdAndUuid(productId, uuid)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "product image"));
@@ -49,10 +52,15 @@ public class ProductImageService {
 
         // 상품 이미지 수정 (이미지 순서 변경)
         toUpdate.forEach(updateRequest -> {
-            ProductImage productImage = productImageRepository.findByProductIdAndUuid(productId, updateRequest.sourceUUID())
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "product image"));
-            ProductImage updatedProductImage = productImage.update(updateRequest);
-            productImageRepository.save(updatedProductImage, product);
+            if (updateRequest.isNewImage()) {
+                ProductImage productImage = ProductImage.registerWithouImageUrl(product, updateRequest);
+                productImageRepository.save(productImage, product);
+            } else {
+                ProductImage productImage = productImageRepository.findByProductIdAndUuid(productId, updateRequest.target())
+                    .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "product image"));
+                ProductImage updatedProductImage = productImage.update(updateRequest);
+                productImageRepository.save(updatedProductImage, product);
+            }
         });
 
         // 상품 이미지 추가

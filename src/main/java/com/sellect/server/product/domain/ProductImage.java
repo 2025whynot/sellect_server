@@ -9,7 +9,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor(access = AccessLevel.PRIVATE) // @Builder 사용 시 명확한 객체 생성
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProductImage {
 
     private final Long id;
@@ -23,34 +23,33 @@ public class ProductImage {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
 
+    public static ProductImage registerWithouImageUrl(Product product, ImageContextUpdateRequest request) {
+        return ProductImage.builder()
+            .product(product)
+            .representative(request.isRepresentative())
+            .uuid(request.target())
+            .prev(request.prev())
+            .next(request.next())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(null)
+            .build();
+    }
+
+    // TODO: request dto 의존적임 -> 수정 필요
     public ProductImage update(ImageContextUpdateRequest request) {
-        if (request.isPrev()) {
-            return ProductImage.builder()
-                .id(this.id)
-                .product(this.product)
-                .imageUrl(this.imageUrl)
-                .representative(this.representative)
-                .uuid(this.uuid)
-                .prev(request.targetUUID())
-                .next(this.next)
-                .createdAt(this.getCreatedAt())
-                .updatedAt(LocalDateTime.now())
-                .deleteAt(this.deleteAt)
-                .build();
-        } else {
-            return ProductImage.builder()
-                .id(this.id)
-                .product(this.product)
-                .imageUrl(this.imageUrl)
-                .representative(this.representative)
-                .uuid(this.uuid)
-                .prev(this.prev)
-                .next(request.targetUUID())
-                .createdAt(this.getCreatedAt())
-                .updatedAt(LocalDateTime.now())
-                .deleteAt(this.deleteAt)
-                .build();
-        }
+        return ProductImage.builder()
+            .id(this.id)
+            .product(this.product)
+            .imageUrl(this.imageUrl)
+            .representative(request.isRepresentative())
+            .uuid(request.target())
+            .prev(request.prev())
+            .next(request.next())
+            .createdAt(this.getCreatedAt())
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
     }
 
     public ProductImage updateImageUrl(String imageUrl) {

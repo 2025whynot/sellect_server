@@ -1,30 +1,14 @@
 package com.sellect.server.product.controller.request;
 
-import lombok.Getter;
+import lombok.Builder;
 
+@Builder
 public record ImageContextUpdateRequest(
-    String sourceUUID,
-    Direction direction,
-    String targetUUID
+    String target,
+    String prev,
+    String next,
+    boolean isRepresentative,
+    boolean isNewImage
 ) {
-
-    public boolean isPrev() {
-        return direction == Direction.PREV;
-    }
-
-    public boolean isNext() {
-        return direction == Direction.NEXT;
-    }
-
-    @Getter
-    enum Direction {
-        PREV("prev"), NEXT("next");
-
-        private final String value;
-
-        Direction(String value) {
-            this.value = value;
-        }
-    }
 
 }

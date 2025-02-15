@@ -111,7 +111,7 @@ public class ProductController {
         @RequestParam("images") List<MultipartFile> images,
         @RequestBody ProductImageModifyRequest request
     ) {
-        productImageService.modify(seller.getId(), request, images);
+        productImageService.modifyProductImages(seller.getId(), request, images);
         return ApiResponse.ok();
     }
 
