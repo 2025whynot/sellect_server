@@ -7,7 +7,6 @@ import com.sellect.server.product.properties.StorageProperties;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,13 +38,27 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
+    @PostConstruct
+    public void init() throws Exception {
+        try {
+            Files.createDirectories(rootLocation);
+        } catch (IOException e) {
+            throw new Exception("Could not initialize storage location", e);
+        }
+    }
+
+    @Override
     public Path store(MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 throw new StorageException(BError.NOT_EXIST, "file");
             }
 
-            String newFilename = generateNewFilename(Objects.requireNonNull(file.getOriginalFilename()));
+            String originalFilename = file.getOriginalFilename();
+            if (Objects.isNull(originalFilename)) {
+                throw new StorageException(BError.NOT_EXIST, "file name");
+            }
+            String newFilename = generateNewFilename(originalFilename);
             Path destinationFile = this.rootLocation.resolve(
                     Paths.get(newFilename))
                 .normalize().toAbsolutePath();
@@ -55,7 +68,7 @@ public class FileSystemStorageService implements StorageService {
                     "cannot store file outside current directory.");
             }
 
-            // InputStream 자원을 사용한 후에는 반드시 닫아주어야 한다
+            // InputStream 자원을 사용한 후에는 반드시 닫아주어야 함
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, destinationFile,
                     StandardCopyOption.REPLACE_EXISTING);
@@ -94,32 +107,25 @@ public class FileSystemStorageService implements StorageService {
         try {
             Path file = load(filename);
             Resource resource = new UrlResource(file.toUri());
+            if (resource.getFile().isDirectory()) {
+                throw new StorageException(IError.RESOURCE_NOT_ALIVE);
+            }
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             } else {
                 throw new StorageException(IError.RESOURCE_NOT_ALIVE);
             }
-        }
-        catch (MalformedURLException e) {
+        } catch (IOException e) {
             throw new StorageException(IError.RESOURCE_NOT_ALIVE);
         }
     }
 
     @Override
     public void deleteAll() {
-        FileSystemUtils.deleteRecursively(rootLocation.toFile());
-    }
-
-    @Override
-    @PostConstruct
-    public void init() {
-        try {
-            Files.createDirectories(rootLocation);
-        }
-        catch (IOException e) {
-            throw new StorageException(BError.FAIL_FOR_REASON,
-                "init storage",
-                e.getMessage());
+        try (Stream<Path> files = Files.list(rootLocation)) {
+            files.forEach(path -> FileSystemUtils.deleteRecursively(path.toFile()));
+        } catch (IOException e) {
+            throw new StorageException(BError.FAIL_FOR_REASON, "delete files", e.getMessage());
         }
     }
 
