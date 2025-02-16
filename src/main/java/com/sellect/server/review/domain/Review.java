@@ -32,4 +32,17 @@ public class Review {
             .deleteAt(null)
             .build();
     }
+
+    public Review remove() {
+        return Review.builder()
+            .id(this.id)
+            .user(user)
+            .product(product)
+            .rating(rating)
+            .description(description)
+            .createdAt(this.createdAt)
+            .updatedAt(this.updatedAt)
+            .deleteAt(LocalDateTime.now()) // 삭제 시간 업데이트
+            .build();
+    }
 }
