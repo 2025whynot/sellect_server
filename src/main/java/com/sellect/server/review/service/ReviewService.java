@@ -4,7 +4,6 @@ import com.sellect.server.auth.domain.User;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.ProductRepository;
 import com.sellect.server.review.controller.request.ReviewRegisterRequest;
-import com.sellect.server.review.controller.request.ReviewRemoveRequest;
 import com.sellect.server.review.domain.Review;
 import com.sellect.server.review.repository.ReviewEntity;
 import com.sellect.server.review.repository.ReviewRepository;
@@ -32,10 +31,10 @@ public class ReviewService {
     }
 
     @Transactional
-    public void remove(User user, ReviewRemoveRequest request) {
+    public void remove(User user, Long reviewId) {
 
         // 리뷰가 존재하는지 체크
-        Review review = reviewRepository.findById(request.reviewId())
+        Review review = reviewRepository.findById(reviewId)
             .orElseThrow(() -> new RuntimeException("존재하지 않는 리뷰입니다."));
 
         // 유저의 리뷰인지 체크
