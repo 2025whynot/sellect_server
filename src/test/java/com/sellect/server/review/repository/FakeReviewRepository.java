@@ -4,6 +4,8 @@ import com.sellect.server.review.domain.Review;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 public class FakeReviewRepository implements ReviewRepository {
@@ -38,6 +40,12 @@ public class FakeReviewRepository implements ReviewRepository {
             .filter(review -> review.getId().equals(reviewId))
             .filter(review -> review.getDeleteAt() == null)
             .findFirst();
+    }
+
+    // todo: 테스트 구현 시 작성
+    @Override
+    public Page<Review> findAllByProductId(Long productId, Pageable pageable) {
+        return null;
     }
 
     public void clear() {
