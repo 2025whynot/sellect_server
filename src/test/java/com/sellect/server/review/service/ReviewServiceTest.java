@@ -12,7 +12,6 @@ import com.sellect.server.category.repository.FakeCategoryRepository;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.FakeProductRepository;
 import com.sellect.server.review.controller.request.ReviewRegisterRequest;
-import com.sellect.server.review.controller.request.ReviewRemoveRequest;
 import com.sellect.server.review.domain.Review;
 import com.sellect.server.review.repository.FakeReviewRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -112,10 +111,8 @@ class ReviewServiceTest {
 
             Review review = reviewRepository.save(Review.register(savedUser, product, 5, "좋은 상품입니다."));
 
-            ReviewRemoveRequest request = new ReviewRemoveRequest(review.getId());
-
             // When
-            sut.remove(savedUser, request);
+            sut.remove(savedUser, review.getId());
 
             // Then
             assertThat(reviewRepository.findById(review.getId())).isEmpty();
@@ -128,10 +125,10 @@ class ReviewServiceTest {
             User user = User.builder().id(1L).uuid("test-uuid").nickname("test-user").build();
             User savedUser = userRepository.save(user);
 
-            ReviewRemoveRequest request = new ReviewRemoveRequest(999L); // 존재하지 않는 리뷰 ID
+            Long nonExistingReviewId = 999L; // 존재하지 않는 리뷰 ID
 
             // When & Then
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> sut.remove(savedUser, request));
+            RuntimeException exception = assertThrows(RuntimeException.class, () -> sut.remove(savedUser, nonExistingReviewId));
             assertThat(exception.getMessage()).isEqualTo("존재하지 않는 리뷰입니다.");
         }
 
@@ -149,10 +146,8 @@ class ReviewServiceTest {
 
             Review review = reviewRepository.save(Review.register(savedOwner, product, 5, "좋은 상품입니다."));
 
-            ReviewRemoveRequest request = new ReviewRemoveRequest(review.getId());
-
             // When & Then
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> sut.remove(savedAnotherUser, request));
+            RuntimeException exception = assertThrows(RuntimeException.class, () -> sut.remove(savedAnotherUser, review.getId()));
             assertThat(exception.getMessage()).isEqualTo("리뷰 삭제 권한이 없습니다.");
         }
     }
