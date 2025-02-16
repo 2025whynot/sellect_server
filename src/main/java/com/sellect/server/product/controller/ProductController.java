@@ -64,7 +64,7 @@ public class ProductController {
     }
 
     /**
-     * 상품 단건 수정 API
+     * 상품 단건 삭제 API
      */
     @DeleteMapping("/products/{productId}")
     public ApiResponse<Void> remove(
