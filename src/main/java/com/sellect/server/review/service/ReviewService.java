@@ -5,11 +5,14 @@ import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.ProductRepository;
 import com.sellect.server.review.controller.request.ReviewModifyRequest;
 import com.sellect.server.review.controller.request.ReviewRegisterRequest;
+import com.sellect.server.review.controller.response.ReviewReadAllResponse;
 import com.sellect.server.review.domain.Review;
 import com.sellect.server.review.repository.ReviewEntity;
 import com.sellect.server.review.repository.ReviewRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,15 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ProductRepository productRepository;
+
+    @Transactional(readOnly = true)
+    public Page<ReviewReadAllResponse> readAll(Long productId, Pageable pageable) {
+
+        // todo: N+1 예상 -> EntityGraph 로 우선 해결
+        Page<Review> reviews = reviewRepository.findAllByProductId(productId, pageable);
+
+        return reviews.map(ReviewReadAllResponse::from);
+    }
 
     @Transactional
     public Review register(User user, ReviewRegisterRequest request) {

@@ -6,12 +6,18 @@ import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.review.controller.request.ReviewModifyRequest;
 import com.sellect.server.review.controller.request.ReviewRegisterRequest;
 import com.sellect.server.review.controller.response.ReviewModifyResponse;
+import com.sellect.server.review.controller.response.ReviewReadAllResponse;
 import com.sellect.server.review.controller.response.ReviewRegisterResponse;
 import com.sellect.server.review.domain.Review;
 import com.sellect.server.review.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +31,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReviewController {
 
     private final ReviewService reviewService;
+
+    // todo: 비회원도 조회 가능하도록 Security 에 url 열기
+    @GetMapping("/products/{productId}/reviews")
+    public ApiResponse<Page<ReviewReadAllResponse>> readAll(
+        @PathVariable Long productId,
+        @PageableDefault(size = 10, sort = "createdAt", direction = Direction.DESC) Pageable pageable
+    ) {
+        Page<ReviewReadAllResponse> result = reviewService.readAll(
+            productId, pageable);
+        return ApiResponse.ok(result);
+    }
 
     @PostMapping("/review")
     public ApiResponse<ReviewRegisterResponse> register(
