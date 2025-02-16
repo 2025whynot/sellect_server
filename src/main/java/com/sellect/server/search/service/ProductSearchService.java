@@ -8,4 +8,5 @@ import org.springframework.data.domain.Pageable;
 public interface ProductSearchService {
 
     Page<Product> searchByKeyword(String keyword, Pageable pageable);
+
 }
