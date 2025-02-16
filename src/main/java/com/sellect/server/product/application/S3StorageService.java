@@ -40,7 +40,7 @@ public class S3StorageService implements StorageService {
     public String storeAndReturnNewFilename(MultipartFile file) {
         try (InputStream inputStream = file.getInputStream()) {
             String originalFilename = file.getOriginalFilename();
-            if (Objects.isNull(originalFilename)) {
+            if (Objects.isNull(originalFilename) || originalFilename.isBlank()) {
                 throw new StorageException(BError.NOT_EXIST, "file name");
             }
             String newFilename = generateNewFilename(originalFilename);
@@ -70,7 +70,7 @@ public class S3StorageService implements StorageService {
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                throw new StorageException(BError.NOT_EXIST, "file not found");
+                throw new StorageException(BError.NOT_EXIST, "file");
             }
         } catch (Exception e) {
             throw new StorageException(BError.FAIL_FOR_REASON, "load file", e.getMessage());

@@ -57,7 +57,7 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("정상적인 파일을 저장하면 경로에 존재해야 한다.")
-        void store_shouldSaveFileSuccessfully() throws IOException {
+        void shouldSaveFileSuccessfully() throws IOException {
             MultipartFile file = mock(MultipartFile.class);
             when(file.isEmpty()).thenReturn(false);
             when(file.getOriginalFilename()).thenReturn("test.txt");
@@ -71,7 +71,7 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("비어있는 파일을 저장하면 예외가 발생해야 한다.")
-        void store_shouldThrowExceptionWhenFileIsEmpty() {
+        void shouldThrowExceptionWhenFileIsEmpty() {
             MultipartFile emptyFile = mock(MultipartFile.class);
             when(emptyFile.isEmpty()).thenReturn(true);
 
@@ -82,7 +82,7 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("파일 이름이 없을 경우 예외가 발생해야 한다.")
-        void store_shouldThrowExceptionWhenFilenameIsNull() {
+        void shouldThrowExceptionWhenFilenameIsNull() {
             MultipartFile file = mock(MultipartFile.class);
             when(file.isEmpty()).thenReturn(false);
             when(file.getOriginalFilename()).thenReturn(null);
@@ -94,11 +94,11 @@ class FileSystemStorageServiceTest {
 
     @Nested
     @DisplayName("파일 경로 조회(loadAsPath) 테스트")
-    class LoadTests {
+    class LoadAsPathTests {
 
         @Test
         @DisplayName("파일 이름으로 해당 파일의 경로를 반환해야 한다.")
-        void load_shouldReturnFilePath() {
+        void shouldReturnFilePath() {
             String path = storageService.loadAsPath("test.txt");
 
             assertThat(path).isEqualTo(tempDir.resolve("test.txt").toString());
@@ -111,7 +111,7 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("존재하는 파일을 리소스로 로드할 수 있어야 한다.")
-        void loadAsResource_shouldReturnValidResource() throws IOException {
+        void shouldReturnValidResource() throws IOException {
             Path testFile = tempDir.resolve("sample.txt");
             Files.createFile(testFile);
 
@@ -123,14 +123,14 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("존재하지 않는 파일을 리소스로 로드하면 예외가 발생해야 한다.")
-        void loadAsResource_shouldThrowExceptionWhenFileNotExists() {
+        void shouldThrowExceptionWhenFileNotExists() {
             assertThatThrownBy(() -> storageService.loadAsResource("not_exist.txt"))
                 .isInstanceOf(StorageException.class);
         }
 
         @Test
         @DisplayName("파일이 아닌 디렉토리를 리소스로 로드하면 예외가 발생해야 한다.")
-        void loadAsResource_shouldThrowExceptionWhenPathIsDirectory() throws IOException {
+        void shouldThrowExceptionWhenPathIsDirectory() throws IOException {
             Path dir = tempDir.resolve("subdir");
             Files.createDirectory(dir);
 
@@ -145,7 +145,7 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("파일 삭제 후, 저장소가 비어 있어야 한다.")
-        void deleteAll_shouldRemoveAllFiles() throws IOException {
+        void shouldRemoveAllFiles() throws IOException {
             Files.createFile(tempDir.resolve("file1.txt"));
             Files.createFile(tempDir.resolve("file2.txt"));
 
@@ -156,7 +156,7 @@ class FileSystemStorageServiceTest {
 
         @Test
         @DisplayName("이미 비어 있는 경우에도 정상 동작해야 한다.")
-        void deleteAll_shouldNotFailWhenNoFiles() {
+        void shouldNotFailWhenNoFiles() {
             assertThatCode(() -> storageService.deleteAll()).doesNotThrowAnyException();
         }
     }
