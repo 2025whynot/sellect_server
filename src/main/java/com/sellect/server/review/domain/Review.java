@@ -33,6 +33,18 @@ public class Review {
             .build();
     }
 
+    public Review modify(float newRating, String newDescription) {
+        return Review.builder()
+            .id(this.id)
+            .user(this.user)
+            .product(this.product)
+            .rating(newRating) // 새로운 평점 적용
+            .description(newDescription) // 새로운 내용 적용
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now()) // 수정 시간 업데이트
+            .build();
+    }
+
     public Review remove() {
         return Review.builder()
             .id(this.id)
