@@ -3,7 +3,7 @@ package com.sellect.server.product.application;
 import com.sellect.server.common.exception.StorageException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.exception.enums.IError;
-import com.sellect.server.product.properties.StorageProperties;
+import com.sellect.server.product.config.properties.FileSystemStorageProperties;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,13 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
+@Qualifier("fileSystemStorageService")
 public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation;
 
     @Autowired
-    public FileSystemStorageService(StorageProperties properties) {
+    public FileSystemStorageService(FileSystemStorageProperties properties) {
 
         if(properties.getLocation().trim().isEmpty()){
             throw new StorageException(BError.FAIL_FOR_REASON,
@@ -48,7 +50,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Path store(MultipartFile file) {
+    public String storeAndReturnNewFilename(MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 throw new StorageException(BError.NOT_EXIST, "file");
@@ -74,7 +76,7 @@ public class FileSystemStorageService implements StorageService {
                     StandardCopyOption.REPLACE_EXISTING);
             }
 
-            return destinationFile;
+            return newFilename;
         }
         catch (IOException e) {
             throw new StorageException(BError.FAIL_FOR_REASON,
@@ -84,28 +86,14 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public Stream<Path> loadAll() {
-        try {
-            return Files.walk(this.rootLocation, 1)
-                .filter(path -> !path.equals(this.rootLocation))
-                .map(this.rootLocation::relativize);
-        }
-        catch (IOException e) {
-            throw new StorageException(BError.FAIL_FOR_REASON,
-                "load files",
-                e.getMessage());
-        }
-    }
-
-    @Override
-    public Path load(String filename) {
-        return rootLocation.resolve(filename);
+    public String loadAsPath(String filename) {
+        return rootLocation.resolve(filename).toString();
     }
 
     @Override
     public Resource loadAsResource(String filename) {
         try {
-            Path file = load(filename);
+            Path file = rootLocation.resolve(filename).normalize().toAbsolutePath();
             Resource resource = new UrlResource(file.toUri());
             if (resource.getFile().isDirectory()) {
                 throw new StorageException(IError.RESOURCE_NOT_ALIVE);

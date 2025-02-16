@@ -34,11 +34,9 @@ class ProductImageServiceTest {
     private final Long sellerId = 1L;
     private final Long productId = 100L;
 
-    private Product product;
-
     @BeforeEach
     void setUp() {
-        product = Product.builder()
+        Product product = Product.builder()
             .id(productId)
             .name("Test Product")
             .seller(User.builder()

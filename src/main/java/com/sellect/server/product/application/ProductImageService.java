@@ -8,7 +8,6 @@ import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.domain.ProductImage;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -65,12 +64,13 @@ public class ProductImageService {
 
         // 상품 이미지 추가
         images.forEach(image -> {
-            Path path = storageService.store(image);
+            String newFilename = storageService.storeAndReturnNewFilename(image);
+            String path = storageService.loadAsPath(newFilename);
             // TODO: 클라이언트 측에서 input 태그의 name 을 uuid 로 설정해야만 정상 동작하는데,
             //  추후 클라이언트에 의존적이지 않은 방법으로 수정해야 함
             ProductImage productImage = productImageRepository.findByProductIdAndUuid(productId, image.getName())
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "product image"));
-            productImageRepository.save(productImage.updateImageUrl(path.toString()), product);
+            productImageRepository.save(productImage.updateImageUrl(path), product);
         });
     }
 }
