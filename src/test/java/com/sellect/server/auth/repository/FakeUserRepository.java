@@ -31,7 +31,7 @@ public class FakeUserRepository implements UserRepository {
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
-                .deletedAt(user.getDeletedAt())
+                .deleteAt(user.getDeleteAt())
                 .build();
         }
         userStore.put(user.getId(), user);
