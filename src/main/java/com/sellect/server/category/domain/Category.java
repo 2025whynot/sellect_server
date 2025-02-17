@@ -19,6 +19,7 @@ public class Category {
     /**
      * 카테고리 등록
      */
+    // todo: 삭제 예정 -> 직접 DB에 값을 넣으면 되기에 (관리자를 만들지 않기로 기획을 정함)
     public static Category create(String name, Category parentCategory) {
         return Category.builder()
             .name(name)
