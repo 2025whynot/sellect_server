@@ -14,7 +14,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private static final String[] AUTH_WHITELIST = {
+        "/swagger-resources/**",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+    };
     private final JwtFilter jwtFilter;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -26,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/login").permitAll()
                         .requestMatchers("/v1/auth/seller/signup").permitAll()
                         .requestMatchers("/v1/auth/seller/login").permitAll()
+                        .requestMatchers(AUTH_WHITELIST).permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(AbstractHttpConfigurer::disable)// HTTP Basic 인증 비활성화
