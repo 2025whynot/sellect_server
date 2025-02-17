@@ -24,4 +24,10 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         PaymentEntity paymentEntity = paymentJpaRepository.findByPid(pid);
         return paymentEntity.toModel();
     }
+
+    @Override
+    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
+        Page<PaymentEntity> paymentEntityPage = paymentJpaRepository.findByUid(uuid, pageable);
+        return paymentEntityPage.map(PaymentEntity::toModel);
+    }
 }

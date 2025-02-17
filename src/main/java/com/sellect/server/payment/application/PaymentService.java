@@ -41,11 +41,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final RestTemplate restTemplate;
-
-    @Value("${kakao.pay.secret-key}")
-    private String PAY_SECRET_KEY;
-    private static final String KAKAO_PAY_API_URL = "https://open-api.kakaopay.com/online/v1/payment/ready";
-    private static final String KAKAO_PAY_APPROVE_API_URL = "https://open-api.kakaopay.com/online/v1/payment/approve";
+    private final PaymentMapper paymentMapper;
 
     public String initialPayment(User user, PaymentRequest paymentRequest) {
         String pid = generatePaymentId();
@@ -67,6 +63,20 @@ public class PaymentService {
         ApproveRequest approveRequest = createApproveRequest(payment, token);
         ResponseEntity<Map> response = sendKakaoPayApproveRequest(approveRequest);
         handleKakaoPayApproveResponse(response, payment);
+    }
+
+    // 기본 최신순서
+    // 최근 결제 내역 조회
+    // 상위 5개 조회
+    @Transactional(readOnly = true)
+    public List<PaymentHistoryResponse> getPaymentHistory(User user, int page, int size) {
+        PageRequest pageable = PageRequest.of(page, size, Direction.DESC, "createdAt");
+        Page<Payment> paymentHistoryByUser = paymentRepository.findPaymentHistoryByUser(
+            user.getUuid(), pageable);
+
+        return paymentHistoryByUser.getContent().stream()
+            .map(paymentMapper::toPaymentHistoryResponse)
+            .toList();
     }
 
     private String generatePaymentId() {
