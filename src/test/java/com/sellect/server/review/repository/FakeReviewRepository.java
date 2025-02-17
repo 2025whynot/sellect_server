@@ -8,18 +8,26 @@ import java.util.Optional;
 
 public class FakeReviewRepository implements ReviewRepository {
 
+    private long idSequence = 1L; // 자동 증가 ID 변수 추가
     private final List<Review> data = new ArrayList<>();
 
     @Override
     public Review save(Review review) {
-        findById(review.getId()).ifPresentOrElse(
-            existingProduct -> {
-                // 기존 데이터 업데이트 (삭제 후 재등록)
-                data.remove(existingProduct);
-                data.add(review);
-            },
-            () -> data.add(review) // 새로운 데이터 추가
-        );
+        // 리뷰 ID가 없으면 새로운 ID를 자동 할당
+        if (review.getId() == null) {
+            review = Review.builder()
+                .id(idSequence++)  // 자동 증가 ID 부여
+                .user(review.getUser())
+                .product(review.getProduct())
+                .rating(review.getRating())
+                .description(review.getDescription())
+                .build();
+        }
+
+        // 기존 리뷰가 존재하는지 확인하고 업데이트
+        Optional<Review> existingReview = findById(review.getId());
+        existingReview.ifPresent(data::remove); // 존재하면 삭제
+        data.add(review); // 새로 추가
 
         return review;
     }

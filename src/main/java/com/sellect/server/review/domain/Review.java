@@ -32,4 +32,29 @@ public class Review {
             .deleteAt(null)
             .build();
     }
+
+    public Review modify(float newRating, String newDescription) {
+        return Review.builder()
+            .id(this.id)
+            .user(this.user)
+            .product(this.product)
+            .rating(newRating) // 새로운 평점 적용
+            .description(newDescription) // 새로운 내용 적용
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now()) // 수정 시간 업데이트
+            .build();
+    }
+
+    public Review remove() {
+        return Review.builder()
+            .id(this.id)
+            .user(user)
+            .product(product)
+            .rating(rating)
+            .description(description)
+            .createdAt(this.createdAt)
+            .updatedAt(this.updatedAt)
+            .deleteAt(LocalDateTime.now()) // 삭제 시간 업데이트
+            .build();
+    }
 }
