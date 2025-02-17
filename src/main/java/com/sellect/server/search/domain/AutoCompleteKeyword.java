@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class SearchKeyword {
+public class AutoCompleteKeyword {
 
     private final Long id;
     private final String keyword;
@@ -17,5 +17,4 @@ public class SearchKeyword {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
-
 }

@@ -10,14 +10,10 @@ import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
 import com.sellect.server.product.controller.response.ProductModifyResponse;
 import com.sellect.server.product.controller.response.ProductRegisterResponse;
-import com.sellect.server.product.domain.Product;
-import com.sellect.server.product.domain.ProductSearchCondition;
-import com.sellect.server.product.domain.ProductSortType;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +32,7 @@ public class ProductController {
     private final ProductService productService;
     private final ProductImageService productImageService;
 
-    /*
+    /**
      * 상품 등록 (복수 지원)
      * */
     @PostMapping("/product")
@@ -76,34 +72,7 @@ public class ProductController {
         return ApiResponse.ok();
     }
 
-    /*
-     * 상품 조회 API
-     * condition 을 통해 확인
-     * */
-    @GetMapping("/products/search")
-    // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
-    public List<Product> search(
-        @RequestParam(required = false) Long categoryId,
-        @RequestParam(required = false) Long brandId,
-        @RequestParam(required = false) Integer minPrice,
-        @RequestParam(required = false) Integer maxPrice,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        @RequestParam(defaultValue = "LATEST") ProductSortType sortType
-    ) {
-        ProductSearchCondition condition = ProductSearchCondition
-            .builder()
-            .categoryId(categoryId)
-            .brandId(brandId)
-            .minPrice(minPrice)
-            .maxPrice(maxPrice)
-            .build();
-
-        // todo : ProductReadResponse에 잘 맵핑해서 보낼 것
-        return productService.search(condition, page, size, sortType);
-    }
-
-    /*
+    /**
      * 상품 이미지 수정 API
      * */
     @PostMapping("/products/images")
