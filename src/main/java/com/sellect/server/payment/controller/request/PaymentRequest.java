@@ -1,4 +1,4 @@
-package com.sellect.server.payment.domain.controller.request;
+package com.sellect.server.payment.controller.request;
 
 public record PaymentRequest(
     String orderId,

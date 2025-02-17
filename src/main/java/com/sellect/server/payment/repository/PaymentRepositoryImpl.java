@@ -1,8 +1,10 @@
-package com.sellect.server.payment.domain.repository;
+package com.sellect.server.payment.repository;
 
 import com.sellect.server.payment.domain.Payment;
-import com.sellect.server.payment.domain.repository.entity.PaymentEntity;
+import com.sellect.server.payment.repository.entity.PaymentEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository

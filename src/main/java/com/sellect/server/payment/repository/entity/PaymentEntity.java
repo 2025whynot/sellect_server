@@ -1,4 +1,4 @@
-package com.sellect.server.payment.domain.repository.entity;
+package com.sellect.server.payment.repository.entity;
 
 import com.sellect.server.common.BaseTimeEntity;
 import com.sellect.server.payment.domain.Payment;

@@ -1,9 +1,11 @@
 package com.sellect.server.payment.domain.controller.repository;
 
 import com.sellect.server.payment.domain.Payment;
-import com.sellect.server.payment.domain.repository.PaymentRepository;
+import com.sellect.server.payment.repository.PaymentRepository;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public class FakePaymentRepository implements PaymentRepository {
 
@@ -34,5 +36,10 @@ public class FakePaymentRepository implements PaymentRepository {
             .filter(payment -> payment.getPid().equals(pid))
             .findFirst()
             .orElse(null);
+    }
+
+    @Override
+    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
+        return null;
     }
 }

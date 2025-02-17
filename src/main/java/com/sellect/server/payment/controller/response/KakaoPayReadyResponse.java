@@ -1,4 +1,4 @@
-package com.sellect.server.payment.domain.controller.response;
+package com.sellect.server.payment.controller.response;
 
 import lombok.Builder;
 

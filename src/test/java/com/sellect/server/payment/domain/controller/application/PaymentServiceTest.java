@@ -9,11 +9,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.payment.application.PaymentService;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.domain.controller.repository.FakePaymentRepository;
-import com.sellect.server.payment.domain.controller.request.PaymentRequest;
-import com.sellect.server.payment.domain.controller.response.KakaoPayReadyResponse;
-import com.sellect.server.payment.domain.repository.PaymentRepository;
+import com.sellect.server.payment.controller.request.PaymentRequest;
+import com.sellect.server.payment.controller.response.KakaoPayReadyResponse;
+import com.sellect.server.payment.repository.PaymentRepository;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
