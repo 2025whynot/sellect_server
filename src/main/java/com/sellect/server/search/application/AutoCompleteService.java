@@ -1,4 +1,4 @@
-package com.sellect.server.search.service;
+package com.sellect.server.search.application;
 
 import java.util.List;
 

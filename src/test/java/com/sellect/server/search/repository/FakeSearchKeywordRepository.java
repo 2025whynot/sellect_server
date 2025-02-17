@@ -4,6 +4,7 @@ import com.sellect.server.search.domain.SearchKeyword;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class FakeSearchKeywordRepository implements SearchKeywordRepository {
 
@@ -18,6 +19,11 @@ public class FakeSearchKeywordRepository implements SearchKeywordRepository {
             .sorted(Comparator.comparing(SearchKeyword::getFrequency).reversed())
             .limit(MAX_LIMIT)
             .toList();
+    }
+
+    @Override
+    public Optional<SearchKeyword> findByKeyword(String keyword) {
+        return Optional.empty();
     }
 
     public void save(SearchKeyword searchKeyword) {
