@@ -7,7 +7,7 @@ import com.sellect.server.product.domain.Product;
 import com.sellect.server.search.domain.SearchCondition;
 import com.sellect.server.search.domain.SearchSortType;
 import com.sellect.server.search.controller.response.AutoCompleteResponse;
-import com.sellect.server.search.service.AutoCompleteService;
+import com.sellect.server.search.application.AutoCompleteService;
 import com.sellect.server.search.service.SearchService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
