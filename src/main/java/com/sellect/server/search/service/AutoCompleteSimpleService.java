@@ -1,7 +1,7 @@
 package com.sellect.server.search.service;
 
-import com.sellect.server.search.domain.SearchKeyword;
-import com.sellect.server.search.repository.SearchKeywordRepository;
+import com.sellect.server.search.domain.AutoCompleteKeyword;
+import com.sellect.server.search.repository.AutoCompleteKeywordRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AutoCompleteSimpleService implements AutoCompleteService {
 
-    private final SearchKeywordRepository searchKeywordRepository;
+    private final AutoCompleteKeywordRepository autoCompleteKeywordRepository;
 
     @Override
     public List<String> getAutoCompleteResult(String query) {
-        return searchKeywordRepository.findTopKeywordsStartingWith(query).stream()
-            .map(SearchKeyword::getKeyword)
+        return autoCompleteKeywordRepository.findTopKeywordsStartingWith(query).stream()
+            .map(AutoCompleteKeyword::getKeyword)
             .map(String::valueOf)
             .toList();
     }
