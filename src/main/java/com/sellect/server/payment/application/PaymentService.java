@@ -41,7 +41,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final RestTemplate restTemplate;
-    private final PaymentMapper paymentMapper;
 
     public String initialPayment(User user, PaymentRequest paymentRequest) {
         String pid = generatePaymentId();
@@ -74,9 +73,17 @@ public class PaymentService {
         Page<Payment> paymentHistoryByUser = paymentRepository.findPaymentHistoryByUser(
             user.getUuid(), pageable);
 
-        return paymentHistoryByUser.getContent().stream()
-            .map(paymentMapper::toPaymentHistoryResponse)
-            .toList();
+        List<PaymentHistoryResponse> responses = paymentHistoryByUser.getContent().stream()
+            .map(payment ->
+                PaymentHistoryResponse.builder()
+                    .id(payment.getId())
+                    .orderId(payment.getOrderId())
+                    .pid(payment.getPid())
+                    .status(String.valueOf(payment.getStatus()))
+                    .price(String.valueOf(payment.getPrice()))
+                    .createdAt(payment.getCreatedAt().toString())
+                    .build()).toList();
+        return responses;
     }
 
     private String generatePaymentId() {

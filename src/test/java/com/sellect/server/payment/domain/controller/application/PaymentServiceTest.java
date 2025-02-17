@@ -10,11 +10,13 @@ import static org.mockito.Mockito.when;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.payment.application.PaymentService;
+import com.sellect.server.payment.controller.response.PaymentHistoryResponse;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.domain.controller.repository.FakePaymentRepository;
 import com.sellect.server.payment.controller.request.PaymentRequest;
 import com.sellect.server.payment.controller.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.repository.PaymentRepository;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,17 +41,18 @@ class PaymentServiceTest {
     private User user;
     private PaymentRequest paymentRequest;
     private Payment payment;
+    private static String USER_UUID = "test-uuid";
 
     @BeforeEach
     void setUp() {
         paymentRepository = new FakePaymentRepository();
         user = User.builder()
             .id(1L)
-            .uuid("test-uuid")
+            .uuid(USER_UUID)
             .build();
 
         paymentRequest = new PaymentRequest("order-123", "test item", 1, 1000);
-        payment = Payment.readyPayment("order-123", "test-pid", "test-uuid", 1000, "test-tid");
+        payment = Payment.readyPayment("order-123", "test-pid", USER_UUID, 1000, "test-tid");
         paymentService = new PaymentService(paymentRepository, restTemplate);
     }
 
@@ -177,6 +180,33 @@ class PaymentServiceTest {
             });
             assertEquals("Failed to approve KakaoPay payment", exception.getMessage());
         }
+    }
 
+    @Nested
+    @DisplayName("getPaymentHistory()")
+    class GetPaymentHistory {
+
+        @Test
+        @DisplayName("결제 내역 조회 성공")
+        void getPaymentHistory_Success() {
+            // given
+            paymentRepository.save(payment); // 테스트용 결제 데이터 저장
+
+            // when
+            List<PaymentHistoryResponse> paymentHistory = paymentService.getPaymentHistory(user, 0, 5);
+
+            // then
+            assertNotNull(paymentHistory);
+            assertEquals(1, paymentHistory.size());
+        }
+
+        @Test
+        @DisplayName("결제 내역 조회 실패 - 결제 데이터 없음")
+        void getPaymentHistory_Failure_NoPaymentData() {
+            // when & then
+            List<PaymentHistoryResponse> paymentHistory = paymentService.getPaymentHistory(user, 0,
+                5);
+            assertEquals(0, paymentHistory.size());
+        }
     }
 }
