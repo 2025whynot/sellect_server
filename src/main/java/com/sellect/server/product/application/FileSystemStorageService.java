@@ -50,19 +50,17 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public String storeAndReturnNewFilename(MultipartFile file) {
+    public void store(MultipartFile file, String filename) {
         try {
             if (file.isEmpty()) {
                 throw new StorageException(BError.NOT_EXIST, "file");
             }
 
-            String originalFilename = file.getOriginalFilename();
-            if (Objects.isNull(originalFilename)) {
+            if (Objects.isNull(filename)) {
                 throw new StorageException(BError.NOT_EXIST, "file name");
             }
-            String newFilename = generateNewFilename(originalFilename);
             Path destinationFile = this.rootLocation.resolve(
-                    Paths.get(newFilename))
+                    Paths.get(filename))
                 .normalize().toAbsolutePath();
             if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
                 throw new StorageException(BError.FAIL_FOR_REASON,
@@ -75,10 +73,7 @@ public class FileSystemStorageService implements StorageService {
                 Files.copy(inputStream, destinationFile,
                     StandardCopyOption.REPLACE_EXISTING);
             }
-
-            return newFilename;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new StorageException(BError.FAIL_FOR_REASON,
                 "store file",
                 e.getMessage());
@@ -87,6 +82,7 @@ public class FileSystemStorageService implements StorageService {
 
     @Override
     public String loadAsPath(String filename) {
+        // TODO: 해당 파일명의 파일이 존재하는지 검증
         return rootLocation.resolve(filename).toString();
     }
 
@@ -117,9 +113,4 @@ public class FileSystemStorageService implements StorageService {
         }
     }
 
-    private String generateNewFilename(String originalFilename) {
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String baseName = UUID.randomUUID().toString();
-        return baseName + "_" + System.currentTimeMillis() + fileExtension;
-    }
 }

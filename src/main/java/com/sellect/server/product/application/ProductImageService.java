@@ -8,7 +8,9 @@ import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.domain.ProductImage;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,10 +51,22 @@ public class ProductImageService {
             productImageRepository.save(productImage.remove(), product);
         });
 
+
+        // 상품 이미지 추가
+        Map<String, String> newFileNames = new HashMap<>();
+        images.forEach(image -> {
+            // TODO: 클라이언트 측에서 input 태그의 name 을 uuid 로 설정해야만 정상 동작하는데,
+            //  추후 클라이언트에 의존적이지 않은 방법으로 수정해야 함
+            String newFileName = generateFileName(image.getName(), image.getOriginalFilename());
+            newFileNames.put(image.getName(), newFileName);
+            storageService.store(image, newFileName);
+        });
+
         // 상품 이미지 수정 (이미지 순서 변경)
         toUpdate.forEach(updateRequest -> {
             if (updateRequest.isNewImage()) {
-                ProductImage productImage = ProductImage.registerWithouImageUrl(product, updateRequest);
+                String imageUrl = storageService.loadAsPath(newFileNames.get(updateRequest.target()));
+                ProductImage productImage = ProductImage.registerWhenUpdate(product, imageUrl, updateRequest);
                 productImageRepository.save(productImage, product);
             } else {
                 ProductImage productImage = productImageRepository.findByProductIdAndUuid(productId, updateRequest.target())
@@ -61,16 +75,10 @@ public class ProductImageService {
                 productImageRepository.save(updatedProductImage, product);
             }
         });
+    }
 
-        // 상품 이미지 추가
-        images.forEach(image -> {
-            String newFilename = storageService.storeAndReturnNewFilename(image);
-            String path = storageService.loadAsPath(newFilename);
-            // TODO: 클라이언트 측에서 input 태그의 name 을 uuid 로 설정해야만 정상 동작하는데,
-            //  추후 클라이언트에 의존적이지 않은 방법으로 수정해야 함
-            ProductImage productImage = productImageRepository.findByProductIdAndUuid(productId, image.getName())
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "product image"));
-            productImageRepository.save(productImage.updateImageUrl(path), product);
-        });
+    private String generateFileName(String fileName, String originalFileName) {
+        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        return fileName + "_" + System.currentTimeMillis() + fileExtension;
     }
 }

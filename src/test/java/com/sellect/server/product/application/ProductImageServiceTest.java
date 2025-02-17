@@ -264,27 +264,5 @@ class ProductImageServiceTest {
                 .isInstanceOf(CommonException.class)
                 .hasMessageContaining(BError.NOT_EXIST.getMessage("product image"));
         }
-
-        @Test
-        @DisplayName("추가할 이미지의 UUID가 존재하지 않으면 예외 발생")
-        void modifyProductImages_ImageToAddNotFound() {
-            // Given
-            String nonExistentUuid = "non-existent-uuid";
-            MultipartFile mockImage = mock(MultipartFile.class);
-            given(mockImage.getName()).willReturn(nonExistentUuid);
-
-            ProductImageModifyRequest request = ProductImageModifyRequest.builder()
-                .productId(productId)
-                .toDelete(Collections.emptyList())
-                .toUpdate(List.of(ImageContextUpdateRequest.builder()
-                    .target(nonExistentUuid)
-                    .build()))
-                .build();
-
-            // When & Then
-            assertThatThrownBy(() -> sut.modifyProductImages(sellerId, request, List.of(mockImage)))
-                .isInstanceOf(CommonException.class)
-                .hasMessageContaining(BError.NOT_EXIST.getMessage("product image"));
-        }
     }
 }

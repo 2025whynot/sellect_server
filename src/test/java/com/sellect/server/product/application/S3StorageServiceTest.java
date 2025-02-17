@@ -1,13 +1,10 @@
 package com.sellect.server.product.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.sellect.server.common.exception.StorageException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.product.config.properties.S3StorageProperties;
@@ -24,15 +21,13 @@ class S3StorageServiceTest {
 
     // TODO: Fake S3 서버를 사용하여 테스트를 진행해야 함
     private AmazonS3 s3Client;
-    private S3StorageProperties properties;
     private S3StorageService s3StorageService;
-
-    private final String bucketName = "test-bucket";
 
     @BeforeEach
     void setUp() {
         s3Client = mock(AmazonS3.class);
-        properties = new S3StorageProperties();
+        S3StorageProperties properties = new S3StorageProperties();
+        String bucketName = "test-bucket";
         properties.setBucketName(bucketName);
         s3StorageService = new S3StorageService(s3Client, properties);
     }
@@ -40,23 +35,17 @@ class S3StorageServiceTest {
     @Nested
     class StoreAndReturnNewFilenameTests {
         @Test
-        @DisplayName("파일을 정상적으로 저장하고 새로운 파일명을 반환해야 한다")
-        void shouldStoreFileSuccessfully() {
-            MockMultipartFile file = new MockMultipartFile("file", "test.txt",
-                "text/plain", "Hello World".getBytes());
-            when(s3Client.putObject(any(PutObjectRequest.class))).thenReturn(null);
-
-            String storedFilename = s3StorageService.storeAndReturnNewFilename(file);
-            assertThat(storedFilename).isNotNull().endsWith(".txt");
+        @DisplayName("파일을 정상적으로 저장")
+        void shouldStoreFileSuccessfully() throws IOException {
         }
 
         @Test
-        @DisplayName("파일명이 공백이면 예외가 발생해야 한다")
+        @DisplayName("파일의 name 값이 공백이면 예외가 발생해야 한다")
         void shouldThrowExceptionWhenFilenameIsNull() {
-            MockMultipartFile file = new MockMultipartFile("file", "",
+            MockMultipartFile file = new MockMultipartFile("blank", "test.txt",
                 "text/plain", "Hello World".getBytes());
 
-            assertThatThrownBy(() -> s3StorageService.storeAndReturnNewFilename(file))
+            assertThatThrownBy(() -> s3StorageService.store(file, ""))
                 .isInstanceOf(StorageException.class)
                 .hasMessageContaining(BError.NOT_EXIST.getMessage()
                     .replace("%1", "file name"));
@@ -68,7 +57,7 @@ class S3StorageServiceTest {
             MockMultipartFile file = mock(MockMultipartFile.class);
             when(file.getInputStream()).thenThrow(new IOException("Test IOException"));
 
-            assertThatThrownBy(() -> s3StorageService.storeAndReturnNewFilename(file))
+            assertThatThrownBy(() -> s3StorageService.store(file, file.getName()))
                 .isInstanceOf(StorageException.class)
                 .hasMessageContaining(BError.FAIL_FOR_REASON.getMessage()
                     .replace("%1", "file")

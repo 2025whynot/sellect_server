@@ -7,7 +7,7 @@ public interface StorageService {
 
     void init() throws Exception;
 
-    String storeAndReturnNewFilename(MultipartFile file);
+    void store(MultipartFile file, String filename);
 
     String loadAsPath(String filename);
 

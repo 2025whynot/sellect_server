@@ -60,11 +60,11 @@ class FileSystemStorageServiceTest {
         void shouldSaveFileSuccessfully() throws IOException {
             MultipartFile file = mock(MultipartFile.class);
             when(file.isEmpty()).thenReturn(false);
-            when(file.getOriginalFilename()).thenReturn("test.txt");
+            when(file.getName()).thenReturn("test.txt");
             when(file.getInputStream()).thenReturn(new ByteArrayInputStream("test data".getBytes()));
 
-            String newFilename = storageService.storeAndReturnNewFilename(file);
-            Path filePath = tempDir.resolve(newFilename);
+            storageService.store(file, file.getName());
+            Path filePath = tempDir.resolve(file.getName());
 
             assertThat(Files.exists(filePath)).isTrue();
         }
@@ -75,7 +75,7 @@ class FileSystemStorageServiceTest {
             MultipartFile emptyFile = mock(MultipartFile.class);
             when(emptyFile.isEmpty()).thenReturn(true);
 
-            assertThatThrownBy(() -> storageService.storeAndReturnNewFilename(emptyFile))
+            assertThatThrownBy(() -> storageService.store(emptyFile, ""))
                 .isInstanceOf(StorageException.class)
                 .hasMessageContaining(BError.NOT_EXIST.getMessage().replace("%1", "file"));
         }
@@ -85,9 +85,8 @@ class FileSystemStorageServiceTest {
         void shouldThrowExceptionWhenFilenameIsNull() {
             MultipartFile file = mock(MultipartFile.class);
             when(file.isEmpty()).thenReturn(false);
-            when(file.getOriginalFilename()).thenReturn(null);
 
-            assertThatThrownBy(() -> storageService.storeAndReturnNewFilename(file))
+            assertThatThrownBy(() -> storageService.store(file, null))
                 .isInstanceOf(StorageException.class);
         }
     }

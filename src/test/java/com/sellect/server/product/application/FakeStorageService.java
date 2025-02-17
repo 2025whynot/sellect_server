@@ -13,10 +13,8 @@ public class FakeStorageService implements StorageService {
     public void init() {}
 
     @Override
-    public String storeAndReturnNewFilename(MultipartFile file) {
-        String newFilename = file.getOriginalFilename() + "_fake";
-        storage.put(newFilename, "http://fake-url.com/" + newFilename);
-        return newFilename;
+    public void store(MultipartFile file, String filename) {
+        storage.put(filename, "http://fake-url.com/" + filename);
     }
 
     @Override

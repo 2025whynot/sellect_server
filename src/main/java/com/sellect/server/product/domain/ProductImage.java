@@ -23,9 +23,10 @@ public class ProductImage {
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
 
-    public static ProductImage registerWithouImageUrl(Product product, ImageContextUpdateRequest request) {
+    public static ProductImage registerWhenUpdate(Product product, String imageUrl, ImageContextUpdateRequest request) {
         return ProductImage.builder()
             .product(product)
+            .imageUrl(imageUrl)
             .representative(request.isRepresentative())
             .uuid(request.target())
             .prev(request.prev())

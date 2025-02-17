@@ -5,6 +5,7 @@ import com.sellect.server.search.mapper.SearchMapper;
 import com.sellect.server.search.repository.jpa.SearchKeywordEntity;
 import com.sellect.server.search.repository.jpa.SearchKeywordJpaRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -24,5 +25,10 @@ public class SearchKeywordRepositoryImpl implements SearchKeywordRepository {
         return findKeywords.stream()
             .map(searchMapper::toModel)
             .toList();
+    }
+
+    @Override
+    public Optional<SearchKeyword> findByKeyword(String keyword) {
+        return Optional.empty();
     }
 }

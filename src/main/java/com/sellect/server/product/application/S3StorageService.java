@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Objects;
-import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.Resource;
@@ -37,21 +36,17 @@ public class S3StorageService implements StorageService {
     }
 
     @Override
-    public String storeAndReturnNewFilename(MultipartFile file) {
+    public void store(MultipartFile file, String filename) {
         try (InputStream inputStream = file.getInputStream()) {
-            String originalFilename = file.getOriginalFilename();
-            if (Objects.isNull(originalFilename) || originalFilename.isBlank()) {
+            if (Objects.isNull(filename) || filename.isBlank()) {
                 throw new StorageException(BError.NOT_EXIST, "file name");
             }
-            String newFilename = generateNewFilename(originalFilename);
 
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(file.getSize());
             metadata.setContentType(file.getContentType());
 
-            s3Client.putObject(new PutObjectRequest(bucketName, newFilename, inputStream, metadata));
-
-            return newFilename;
+            s3Client.putObject(new PutObjectRequest(bucketName, filename, inputStream, metadata));
         } catch (IOException e) {
             throw new StorageException(BError.FAIL_FOR_REASON, "store file", e.getMessage());
         }
@@ -59,6 +54,7 @@ public class S3StorageService implements StorageService {
 
     @Override
     public String loadAsPath(String filename) {
+        // TODO: 해당 파일명의 파일이 존재하는지 검증
         return s3Client.getUrl(bucketName, filename).toString();
     }
 
@@ -80,11 +76,5 @@ public class S3StorageService implements StorageService {
     @Override
     public void deleteAll() {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private String generateNewFilename(String originalFilename) {
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String baseName = UUID.randomUUID().toString();
-        return baseName + "_" + System.currentTimeMillis() + fileExtension;
     }
 }
