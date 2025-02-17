@@ -2,6 +2,7 @@ package com.sellect.server.product.controller;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.infrastructure.annotation.AuthSeller;
+import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.product.application.ProductImageService;
 import com.sellect.server.product.application.ProductService;
@@ -13,6 +14,8 @@ import com.sellect.server.product.controller.response.ProductRegisterResponse;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.domain.ProductSearchCondition;
 import com.sellect.server.product.domain.ProductSortType;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -82,24 +85,31 @@ public class ProductController {
     @GetMapping("/products/search")
     // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
     public List<Product> search(
+        @AuthUser User user,
+        @RequestParam String keyword,
         @RequestParam(required = false) Long categoryId,
         @RequestParam(required = false) Long brandId,
         @RequestParam(required = false) Integer minPrice,
         @RequestParam(required = false) Integer maxPrice,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size,
-        @RequestParam(defaultValue = "LATEST") ProductSortType sortType
+        @RequestParam(defaultValue = "LATEST") ProductSortType sortType,
+        @RequestParam(defaultValue = "false") boolean isInitialSearch,
+        HttpServletRequest request,
+        HttpServletResponse response
     ) {
         ProductSearchCondition condition = ProductSearchCondition
             .builder()
+            .keyword(keyword)
             .categoryId(categoryId)
             .brandId(brandId)
             .minPrice(minPrice)
             .maxPrice(maxPrice)
             .build();
 
+        Long userId = (user != null) ? user.getId() : null;
         // todo : ProductReadResponse에 잘 맵핑해서 보낼 것
-        return productService.search(condition, page, size, sortType);
+        return productService.search(userId, condition, page, size, sortType, isInitialSearch, request, response);
     }
 
     /*
