@@ -14,3 +14,5 @@ spring:
         format_sql: true
   flyway:
     enabled: false
+jwt:
+  expiration: 1800000
