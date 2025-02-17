@@ -9,26 +9,6 @@ public class FakeCategoryRepository implements CategoryRepository {
 
     private final List<Category> data = new ArrayList<>();
 
-    @Override
-    public boolean existsByName(String name) {
-        return data.stream()
-            .anyMatch(category -> category.getName().equals(name));
-    }
-
-    @Override
-    public List<Category> findContainingName(String keyword) {
-        return data.stream()
-            .filter(category -> category.getName().contains(keyword))
-            .toList();
-    }
-
-    @Override
-    public Category findByName(String name) {
-        return data.stream()
-            .filter(category -> category.getName().equals(name))
-            .findFirst().orElse(null);
-    }
-
     public Category save(Category category) {
         findById(category.getId()).ifPresentOrElse(
             existingCategory -> {
