@@ -20,3 +20,7 @@ spring:
 jwt:
   secret: ${JWT_SECRET}  # JWT 시크릿 키 설정
   expiration: ${JWT_EXPIRATION}
+
+kakao:
+  pay:
+    secret-key: ${KAKAO_PAY_SECRET_KEY}
