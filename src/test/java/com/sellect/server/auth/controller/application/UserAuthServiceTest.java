@@ -1,5 +1,11 @@
 package com.sellect.server.auth.controller.application;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.sellect.server.auth.controller.request.LoginRequest;
 import com.sellect.server.auth.controller.request.UserSignUpRequest;
 import com.sellect.server.auth.domain.UserAuth;
@@ -16,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class UserAuthServiceTest {
 
     private UserRepository userRepository;
@@ -28,7 +32,7 @@ class UserAuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil("TEST_SECRET_KEY_TEMP_UPPER_THAN_256_BIT", 1000L);
+        jwtUtil = new JwtUtil("TEST_SECRET_KEY_TEMP_UPPER_THAN_256_BIT", 10000L);
         userRepository = new FakeUserRepository();
         userAuthRepository = new FakeUserAuthRepository();
         passwordEncoder = new BCryptPasswordEncoder();
