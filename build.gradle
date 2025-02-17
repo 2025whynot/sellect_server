@@ -33,9 +33,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0' // 최신 버전으로 변경
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.699'
+
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'

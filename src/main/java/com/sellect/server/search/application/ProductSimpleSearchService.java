@@ -1,4 +1,4 @@
-package com.sellect.server.search.service;
+package com.sellect.server.search.application;
 
 import com.sellect.server.brand.repository.BrandRepository;
 import com.sellect.server.category.repository.CategoryRepository;

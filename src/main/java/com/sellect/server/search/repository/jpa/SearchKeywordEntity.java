@@ -1,16 +1,11 @@
-package com.sellect.server.search.repository;
+package com.sellect.server.search.repository.jpa;
 
 import com.sellect.server.common.BaseTimeEntity;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,18 +24,8 @@ public class SearchKeywordEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private SearchKeywordEntity parent;
-
-    @OneToMany(mappedBy = "parent")
-    private List<SearchKeywordEntity> children;
-
-    @OneToMany(mappedBy = "prefix")
-    private List<CachedKeywordEntity> cachedKeywords;
-
     private String keyword;
 
-    private Long searchCount;
+    private Long frequency; // null일 경우 온전한 검색어가 아님을 의미
 
 }

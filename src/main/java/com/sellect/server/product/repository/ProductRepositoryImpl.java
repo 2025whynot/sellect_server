@@ -88,7 +88,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public Optional<Product> findById(Long productId) {
-        return productJpaRepository.findByIdAndDeleteAt(productId, null)
+        return productJpaRepository.findByIdAndDeleteAtIsNull(productId)
             .map(ProductEntity::toModel);
     }
 

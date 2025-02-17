@@ -48,5 +48,6 @@ public class CommonException extends RuntimeException {
     public boolean isIError(IError iErrMsg) {
         return this.getCode().equals(iErrMsg.getCode());
     }
+
 }
 

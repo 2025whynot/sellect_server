@@ -3,7 +3,9 @@ package com.sellect.server.product.controller;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.infrastructure.annotation.AuthSeller;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.product.application.ProductImageService;
 import com.sellect.server.product.application.ProductService;
+import com.sellect.server.product.controller.request.ProductImageModifyRequest;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
 import com.sellect.server.product.controller.response.ProductModifyResponse;
@@ -22,7 +24,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequestMapping("/api/v1")
 @RestController
@@ -30,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductImageService productImageService;
 
     /*
      * 상품 등록 (복수 지원)
@@ -60,7 +65,7 @@ public class ProductController {
     }
 
     /**
-     * 상품 단건 수정 API
+     * 상품 단건 삭제 API
      */
     @DeleteMapping("/products/{productId}")
     public ApiResponse<Void> remove(
@@ -96,6 +101,19 @@ public class ProductController {
 
         // todo : ProductReadResponse에 잘 맵핑해서 보낼 것
         return productService.search(condition, page, size, sortType);
+    }
+
+    /*
+     * 상품 이미지 수정 API
+     * */
+    @PostMapping("/products/images")
+    public ApiResponse<Void> modifyProductImages(
+        @AuthSeller User seller,
+        @RequestPart("images") List<MultipartFile> images,
+        @RequestPart("modify_request") ProductImageModifyRequest request
+    ) {
+        productImageService.modifyProductImages(seller.getId(), request, images);
+        return ApiResponse.ok();
     }
 
 }

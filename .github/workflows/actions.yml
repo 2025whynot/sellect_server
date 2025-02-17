@@ -29,6 +29,8 @@ jobs:
           spring.datasource.username: ${{ secrets.DB_USERNAME }}
           spring.datasource.password: ${{ secrets.DB_PASSWORD }}
           spring.jpa.hibernate.ddl-auto: ${{ secrets.DDL_AUTO }}
+          jwt.secret: ${{ secrets.JWT_SECRET }}
+          jwt.expiration: ${{ secrets.JWT_EXPIRATION }}
 
       # gradle을 캐싱 - 시간 단축
       - name: Gradle Caching

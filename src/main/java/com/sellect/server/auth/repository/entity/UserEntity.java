@@ -37,7 +37,7 @@ public class UserEntity extends BaseTimeEntity {
             .role(user.getRole())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())
-            .deleteAt(user.getDeletedAt())
+            .deleteAt(user.getDeleteAt())
             .build();
     }
 
@@ -49,7 +49,7 @@ public class UserEntity extends BaseTimeEntity {
             .role(this.role)
             .createdAt(this.getCreatedAt())
             .updatedAt(this.getUpdatedAt())
-            .deletedAt(this.getDeleteAt())
+            .deleteAt(this.getDeleteAt())
             .build();
     }
 }
