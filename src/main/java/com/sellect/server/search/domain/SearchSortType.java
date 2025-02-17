@@ -1,6 +1,6 @@
-package com.sellect.server.product.domain;
+package com.sellect.server.search.domain;
 
-public enum ProductSortType {
+public enum SearchSortType {
     // todo : 브랜드, 리뷰, 이미지 엔티티 생성 후 다시 돌아올 것
     LATEST,   // 최신순
     REVIEWS, // 리뷰 개수 순

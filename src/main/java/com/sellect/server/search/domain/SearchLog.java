@@ -1,4 +1,4 @@
-package com.sellect.server.product.domain;
+package com.sellect.server.search.domain;
 
 import java.time.LocalDateTime;
 import lombok.AccessLevel;

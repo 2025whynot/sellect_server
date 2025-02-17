@@ -1,6 +1,6 @@
-package com.sellect.server.product.repository;
+package com.sellect.server.search.repository;
 
-import com.sellect.server.product.domain.SearchLog;
+import com.sellect.server.search.domain.SearchLog;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

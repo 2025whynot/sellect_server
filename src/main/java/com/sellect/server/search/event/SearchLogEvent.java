@@ -1,4 +1,4 @@
-package com.sellect.server.product.domain;
+package com.sellect.server.search.event;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

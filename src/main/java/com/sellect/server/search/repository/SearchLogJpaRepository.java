@@ -1,4 +1,4 @@
-package com.sellect.server.product.repository;
+package com.sellect.server.search.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,9 +1,8 @@
-package com.sellect.server.product.event;
+package com.sellect.server.search.event;
 
-import com.sellect.server.product.domain.SearchLog;
-import com.sellect.server.product.domain.SearchLogEvent;
-import com.sellect.server.product.repository.SearchLogEntity;
-import com.sellect.server.product.repository.SearchLogJpaRepository;
+import com.sellect.server.search.domain.SearchLog;
+import com.sellect.server.search.repository.SearchLogEntity;
+import com.sellect.server.search.repository.SearchLogJpaRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

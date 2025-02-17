@@ -1,4 +1,4 @@
-package com.sellect.server.product.util;
+package com.sellect.server.search.util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
