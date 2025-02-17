@@ -28,7 +28,7 @@ class UserAuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil("TEST_SECRET_KEY_TEMP_UPPER_THAN_256_BIT");
+        jwtUtil = new JwtUtil("TEST_SECRET_KEY_TEMP_UPPER_THAN_256_BIT", 1000L);
         userRepository = new FakeUserRepository();
         userAuthRepository = new FakeUserAuthRepository();
         passwordEncoder = new BCryptPasswordEncoder();
