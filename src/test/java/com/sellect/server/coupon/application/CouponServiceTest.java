@@ -35,9 +35,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 //import org.redisson.api.RedissonClient;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.PlatformTransactionManager;
 
 class CouponServiceTest {
 
@@ -45,16 +47,18 @@ class CouponServiceTest {
     CouponRepository couponRepository;
     UserReceivedCouponRepository userReceivedCouponRepository;
     ProductRepository productRepository;
-//    RedissonClient redissonClient;
+    RedissonClient redissonClient;
+    PlatformTransactionManager platformTransactionManager;
 
     @BeforeEach
     void setUp() {
-//        redissonClient = mock(RedissonClient.class);
+        platformTransactionManager = mock(PlatformTransactionManager.class);
+        redissonClient = mock(RedissonClient.class);
         couponRepository = new FakeCouponRepository();
         userReceivedCouponRepository = new FakeuserReceivedCouponRepository();
         productRepository = new FakeProductRepository();
-//        couponService = new CouponService(couponRepository, userReceivedCouponRepository, productRepository, redissonClient);
-        couponService = new CouponService(couponRepository, userReceivedCouponRepository, productRepository);
+        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository, redissonClient);
+//        couponService = new CouponService(couponRepository, userReceivedCouponRepository, productRepository);
     }
 
 

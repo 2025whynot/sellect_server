@@ -21,16 +21,22 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.RequiredArgsConstructor;
-//import org.redisson.api.RLock;
-//import org.redisson.api.RedissonClient;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.batch.core.configuration.xml.ExceptionElementParser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponService {
@@ -38,10 +44,12 @@ public class CouponService {
     ReentrantLock lock = new ReentrantLock();
     private static final Sort DEFAULT_SORT = Sort.by(Direction.DESC, "createdAt");
 
+    private final PlatformTransactionManager transactionManager;
+
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
-//    private final RedissonClient redissonClient;
+    private final RedissonClient redissonClient;
 
     // 판매자 쿠폰 등록
     public void uploadCoupon(User user, IssueCouponRequest issueCouponRequest) {
@@ -65,9 +73,13 @@ public class CouponService {
      * 단일 인스턴스인 경우 가능한 부분
      * 스케일 아웃을 하면?? -> DB 락????
      * */
+
+
+    /// 문제있는 코드
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         lock.lock();
+        log.info("[Lock]");
         try {
             Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
@@ -85,14 +97,48 @@ public class CouponService {
             couponRepository.save(decreasedCoupon);
         } finally {
             lock.unlock();
+            log.info("[UnLock]");
+        }
+    }
+
+    public void downloadCouponv2(User user, Long couponId) {
+        lock.lock();
+        log.info("[Lock]");
+        try {
+            TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+            try {
+                Coupon coupon = couponRepository.findById(couponId)
+                    .orElseThrow(
+                        () -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
+
+                coupon.isUsable();
+                if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
+                    throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+                }
+                Coupon decreasedCoupon = coupon.decreaseQuantity();
+                UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
+                    decreasedCoupon);
+                userReceivedCouponRepository.save(userReceivedCoupon);
+                couponRepository.save(decreasedCoupon);
+
+                transactionManager.commit(status);
+            } catch (Exception e) {
+                transactionManager.rollback(status);
+                throw e;
+            }
+        } finally {
+            lock.unlock();
+            log.info("[UnLock]");
         }
     }
 
 
     // 2. DB락
     @Transactional
-    public void downloadCouponWithPessimisticLock(User user, Long couponId){
-        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow();
+    public void downloadCouponWithPessimisticLock(User user, Long couponId) {
+        log.info("[Coupon download] 비관락");
+        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
         coupon.isUsable();
         if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
             throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
@@ -105,37 +151,38 @@ public class CouponService {
     }
 
     // 3. 분산락
-//    @Transactional
-//    public void downloadCouponWithDistributeLock(User user, Long couponId){
-//        String lockKey = "couponLock:" + couponId;
-//        RLock lock = redissonClient.getLock(lockKey);
-//
-//        // 락 획득 시도: 최대 5초 대기, 락 유지 시간 2초
-//        try {
-//            boolean isLock = lock.tryLock(5, 2, TimeUnit.SECONDS);
-//            if (!isLock) {
-//                throw new CommonException(BError.LOCK_ACQUISITION_FAILED, couponId.toString());
-//            }
-//            Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow();
-//            coupon.isUsable();
-//            if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
-//                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
-//            }
-//            Coupon decreasedCoupon = coupon.decreaseQuantity();
-//            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
-//                decreasedCoupon);
-//            userReceivedCouponRepository.save(userReceivedCoupon);
-//            couponRepository.save(decreasedCoupon);
-//
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        } finally {
-//            if (lock.isHeldByCurrentThread()) {
-//                lock.unlock();
-//            }
-//        }
-//
-//    }
+    @Transactional
+    public void downloadCouponWithDistributeLock(User user, Long couponId) {
+        log.info("분산락 잠금");
+        String lockKey = "couponLock:" + couponId;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        // 락 획득 시도: 최대 5초 대기, 락 유지 시간 2초
+        try {
+            boolean isLock = lock.tryLock(5, 2, TimeUnit.SECONDS);
+            if (!isLock) {
+                throw new CommonException(BError.LOCK_ACQUISITION_FAILED, couponId.toString());
+            }
+            Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow();
+            coupon.isUsable();
+            if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
+                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+            }
+            Coupon decreasedCoupon = coupon.decreaseQuantity();
+            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
+                decreasedCoupon);
+            userReceivedCouponRepository.save(userReceivedCoupon);
+            couponRepository.save(decreasedCoupon);
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+
+    }
 
 
     // [사용자] 쿠폰 확인
@@ -156,18 +203,19 @@ public class CouponService {
     // [사용자] 쿠폰 사용
     // TODO: 애플리케이션 로직으로 join 실행 2025-03-4, 14:25
     /*
-    * 현재 동작
-    * 1. productIds를 통해 판매자 리스트 가져오기
-    * 2. UserReceivedCoupon을 모두 조회한  메모리에서 필터링
-    * 3. sellersId와 Coupon의 sellerId를 메모리에서 조인.
-    *
-    * 문제점
-    * 1. N+1 문제: productIds 개수만큼 개별 쿼리 발생 (findById 호출).
-    * 2. 메모리 부하: UserReceivedCoupon 전체를 메모리로 가져와 필터링.
-    * 3. 조인 비효율성: sellersId.contains()는 리스트 검색(O(n))으로, 데이터가 많을수록 성능 저하.
-    * */
+     * 현재 동작
+     * 1. productIds를 통해 판매자 리스트 가져오기
+     * 2. UserReceivedCoupon을 모두 조회한  메모리에서 필터링
+     * 3. sellersId와 Coupon의 sellerId를 메모리에서 조인.
+     *
+     * 문제점
+     * 1. N+1 문제: productIds 개수만큼 개별 쿼리 발생 (findById 호출).
+     * 2. 메모리 부하: UserReceivedCoupon 전체를 메모리로 가져와 필터링.
+     * 3. 조인 비효율성: sellersId.contains()는 리스트 검색(O(n))으로, 데이터가 많을수록 성능 저하.
+     * */
     @Transactional(readOnly = true)
-    public List<CouponPossibleOrderResponse> getCouponsByMatchingSeller(User user, List<Long> productIds) {
+    public List<CouponPossibleOrderResponse> getCouponsByMatchingSeller(User user,
+        List<Long> productIds) {
         // 1. productIds를 통해 판매자 리스트 가져오기\
 
         // todo HashMap
