@@ -35,7 +35,7 @@ public class OrderServiceV0Before {
     private final UserReceivedCouponRepository userReceivedCouponRepository;
 
 
-    // 주문 결제
+    // 주문 결제 전 준비 (결제 금액을 카카오 서버에 보내기 위해)
     @Transactional
     public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
 
@@ -63,6 +63,7 @@ public class OrderServiceV0Before {
     public void approvePayment(String pid, String token) {
         // 확인한다.
         // todo: 넘겨도 될듯
+        // todo: 성능 이슈 생길 가능성 있음 (random UUID 타입 미지정) 인덱스 시 애매함..
         Payment payment = paymentService.findReadyPaymentByPid(pid);
         try {
             // order
@@ -122,7 +123,8 @@ public class OrderServiceV0Before {
             // clearCartAndDeleteCouponAsync(user, savedOrder);
 
             // todo : 결제 서비스에 요청
-            paymentService.paymentApprove(pid, token, payment);
+            // todo: 일단은 결제 승인 전에 로직 구현을 검증
+            // paymentService.paymentApprove(pid, token, payment);
         } catch (Exception e) {
             log.error("Failed to approve payment for pid: {}", pid, e);
             // todo:롤백 안됨

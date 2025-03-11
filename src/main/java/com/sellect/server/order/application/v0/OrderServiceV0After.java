@@ -60,6 +60,8 @@ public class OrderServiceV0After {
 
     @Transactional
     public void approvePayment(String pid, String token) {
+        // Question 1
+        // todo: 사실 이 부분부터 낙관적 락을 고려하는게 맞지 않을까. <- 그렇다고 하면 밑에 주문관련 락을 걸 필요가 사라짐
         Payment payment = paymentService.findReadyPaymentByPid(pid);
         try {
             Long orderId = Long.valueOf(payment.getOrderId());
@@ -106,7 +108,8 @@ public class OrderServiceV0After {
             // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
 
             // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS
-            paymentService.paymentApprove(pid, token, payment);
+            // todo: 일단은 결제 승인 전에 로직 구현을 검증
+            // paymentService.paymentApprove(pid, token, payment);
         } catch (Exception e) {
             log.error("Failed to approve payment for pid: {}", pid, e);
             // [1] 로그를 위한 에러 찍기 vs [2] 그냥 try-catch 없애기
