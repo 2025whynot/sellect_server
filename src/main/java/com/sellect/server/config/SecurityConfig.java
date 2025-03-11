@@ -32,7 +32,11 @@ public class SecurityConfig {
     private static final String[] NO_JWT_PATHS = {
         "/api/v1/auth/signup",
         "/api/v1/auth/login",
-        "/api/v1/auth/seller/signup"
+        "/api/v1/auth/seller/signup",
+        "/api/v1/batch/performance-test", // 배치 테스트
+
+        // 테스트
+        "/api/v1/coupon/register/**"
     };
 
     // 인증 x JWT o

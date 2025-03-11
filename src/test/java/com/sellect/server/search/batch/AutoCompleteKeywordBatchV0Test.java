@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
         SecurityAutoConfiguration.class,
         ManagementWebSecurityAutoConfiguration.class,
         SecurityConfig.class})
-class AutoCompleteKeywordBatchTest {
+class AutoCompleteKeywordBatchV0Test {
 
     @MockBean
     S3StorageClient s3StorageClient;
@@ -59,7 +59,7 @@ class AutoCompleteKeywordBatchTest {
     private JobLauncherTestUtils jobLauncherTestUtils;
 
     @Autowired
-    private AutoCompleteKeywordBatch batchConfig;
+    private AutoCompleteKeywordBatchV0 batchConfig;
 
     @Autowired
     private EntityManager entityManager;
