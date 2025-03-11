@@ -53,6 +53,7 @@ public class FakeInventoryRepository implements InventoryRepository {
             .findFirst();
     }
 
+
     @Override
     public Optional<Inventory> findWithLockByProductId(Long productId) {
         return data.stream()
@@ -65,6 +66,19 @@ public class FakeInventoryRepository implements InventoryRepository {
     public void clear() {
         data.clear();
         nextId = 1L;
+    }
+
+
+    // todo : 테스트시 작성 필요
+    @Override
+    public Optional<Inventory> findWithWriteLockByProductId(Long productId) {
+        return Optional.empty();
+    }
+
+    // todo : 테스트시 작성 필요
+    @Override
+    public List<Inventory> saveAll(List<Inventory> inventories) {
+        return List.of();
     }
 
 }
