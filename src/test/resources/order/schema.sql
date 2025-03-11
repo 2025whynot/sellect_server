@@ -1,0 +1,150 @@
+-- -- 기존 테이블 삭제
+-- DROP TABLE IF EXISTS order_item;
+-- DROP TABLE IF EXISTS orders;
+-- DROP TABLE IF EXISTS user_received_coupon;
+-- DROP TABLE IF EXISTS coupon;
+-- DROP TABLE IF EXISTS search_log;
+-- DROP TABLE IF EXISTS inventory;
+-- DROP TABLE IF EXISTS product_image;
+-- DROP TABLE IF EXISTS product;
+-- DROP TABLE IF EXISTS `user`;
+-- DROP TABLE IF EXISTS brand;
+-- DROP TABLE IF EXISTS category;
+--
+-- -- 카테고리 테이블
+-- CREATE TABLE category
+-- (
+--     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at  TIMESTAMP NULL,
+--     depth      INT          NOT NULL,
+--     name       VARCHAR(255) NOT NULL,
+--     parent_id  BIGINT NULL
+-- );
+--
+-- -- 브랜드 테이블
+-- CREATE TABLE brand
+-- (
+--     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at  TIMESTAMP NULL,
+--     name       VARCHAR(255) NOT NULL
+-- );
+--
+-- -- 사용자 테이블
+-- CREATE TABLE `user`
+-- (
+--     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at  TIMESTAMP NULL,
+--     nickname   VARCHAR(50) NOT NULL,
+--     role       ENUM('USER', 'SELLER') NOT NULL,
+--     uuid       VARCHAR(50) NOT NULL UNIQUE
+-- );
+--
+-- -- 상품 테이블
+-- CREATE TABLE product
+-- (
+--     id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at   TIMESTAMP NULL,
+--     name        VARCHAR(255)   NOT NULL,
+--     description VARCHAR(5000),
+--     price       DECIMAL(19, 2) NOT NULL,
+--     brand_id    BIGINT,
+--     category_id BIGINT,
+--     seller_id   BIGINT
+-- );
+--
+-- -- 재고 테이블
+-- CREATE TABLE inventory
+-- (
+--     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at  TIMESTAMP NULL,
+--     product_id BIGINT NOT NULL UNIQUE,
+--     stock      INT    NOT NULL,
+--     version    BIGINT    DEFAULT 0
+-- );
+--
+-- -- 상품 이미지 테이블
+-- CREATE TABLE product_image
+-- (
+--     id             BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at      TIMESTAMP NULL,
+--     image_url      VARCHAR(500) NOT NULL,
+--     representative BOOLEAN      NOT NULL,
+--     sequence       INT          NOT NULL,
+--     product_id     BIGINT       NOT NULL
+-- );
+--
+-- -- 검색 로그 테이블
+-- CREATE TABLE search_log
+-- (
+--     id              BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     brand_id        BIGINT,
+--     category_id     BIGINT,
+--     filter_applied  BOOLEAN,
+--     keyword         VARCHAR(255) NOT NULL,
+--     result_count    INT          NOT NULL,
+--     timestamp       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     user_identifier VARCHAR(255) NOT NULL
+-- );
+--
+-- -- 쿠폰 테이블
+-- CREATE TABLE coupon
+-- (
+--     id              BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at       TIMESTAMP NULL,
+--     seller_id       BIGINT NOT NULL,
+--     discount_cost   INT    NOT NULL,
+--     quantity        INT    NOT NULL,
+--     expiration_date DATE   NOT NULL
+-- );
+--
+-- -- 사용자 지급 쿠폰 테이블
+-- CREATE TABLE user_received_coupon
+-- (
+--     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at  TIMESTAMP NULL,
+--     user_id    BIGINT NOT NULL,
+--     coupon_id  BIGINT NOT NULL,
+--     is_used    BOOLEAN   DEFAULT FALSE
+-- );
+--
+-- -- 주문 테이블
+-- CREATE TABLE orders
+-- (
+--     id                      BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     updated_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at               TIMESTAMP NULL,
+--     user_id                 BIGINT         NOT NULL,
+--     user_received_coupon_id BIGINT NULL,
+--     total_price             DECIMAL(19, 2) NOT NULL,
+--     order_number            VARCHAR(50)    NOT NULL,
+--     status                  ENUM('PENDING', 'COMPLETED', 'CANCELED') NOT NULL
+-- );
+--
+-- -- 주문 아이템 테이블
+-- CREATE TABLE order_item
+-- (
+--     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--     delete_at  TIMESTAMP NULL,
+--     orders_id  BIGINT         NOT NULL,
+--     product_id BIGINT         NOT NULL,
+--     price      DECIMAL(19, 2) NOT NULL,
+--     quantity   INT            NOT NULL
+-- );

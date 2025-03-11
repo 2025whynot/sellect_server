@@ -1,0 +1,34 @@
+-- -- ✅ Category 데이터
+-- INSERT INTO category (id, created_at, updated_at, depth, name, parent_id)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 'Category1', NULL)
+--     ON DUPLICATE KEY UPDATE name = VALUES(name);
+--
+-- -- ✅ Brand 데이터
+-- INSERT INTO brand (id, created_at, updated_at, name)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Brand1')
+--     ON DUPLICATE KEY UPDATE name = VALUES(name);
+--
+-- -- ✅ User 데이터
+-- INSERT INTO `user` (id, created_at, updated_at, nickname, role, uuid)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Seller1', 'SELLER', 'uuid-seller1')
+--     ON DUPLICATE KEY UPDATE nickname = VALUES(nickname);
+--
+-- -- ✅ Product 데이터
+-- INSERT INTO product (id, created_at, updated_at, name, description, price, brand_id, category_id, seller_id)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'Product1', 'Description1', 55000.00, 1, 1, 1)
+--     ON DUPLICATE KEY UPDATE name = VALUES(name);
+--
+-- -- ✅ Inventory 데이터
+-- INSERT INTO inventory (id, created_at, updated_at, product_id, stock, version)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 10, 0)
+--     ON DUPLICATE KEY UPDATE stock = VALUES(stock);
+--
+-- -- ✅ Coupon 데이터
+-- INSERT INTO coupon (id, created_at, updated_at, seller_id, discount_cost, quantity, expiration_date)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 5000, 100, '2025-12-31')
+--     ON DUPLICATE KEY UPDATE discount_cost = VALUES(discount_cost);
+--
+-- -- ✅ Orders 데이터
+-- INSERT INTO orders (id, created_at, updated_at, user_id, user_received_coupon_id, total_price, order_number, status)
+-- VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1, 50000.00, 'ORD-20250307-001', 'PENDING')
+--     ON DUPLICATE KEY UPDATE total_price = VALUES(total_price);
