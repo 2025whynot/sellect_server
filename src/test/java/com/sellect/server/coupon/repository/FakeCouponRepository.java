@@ -62,4 +62,9 @@ public class FakeCouponRepository implements CouponRepository {
         // 3. Page 객체로 반환
         return new PageImpl<>(pagedCoupons, pageable, activeCoupons.size());
     }
+
+    @Override
+    public Optional<Coupon> findByIdWithPessimisticLock(Long couponId) {
+        return Optional.empty();
+    }
 }

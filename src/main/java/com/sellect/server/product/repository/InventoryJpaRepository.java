@@ -14,4 +14,9 @@ public interface InventoryJpaRepository extends JpaRepository<InventoryEntity, L
     @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("SELECT I FROM InventoryEntity I WHERE I.productEntity.id = :productId")
     Optional<InventoryEntity> findWithLockByProductEntityId(Long productId);
+
+    // 비관적 락 - 수정 가능 (조회 가능) select 조회 가능 [기본 isolation_level 기준]
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT I FROM InventoryEntity I WHERE I.productEntity.id = :productId")
+    Optional<InventoryEntity> findWithWriteLockByProductEntityId(Long productId);
 }

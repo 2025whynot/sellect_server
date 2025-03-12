@@ -89,6 +89,9 @@ dependencies {
     implementation 'com.blazebit:blaze-persistence-integration-querydsl-expressions-jakarta:1.6.14'
 
 
+    // Redis 의존성 추가
+//    implementation 'org.redisson:redisson-spring-boot-starter:3.17.7'
+
 //	implementation 'org.flywaydb:flyway-core'
 //	implementation 'org.flywaydb:flyway-mysql'
 }

@@ -15,5 +15,5 @@ public interface CouponRepository {
 //    Page<Coupon> findAllActiveCouponList(PageRequest request);
     Page<Coupon> findAllActiveCouponList(Pageable pageable);
 
-
+    Optional<Coupon> findByIdWithPessimisticLock(Long couponId);
 }

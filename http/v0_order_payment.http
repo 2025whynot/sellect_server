@@ -1,0 +1,58 @@
+### 변수 정의
+@baseUrl = http://localhost:8080/api/v1
+@email = test@example.com
+@password = test1234
+@nickname = tester
+@totalPrice = 10000
+
+### 회원가입
+POST {{baseUrl}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "nickname": "{{nickname}}"
+}
+
+### 로그인 (access_token 발급)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+client.global.set("access_token", response.body.result.access_token);
+%}
+
+
+### 주문 생성
+POST {{baseUrl}}/order/pending
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+  "total_price": "{{totalPrice}}",
+  "order_items": [
+    {
+      "product_id": 1,
+      "quantity": 2,
+      "price": 5000
+    }
+  ]
+}
+
+> {%
+  client.global.set("order_id", response.body.result.order_id);
+%}
+
+
+### 결제 준비
+POST http://localhost:8080/api/v0/order/payment/{{order_id}}/ready
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{}

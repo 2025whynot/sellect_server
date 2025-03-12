@@ -102,6 +102,11 @@ public class FakeProductRepository implements ProductRepository {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public Optional<Object> findByIdWithLock(Long id) {
+        return Optional.empty();
+    }
+
     public void clear() {
         data.clear();
         nextId = 1L; // 데이터 초기화 시 ID도 리셋

@@ -13,4 +13,7 @@ public interface OrdersJpaRepository extends JpaRepository<OrdersEntity, Long> {
     @Query("SELECT o FROM OrdersEntity o WHERE o.userEntity = :user AND o.status = :status ORDER BY o.updatedAt DESC")
     List<OrdersEntity> findCompletedOrdersByUser(UserEntity user,
         @Param("status") OrderStatus status);
+
+    // todo: v0 After 일단은 PESSIMISTIC_WRITE
+
 }

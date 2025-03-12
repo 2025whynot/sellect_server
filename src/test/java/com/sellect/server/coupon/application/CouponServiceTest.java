@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.BDDAssertions.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
@@ -33,9 +34,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+//import org.redisson.api.RedissonClient;
+//import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.PlatformTransactionManager;
 
 class CouponServiceTest {
 
@@ -43,14 +47,18 @@ class CouponServiceTest {
     CouponRepository couponRepository;
     UserReceivedCouponRepository userReceivedCouponRepository;
     ProductRepository productRepository;
+//    RedissonClient redissonClient;
+    PlatformTransactionManager platformTransactionManager;
 
     @BeforeEach
     void setUp() {
+        platformTransactionManager = mock(PlatformTransactionManager.class);
+//        redissonClient = mock(RedissonClient.class);
         couponRepository = new FakeCouponRepository();
         userReceivedCouponRepository = new FakeuserReceivedCouponRepository();
         productRepository = new FakeProductRepository();
-        couponService = new CouponService(couponRepository, userReceivedCouponRepository,
-            productRepository);
+//        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository, redissonClient);
+        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository);
     }
 
 

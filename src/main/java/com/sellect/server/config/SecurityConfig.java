@@ -52,7 +52,10 @@ public class SecurityConfig {
         "/api/v1/categories/**",
         "/api/v1/brands/**",
         "/api/v1/kakao-pay/**",
-        "/api/v1/seller/**"
+        "/api/v1/seller/**",
+
+        // 리팩터링 전 버전
+        "/api/v0/**"
     };
     private final JwtFilter jwtFilter;
 

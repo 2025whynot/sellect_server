@@ -27,7 +27,7 @@ public enum BError implements Error {
     COUPON_EXPIRED("COUPON_EXPIRED", "The coupon%1 has expired"),
     KAKKO_READY_FAIL("READY_FAIL", "kakao pay ready fail"),
     KAKKO_APPROVE_FAIL("APPROVE_FAIL", "kakao pay approve fail"),
-    ;
+    LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock");
 
 
     private final String errCode;

@@ -34,4 +34,11 @@ public class CouponRepositoryImpl implements CouponRepository {
             LocalDate.now(), pageable);
         return activeCouponList.map(CouponEntity::toModel);
     }
+
+    @Override
+    public Optional<Coupon> findByIdWithPessimisticLock(Long couponId) {
+        Optional<CouponEntity> couponEntity = couponJpaRepository.findByIdWithPessimisticLock(
+            couponId);
+        return couponEntity.map(CouponEntity::toModel);
+    }
 }

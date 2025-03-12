@@ -54,4 +54,12 @@ public class ProductRepositoryImpl implements ProductRepository {
     public List<Long> findProductIdsBySellerId(Long sellerId) {
         return productJpaRepository.findIdBySellerEntityIdAndDeleteAtIsNull(sellerId);
     }
+
+
+    // payment approve v0
+    @Override
+    public Optional<Object> findByIdWithLock(Long id) {
+        return productJpaRepository.findWithLockById(id)
+            .map(ProductEntity::toModel);
+    }
 }
