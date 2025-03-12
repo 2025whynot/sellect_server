@@ -38,9 +38,10 @@ public class OrderControllerV0After {
         @PathVariable String pid,
         @RequestParam("pg_token") String token) {
 
-        log.info("[V0] approve");
+        long threadId = Thread.currentThread().getId();
+        log.info("{} - [V0] approve", threadId);
         orderService.approvePayment(pid, token);
-        log.info("[V0] success");
+        log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }
 
