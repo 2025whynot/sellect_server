@@ -38,11 +38,11 @@ public class OrderControllerV0Before {
         @PathVariable String pid,
         @RequestParam("pg_token") String token) {
 
-//        long threadId = Thread.currentThread().getId();
+        long threadId = Thread.currentThread().getId();
 //        Thread.currentThread().setName("kakao-pay-thread");
-        log.info("[V0] approve");
+        log.info("{} - [V0] approve", threadId);
         orderService.approvePayment(pid, token);
-        log.info("[V0] success");
+        log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }
 
