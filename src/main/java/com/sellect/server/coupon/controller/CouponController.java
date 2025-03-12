@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/coupon")
 @RequiredArgsConstructor
@@ -89,6 +91,7 @@ public class CouponController {
             .role(Role.USER)
             .build();
 //        couponService.downloadCoupon(user, couponId);
+        log.info(String.valueOf(userId));
         couponService.downloadCouponv2(user, couponId);
         return ApiResponse.ok();
     }
@@ -110,17 +113,17 @@ public class CouponController {
 
     // Redis 분산락
     // test 용
-    @PutMapping("/register/{couponId}/redis/{userId}")
-    public ApiResponse<?> downloadCouponWithRedis(@PathVariable(name = "userId") Long userId, @PathVariable(name = "couponId") Long couponId) {
-        User user = User.builder()
-            .id(userId)
-            .uuid(String.valueOf(UUID.randomUUID()))
-            .nickname("test" + userId)
-            .role(Role.USER)
-            .build();
-        couponService.downloadCouponWithDistributeLock(user, couponId);
-        return ApiResponse.ok();
-    }
+//    @PutMapping("/register/{couponId}/redis/{userId}")
+//    public ApiResponse<?> downloadCouponWithRedis(@PathVariable(name = "userId") Long userId, @PathVariable(name = "couponId") Long couponId) {
+//        User user = User.builder()
+//            .id(userId)
+//            .uuid(String.valueOf(UUID.randomUUID()))
+//            .nickname("test" + userId)
+//            .role(Role.USER)
+//            .build();
+//        couponService.downloadCouponWithDistributeLock(user, couponId);
+//        return ApiResponse.ok();
+//    }
 
 
 
