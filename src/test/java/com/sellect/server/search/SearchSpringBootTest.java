@@ -1,4 +1,4 @@
-//package com.sellect.server.search;
+ //package com.sellect.server.search;
 //
 //import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 //import static org.junit.jupiter.api.Assertions.assertEquals;
