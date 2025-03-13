@@ -42,10 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-// [Question 0] 왜 Service 단에 readOnly = true를 걸었나?
-// Service 전체의 메서드를 default로 Transactional(readOnly = true)로 가져가는 코드?
-@Transactional(readOnly = true)
-public class OrderServiceV1Before {
+public class OrderServiceV1After {
 
     private final OrdersRepository ordersRepository;
     private final OrderItemRepository orderItemRepository;
@@ -96,12 +93,10 @@ public class OrderServiceV1Before {
 
     @Transactional
     public void approvePayment(String pid, String token) {
-        // 문제 없음
-        Payment payment = paymentRepository.findByPid(pid)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST,
-                String.format("Payment %s", pid))); // String.format()으로 바꿈
 
-        // 문제 없음
+        Payment payment = paymentRepository.findByPid(pid)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
+
         Long orderId = Long.valueOf(payment.getOrderId());
 
         // todo: (UUID 검색 - 성능 이슈 고려 필요)
@@ -115,7 +110,6 @@ public class OrderServiceV1Before {
         Orders order = ordersRepository.findByIdWithPessimisticLock(orderId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
-        // orderService 기준 새로 추가!!!
         // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
         if (order.getStatus() == OrderStatus.COMPLETED) {
             throw new CommonException(BError.NOT_VALID, "이미 완료(확정)된 주문입니다.");
@@ -145,13 +139,9 @@ public class OrderServiceV1Before {
         inventoryRepository.saveAll(deductedInventories);
         // ------------------------------- [재고 동시성 방지  - (2/2)] -------------------------------
 
-        // [Question 1]
-        // 굳이 savedOrder를 통해 처리할 필요가 있음? 계속 사용한 Order면 되지 않음?
-        // Orders savedOrder = ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); //BEFORE[1]
-        // clearCartAndDeleteCouponAsync(user, savedOrder); // BEFORE[1]
         ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); // AFTER[1]
         // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
-        // clearCartAndDeleteCouponAsync(user, order); // AFTER[1] <- 굳이 별도의 메서드로 빼서 트랜잭션을 할 필요가 있을까?
+
 
         // todo: 해당 부분은 동시성이 괜찮을까?
         // todo: 주문에 대한 락이 잡혀있는 지금 상황에서 쿠폰 사용에 대한 동시성은 불필요할까?
@@ -165,54 +155,21 @@ public class OrderServiceV1Before {
         eventPublisher.publishEvent(event);
     }
 
-
     // ----------------------[밑에 로직들은 핵심이 아니기에 우선순위에 배제] ---------------------------
-
-    // [Question 3]
-    // 쿠폰도 비동기? 안전하지 않음... 동기적으로 전부 다 처리되는것이 좋지 않나 싶음
-    // 이유: 주문을 하고 비동기를 통해 쿠폰 사용을 업데이트하기 전에 유저가 바로 쿠폰을 사용한다면?
-    // 이에 대한 대비가 부족함.. 이는 동기적으로 해결해야할 것 같음
-//    @Async
-//    public void clearCartAndDeleteCouponAsync(User user, Orders order) {
-//        clearCartAndDeleteCoupon(user, order);
-//    }
-
-    // [Question 2]
-    // todo: 해당 부분 질문!!! 왜 굳이 트랜잭션을 따로 만든건가?
-    // 안 쓰게 됨 ㅋㅋㅋㅋㅋ
-    @Transactional
-    public void clearCartAndDeleteCoupon(User user, Orders order) {
-        // 이미 위에서 중복 결제에 대한 동시성을 처리함.
-        // order.validateCompleted();
-
-        // 장바구니 비우기는 구현하지 않기로 함
-        // List<CartItem> cartItems = cartRepository.findAllByUserId(user.getId());
-        // List<CartItem> removedCartItems = cartItems.stream()
-        //    .map(CartItem::remove)
-        //    .toList();
-        // cartRepository.saveAll(removedCartItems);
-
-        if (order.getUserReceivedCoupon() != null) {
-            userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon());
-        }
-    }
 
     /**
      * 주문 페이지 조회용 (결제 전)
      */
-    // [Question 4]
-    // 이 친구는 왜 트랜잭션이 없는가?
-    // todo: @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<OrderItemGetResponse> readPending(User user, Long orderId) {
-        // Orders order = getOrderById(orderId); // BEFORE
-        Orders order = ordersRepository.findById(orderId) // AFTER
+
+        Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
         order.validateOwner(user);
         order.validatePending();
 
-        // List<OrderItem> orderItems = getOrderItemsByOrderId(orderId); BEFORE
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId); //AFTER
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
         if (orderItems.isEmpty()) {
             throw new CommonException(BError.NOT_EXIST, "주문 아이템");
         }
@@ -225,7 +182,6 @@ public class OrderServiceV1Before {
     /**
      * 주문 생성(pending)
      */
-    // todo: 깊게 코드를 확인하지는 않음 (추후 Deep 하게 볼것)
     @Transactional
     public PendingOrderRegisterResponse registerPendingOrder(User user, OrderAddRequest request) {
 
@@ -238,7 +194,7 @@ public class OrderServiceV1Before {
         Set<Long> productIds = new HashSet<>();
         List<OrderItem> orderItems = request.orderItems().stream()
             .map(orderItemAddRequest -> {
-                // 같은 상품이 다른 orderItem 에 중복 등록되는 경우 방지 //<-?????
+                // 같은 상품이 다른 orderItem 에 중복 등록되는 경우 방지
                 if (!productIds.add(orderItemAddRequest.productId())) {
                     throw new CommonException(BError.EXIST, "productId");
                 }
@@ -251,10 +207,9 @@ public class OrderServiceV1Before {
                     .orElseThrow(
                         () -> new CommonException(BError.NOT_EXIST, "inventory"));
 
-                // [Question 5]
-                // 재고 확인하는 이유가 적어도 품절인 경우를 대비해서가 아니기에....
-                // 이 부분은 애매한데.... 변수가 너무 많은데...
-                // 현재 수량 기준으로 주문이 가능하더라도 어짜피 결제에서 재고 동시성 한번 하기에 최소한 불필요한 주문생성을 막기 위한 로직인듯.
+
+                // 현재 수량 기준으로 주문이 가능하더라도
+                // 어짜피 결제에서 재고 동시성 한번 하기에 최소한 불필요한 주문생성을 막기 위한 로직인듯.
                 inventory.validateStock(orderItemAddRequest.quantity());
                 return OrderItem.register(
                     savedOrder,
@@ -280,7 +235,7 @@ public class OrderServiceV1Before {
      */
     // 주문 내역 확인이기에 리스트 조회
     // 디테일하게 가져가면 페이지네이션 적용 필요 (하지만 우선순위에서 배제)
-    // todo: @Transactional(readOnly = true) // <- 이것도 없음 : 이유가????
+    @Transactional(readOnly = true)
     public List<OrderGetResponse> getOrdersByUser(User user) {
         List<Orders> orderList = ordersRepository.findCompletedOrdersByUser(user,
             OrderStatus.COMPLETED);
@@ -316,8 +271,6 @@ public class OrderServiceV1Before {
 
         List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
 
-        // 애초에 검증할 필요가 없음. 주문 후 결제조차 안되야 함
-        // 하지만 혹시라도 모르기에 있어도 될 듯
         if (orderItems.isEmpty()) {
             throw new CommonException(BError.NOT_EXIST, "주문 아이템");
         }
@@ -335,8 +288,6 @@ public class OrderServiceV1Before {
         return OrderDetailGetResponse.from(order, discountCost, orderItemsResponse);
     }
 
-    // 확인!
-    // Mapping이기에 private 적합
     private OrderItemGetResponse convertToOrderItemResponse(OrderItem orderItem) {
         Product product = orderItem.getProduct();
         String thumbnailImageUrl = productImageRepository.findByThumbnailImage(product.getId())
