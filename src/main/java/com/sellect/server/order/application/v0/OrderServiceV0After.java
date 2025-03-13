@@ -66,6 +66,8 @@ public class OrderServiceV0After {
         try {
             Long orderId = Long.valueOf(payment.getOrderId());
             // todo: (UUID 검색 - 성능 이슈 고려 필요)
+            // todo: pid를 컬럼에서 pk (payment_id)로 통일함에 따라 굳이 uuid로 userRepository 찾을 필요없이 paymentRepository를 찾는다.
+            // 바꿔야함 paymentRepository.findByidAndUuid() - 2번째 발표 이후
             userRepository.findByUuid(payment.getUid())
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
