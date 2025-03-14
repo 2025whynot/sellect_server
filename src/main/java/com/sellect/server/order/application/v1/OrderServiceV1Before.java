@@ -156,8 +156,11 @@ public class OrderServiceV1Before {
         // todo: 해당 부분은 동시성이 괜찮을까?
         // todo: 주문에 대한 락이 잡혀있는 지금 상황에서 쿠폰 사용에 대한 동시성은 불필요할까?
         // todo: 이는 직접 테스트를 통해 확인해보고 싶음.
-        if (order.getUserReceivedCoupon() != null) {
-            userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon());
+        // 해당 코드를 보면 getUserReceivedCoupon() 이는 추가적인 쿼리를 발생시킨다.
+        // 읽는 작업과
+        if (order.getUserReceivedCoupon() != null) { // 지연로딩으로 인해 여기서 SELECT 하나 발생
+            // 쓰기 작업이 분리되어있음. <- 원자성 보장이 안되어있음.
+            userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon()); // 여기서 쓰기 작업
         }
 
         // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS

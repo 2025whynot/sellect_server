@@ -142,11 +142,13 @@ public class OrderServiceV1After {
         ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); // AFTER[1]
         // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
 
-
         // todo: 해당 부분은 동시성이 괜찮을까?
         // todo: 주문에 대한 락이 잡혀있는 지금 상황에서 쿠폰 사용에 대한 동시성은 불필요할까?
         // todo: 이는 직접 테스트를 통해 확인해보고 싶음.
+        // 해당 코드를 보면 getUserReceivedCoupon() 이는 추가적인 쿼리를 발생시킨다.
+        // 읽는 작업과
         if (order.getUserReceivedCoupon() != null) {
+            // 쓰기 작업이 분리되어있음. <- 원자성 보장이 안되어있음.
             userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon());
         }
 
@@ -190,7 +192,6 @@ public class OrderServiceV1After {
             OrderStatus.PENDING);
         Orders savedOrder = ordersRepository.save(order);
 
-
         Set<Long> productIds = new HashSet<>();
         List<OrderItem> orderItems = request.orderItems().stream()
             .map(orderItemAddRequest -> {
@@ -206,7 +207,6 @@ public class OrderServiceV1After {
                 Inventory inventory = inventoryRepository.findByProductId(product.getId())
                     .orElseThrow(
                         () -> new CommonException(BError.NOT_EXIST, "inventory"));
-
 
                 // 현재 수량 기준으로 주문이 가능하더라도
                 // 어짜피 결제에서 재고 동시성 한번 하기에 최소한 불필요한 주문생성을 막기 위한 로직인듯.
