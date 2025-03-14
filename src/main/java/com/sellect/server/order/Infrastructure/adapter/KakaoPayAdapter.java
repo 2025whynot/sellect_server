@@ -37,14 +37,14 @@ public class KakaoPayAdapter {
                     body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
                     h1 { color: #4CAF50; }
                     p { font-size: 18px; }
-                    button { 
-                        padding: 10px 20px; 
-                        font-size: 16px; 
-                        color: white; 
-                        background-color: #007BFF; 
-                        border: none; 
-                        border-radius: 5px; 
-                        cursor: pointer; 
+                    button {
+                        padding: 10px 20px;
+                        font-size: 16px;
+                        color: white;
+                        background-color: #007BFF;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
                     }
                     button:hover { background-color: #0056b3; }
                 </style>
