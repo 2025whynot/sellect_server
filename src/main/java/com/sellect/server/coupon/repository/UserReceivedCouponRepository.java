@@ -24,4 +24,7 @@ public interface UserReceivedCouponRepository {
     Boolean existsByUserAndCoupon(User user, Coupon coupon);
 
     Optional<UserReceivedCoupon> findById(Long id);
+
+    // 쿠폰 중복 사용을 막기 위한 락
+    Optional<UserReceivedCoupon> findWithWriteLockById(Long id);
 }

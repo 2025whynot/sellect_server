@@ -73,4 +73,10 @@ public class UserReceivedCouponRepositoryImpl implements UserReceivedCouponRepos
             .map(UserReceivedCouponEntity::toModel);
     }
 
+    @Override
+    public Optional<UserReceivedCoupon> findWithWriteLockById(Long id) {
+        return userReceivedCouponJpaRepository.findWithWriteLockById(id)
+            .map(UserReceivedCouponEntity::toModel);
+    }
+
 }

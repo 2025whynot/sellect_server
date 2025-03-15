@@ -136,21 +136,25 @@ public class OrderServiceV1After {
             })
             .toList();
 
-        inventoryRepository.saveAll(deductedInventories);
+        inventoryRepository.saveAll(deductedInventories); // 재고 차감 완료
         // ------------------------------- [재고 동시성 방지  - (2/2)] -------------------------------
 
-        ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); // AFTER[1]
-        // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
-
-        // todo: 해당 부분은 동시성이 괜찮을까?
-        // todo: 주문에 대한 락이 잡혀있는 지금 상황에서 쿠폰 사용에 대한 동시성은 불필요할까?
-        // todo: 이는 직접 테스트를 통해 확인해보고 싶음.
-        // 해당 코드를 보면 getUserReceivedCoupon() 이는 추가적인 쿼리를 발생시킨다.
-        // 읽는 작업과
-        if (order.getUserReceivedCoupon() != null) {
-            // 쓰기 작업이 분리되어있음. <- 원자성 보장이 안되어있음.
-            userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon());
+        // ------------------------------- [쿠폰 동시성 방지  - (1/2)] -------------------------------
+        if (order.getUserReceivedCoupon() != null) { // SELECT 쿼리 발생 안함
+            UserReceivedCoupon coupon = userReceivedCouponRepository.findWithWriteLockById(
+                    order.getUserReceivedCoupon().getId())
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "쿠폰"));
+            // TODO: OOP를 지향하기에 useCoupon 에서 이미 사용한 쿠폰인지, 유효기간이 지난 쿠폰인지를 체크하도록 코드 수정해야함.
+            // TODO: 일단 패스 -> 2차 이후에 수정하는 걸로
+            if (coupon.getIsUsed()) {
+                throw new CommonException(BError.NOT_VALID, "이미 사용한 쿠폰입니다.");
+            }
+            userReceivedCouponRepository.save(coupon.useCoupon());
         }
+        // ------------------------------- [쿠폰 동시성 방지  - (2/2)] -------------------------------
+
+        ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED));
+        // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
 
         // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS
         KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
