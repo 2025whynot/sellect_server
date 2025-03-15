@@ -76,8 +76,10 @@ public class OrderServiceV0After {
             Orders order = ordersRepository.findByIdWithPessimisticLock(orderId)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
+
             // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
             if (order.getStatus() == OrderStatus.COMPLETED) {
+                log.info("Thread.currentThread().getId() +\"isUsed\" + order.getUserReceivedCoupon().getIsUsed()); = {}", Thread.currentThread().getId() +"isUsed" + order.getUserReceivedCoupon().getIsUsed());
                 throw new CommonException(BError.NOT_VALID, "이미 완료(확정)된 주문입니다.");
             }
             // ------------------------------- [중복 결제 방지 - (2/3)] -------------------------------
@@ -108,6 +110,13 @@ public class OrderServiceV0After {
 
             ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED));
             // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
+
+            // todo: 쿠폰 사용에 대한 예외를 발생시켜서 쿠폰 중복을 락과 동시에 막아야 한다.
+            // exception을 통해 확인해야함. 다른 확인 방법 고민중...
+            if (order.getUserReceivedCoupon() != null) { // 지연로딩으로 인해 여기서 SELECT 하나 발생
+                // 쓰기 작업이 분리되어있음. <- 원자성 보장이 안되어있음.
+                userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon()); // 여기서 쓰기 작업
+            }
 
             // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS
             // todo: 일단은 결제 승인 전에 로직 구현을 검증

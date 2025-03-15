@@ -66,6 +66,10 @@ public class PaymentServiceV0 {
         Payment approvePayment = payment.approvePayment();
         paymentRepository.save(approvePayment);
 
+        // todo: 카카오 요청까지 하는 처리 속도 -> 락 범위 최소화 -> 이는 테스트 시나리오로 가능
+        // todo: 테스트 시나리오를 통해 확인할 것!
+        // thread.sleep(50)으로 해서 하면 되지 않을까? 굳이 계속 kakao 요청을 보내는 것보다는 나을 듯
+        // 테스트를 해야하기에
         // 카카오 한테 요청 보내기
         ApproveRequest approveRequest = ApproveRequest.builder()
             .cid("TC0ONETIME")
