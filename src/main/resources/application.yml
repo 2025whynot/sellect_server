@@ -24,6 +24,8 @@ spring:
 
 server:
   host: ${HOST_URL}
+  tomcat:
+    accept-count: 800
 
 jwt:
   secret: ${JWT_SECRET}  # JWT 시크릿 키 설정
@@ -59,13 +61,10 @@ management:
   server:
     port: 8080
 
-#logging:
-#  level:
-#    org.hibernate.SQL: TRACE
 logging:
   level:
-    com:
-      sellect:
-        server:
-          search:
-            batch: DEBUG;
+    com.sellect.server.search.batch: DEBUG
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    org.hibernate.SQL: DEBUG
+#    org.springframework.orm.jpa: DEBUG
+#    org.springframework.jdbc.core: DEBUG

@@ -31,8 +31,8 @@ public class BatchPerformanceTestController {
     public ApiResponse<BatchPerformanceTestResponse> performanceTest() {
 
         try {
-            // 현재 시각 기준으로 설정
-            LocalDateTime now = LocalDateTime.now();
+            // 테스트 데이터 기준으로 설정
+            LocalDateTime now = LocalDateTime.of(2025, 3, 11, 0, 0, 0);
             LocalDateTime startDate = now.minusDays(1); // 하루 전
 
             // ISO 8601 형식으로 포맷팅
@@ -41,10 +41,12 @@ public class BatchPerformanceTestController {
             String endDateStr = now.format(formatter);
 
             // JobParameters 설정
-            JobParameters jobParameters = new JobParametersBuilder()
+            JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
                 .addString("startDate", startDateStr) // 하루 전
-                .addString("endDate", endDateStr)     // 현재 시각
-                .toJobParameters(); // RunIdIncrementer 가 run.id 추가
+                .addString("endDate", endDateStr);    // 현재 시각
+            JobParameters jobParameters = jobParametersBuilder
+                .addLong("timestamp", System.currentTimeMillis())
+                .toJobParameters();
 
             // 비동기 Job 실행
             runJobAsync(jobParameters);

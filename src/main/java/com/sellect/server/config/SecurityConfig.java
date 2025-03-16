@@ -25,7 +25,7 @@ public class SecurityConfig {
     private String CLOUDFRONT_DOMAIN_NAME;
 
     private static final String[] SWAGGER_PATHS = {
-        "/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**"
+        "/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**"
     };
 
     // 인증 x JWT x
@@ -34,7 +34,6 @@ public class SecurityConfig {
         "/api/v1/auth/login",
         "/api/v1/auth/seller/signup",
         "/api/v1/batch/performance-test", // 배치 테스트
-
         // 테스트
         "/api/v1/coupon/register/**"
     };

@@ -78,7 +78,7 @@ public class CouponService {
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         lock.lock();
-        log.info("[Lock]");
+//        log.info("[Lock]");
         try {
             Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
@@ -96,13 +96,13 @@ public class CouponService {
             couponRepository.save(decreasedCoupon);
         } finally {
             lock.unlock();
-            log.info("[UnLock]");
+//            log.info("[UnLock]");
         }
     }
 
     public void downloadCouponv2(User user, Long couponId) {
         lock.lock();
-        log.info("[Lock]");
+//        log.info("[Lock]");
         try {
             TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
             try {
@@ -127,7 +127,7 @@ public class CouponService {
             }
         } finally {
             lock.unlock();
-            log.info("[UnLock]");
+//            log.info("[UnLock]");
         }
     }
 
