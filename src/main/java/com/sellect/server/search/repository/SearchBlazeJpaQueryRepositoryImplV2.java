@@ -144,8 +144,8 @@ public class SearchBlazeJpaQueryRepositoryImplV2 implements SearchRepository {
             .select(Projections.constructor(SearchResponse.class,
                 brandEntity.name.as("brandName"), // 별칭 추가
                 mp.id.stringValue().as("productId"), // 별칭 추가
-                mp.name.as("productName"), // 별칭 추가
                 productImageEntity.imageUrl,
+                mp.name.as("productName"), // 별칭 추가
                 mp.price))
             .from(mp)
             .leftJoin(brandEntity).on(brandEntity.id.eq(mp.brandId))
