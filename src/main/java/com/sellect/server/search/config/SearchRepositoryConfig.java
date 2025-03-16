@@ -2,8 +2,10 @@ package com.sellect.server.search.config;
 
 import com.blazebit.persistence.CriteriaBuilderFactory;
 import com.blazebit.persistence.querydsl.BlazeJPAQueryFactory;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sellect.server.search.repository.SearchRepository;
 import com.sellect.server.search.repository.SearchBlazeJpaQueryRepositoryImplV2;
+import com.sellect.server.search.repository.SearchRepositoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

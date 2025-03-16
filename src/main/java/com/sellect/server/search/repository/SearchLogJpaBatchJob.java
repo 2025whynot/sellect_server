@@ -21,7 +21,7 @@ public class SearchLogJpaBatchJob {
     private final AutoCompleteKeywordRepository autoCompleteKeywordRepository;
 
     @Transactional
-    @Scheduled(cron = "0 0 2 * * ?") // 매일 오전 2시 실행
+//    @Scheduled(cron = "0 0 2 * * ?") // 매일 오전 2시 실행
     public void updateAutoCompleteKeyword() {
         LocalDateTime startTime = LocalDateTime.now().minusDays(1);
         LocalDateTime endTime = LocalDateTime.now();

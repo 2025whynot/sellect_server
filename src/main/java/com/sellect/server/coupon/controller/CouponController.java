@@ -91,7 +91,7 @@ public class CouponController {
             .role(Role.USER)
             .build();
 //        couponService.downloadCoupon(user, couponId);
-        log.info(String.valueOf(userId));
+//        log.info(String.valueOf(userId));
         couponService.downloadCouponv2(user, couponId);
         return ApiResponse.ok();
     }
