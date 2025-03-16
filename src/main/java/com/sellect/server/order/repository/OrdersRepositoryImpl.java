@@ -36,7 +36,6 @@ public class OrdersRepositoryImpl implements OrdersRepository {
 
     @Override
     public Optional<Orders> findByIdWithPessimisticLock(Long id) {
-        return ordersJpaRepository.findById(id).map(OrdersEntity::toModel);
-
+        return ordersJpaRepository.findByIdWithPessimisticLock(id).map(OrdersEntity::toModel);
     }
 }

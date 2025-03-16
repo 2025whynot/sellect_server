@@ -66,6 +66,8 @@ public class OrderServiceV0After {
         try {
             Long orderId = Long.valueOf(payment.getOrderId());
             // todo: (UUID 검색 - 성능 이슈 고려 필요)
+            // todo: pid를 컬럼에서 pk (payment_id)로 통일함에 따라 굳이 uuid로 userRepository 찾을 필요없이 paymentRepository를 찾는다.
+            // 바꿔야함 paymentRepository.findByidAndUuid() - 2번째 발표 이후
             userRepository.findByUuid(payment.getUid())
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
@@ -111,7 +113,8 @@ public class OrderServiceV0After {
             // todo: 일단은 결제 승인 전에 로직 구현을 검증
             // paymentService.paymentApprove(pid, token, payment);
         } catch (Exception e) {
-            log.error("Failed to approve payment for pid: {}", pid, e);
+//            log.error("Failed to approve payment for pid: {}", pid, e);
+            log.info("OrderService - [Duplicated] Failed to approve payment for pid: {}", pid);
             // [1] 로그를 위한 에러 찍기 vs [2] 그냥 try-catch 없애기
             throw e;
         }
