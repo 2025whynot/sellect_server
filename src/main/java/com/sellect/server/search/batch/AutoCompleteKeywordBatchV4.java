@@ -29,6 +29,7 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.database.JdbcPagingItemReader;
+import org.springframework.batch.item.database.Order;
 import org.springframework.batch.item.database.PagingQueryProvider;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JdbcPagingItemReaderBuilder;
@@ -155,6 +156,7 @@ public class AutoCompleteKeywordBatchV4 {
             "AND filter_applied = false " +
             "AND result_count > 0");
         queryProvider.setGroupClause("GROUP BY keyword");
+        queryProvider.setSortKeys(Map.of("keyword", Order.ASCENDING));
         return queryProvider.getObject();
     }
 
