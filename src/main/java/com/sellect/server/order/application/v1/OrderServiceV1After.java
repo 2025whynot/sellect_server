@@ -27,6 +27,7 @@ import com.sellect.server.product.repository.InventoryRepository;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -123,7 +124,14 @@ public class OrderServiceV1After {
         }
 
         // ------------------------------- [재고 동시성 방지  - (1/2)] -------------------------------
-        List<Inventory> deductedInventories = orderItems.stream()
+        // todo: 일단은 기아 현상이 발생하더라도 데드락 발생을 없애고 싶음.
+        // todo: 이 부분은 튜닝이 매우 필요함!
+        List<OrderItem> sortedOrderItems = orderItems.stream()
+            .sorted(Comparator.comparing(orderItem -> orderItem.getProduct().getId())) // productId 오름차순 정렬
+            .toList();
+
+        // 재고 차감: productId 순으로 락 획득
+        List<Inventory> deductedInventories = sortedOrderItems.stream()
             .map(orderItem -> {
                 Product product = orderItem.getProduct();
                 // DB 락
