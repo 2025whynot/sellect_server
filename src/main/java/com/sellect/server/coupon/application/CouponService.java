@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-//import org.redisson.api.RLock;
-//import org.redisson.api.RedissonClient;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +48,7 @@ public class CouponService {
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
-//    private final RedissonClient redissonClient;
+    private final RedissonClient redissonClient;
 
     // 판매자 쿠폰 등록
     public void uploadCoupon(User user, IssueCouponRequest issueCouponRequest) {
@@ -75,6 +75,7 @@ public class CouponService {
 
 
     /// 문제있는 코드
+    ///
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         lock.lock();
@@ -104,7 +105,8 @@ public class CouponService {
         lock.lock();
         log.info("[Lock]");
         try {
-            TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+            TransactionStatus status = transactionManager.getTransaction(
+                new DefaultTransactionDefinition());
             try {
                 Coupon coupon = couponRepository.findById(couponId)
                     .orElseThrow(
@@ -135,7 +137,7 @@ public class CouponService {
     // 2. DB락
     @Transactional
     public void downloadCouponWithPessimisticLock(User user, Long couponId) {
-        log.info("[Coupon download] 비관락");
+        //        log.info("[Coupon download] 비관락");
         Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
         coupon.isUsable();
@@ -150,38 +152,38 @@ public class CouponService {
     }
 
     // 3. 분산락
-//    @Transactional
-//    public void downloadCouponWithDistributeLock(User user, Long couponId) {
-//        log.info("분산락 잠금");
-//        String lockKey = "couponLock:" + couponId;
-//        RLock lock = redissonClient.getLock(lockKey);
-//
-//        // 락 획득 시도: 최대 5초 대기, 락 유지 시간 2초
-//        try {
-//            boolean isLock = lock.tryLock(5, 2, TimeUnit.SECONDS);
-//            if (!isLock) {
-//                throw new CommonException(BError.LOCK_ACQUISITION_FAILED, couponId.toString());
-//            }
-//            Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow();
-//            coupon.isUsable();
-//            if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
-//                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
-//            }
-//            Coupon decreasedCoupon = coupon.decreaseQuantity();
-//            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
-//                decreasedCoupon);
-//            userReceivedCouponRepository.save(userReceivedCoupon);
-//            couponRepository.save(decreasedCoupon);
-//
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        } finally {
-//            if (lock.isHeldByCurrentThread()) {
-//                lock.unlock();
-//            }
-//        }
-//
-//    }
+    @Transactional
+    public void downloadCouponWithDistributeLock(User user, Long couponId) {
+        //        log.info("분산락 잠금");
+        String lockKey = "couponLock:" + couponId;
+        RLock lock = redissonClient.getLock(lockKey);
+
+        // 락 획득 시도: 최대 5초 대기, 락 유지 시간 2초
+        try {
+            boolean isLock = lock.tryLock(5, 2, TimeUnit.SECONDS);
+            if (!isLock) {
+                throw new CommonException(BError.LOCK_ACQUISITION_FAILED, couponId.toString());
+            }
+            Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow();
+            coupon.isUsable();
+            if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
+                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+            }
+            Coupon decreasedCoupon = coupon.decreaseQuantity();
+            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
+                decreasedCoupon);
+            userReceivedCouponRepository.save(userReceivedCoupon);
+            couponRepository.save(decreasedCoupon);
+
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+
+    }
 
 
     // [사용자] 쿠폰 확인

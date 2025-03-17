@@ -88,7 +88,7 @@ dependencies {
 
 
     // Redis 의존성 추가
-//    implementation 'org.redisson:redisson-spring-boot-starter:3.17.7'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.17.7'
 
 //	implementation 'org.flywaydb:flyway-core'
 //	implementation 'org.flywaydb:flyway-mysql'
