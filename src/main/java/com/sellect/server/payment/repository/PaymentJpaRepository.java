@@ -9,5 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PaymentJpaRepository extends JpaRepository<PaymentEntity, Long> {
     Optional<PaymentEntity> findByPid(String pid);
 
-    Page<PaymentEntity> findByUid(String uid, Pageable pageable);
+//    Page<PaymentEntity> findByUid(String uid, Pageable pageable);
+//    Page<PaymentEntity> findById(Long id, Pageable pageable);
+    Page<PaymentEntity> findByUserId(Long userId, Pageable pageable);
 }

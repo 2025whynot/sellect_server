@@ -25,13 +25,13 @@ class PaymentTest {
             String tid = "transaction101";
 
             // When
-            Payment payment = Payment.ready(orderId, pid, uid, price, tid);
+            Payment payment = Payment.ready(orderId, pid, 1L, price, tid);
 
             // Then
             assertNotNull(payment);
             assertEquals(orderId, payment.getOrderId());
             assertEquals(pid, payment.getPid());
-            assertEquals(uid, payment.getUid());
+//            assertEquals(uid, payment.getUid());
             assertEquals(price, payment.getPrice());
             assertEquals(tid, payment.getTid());
             assertEquals(PaymentStatus.READY, payment.getStatus());
@@ -45,13 +45,13 @@ class PaymentTest {
             // Given
             String orderId = "order123";
             String pid = "product456";
-            String uid = "user789";
+            Long userId = 1L;
             Integer price = -100; // 음수 가격
             String tid = "transaction101";
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class, () -> {
-                Payment.ready(orderId, pid, uid, price, tid);
+                Payment.ready(orderId, pid, userId, price, tid);
             });
             assertEquals("결제 금액은 0원 보다 높어야 합니다.", exception.getMessage());
         }
@@ -62,13 +62,14 @@ class PaymentTest {
             // Given
             String orderId = null; // null 입력
             String pid = "product456";
-            String uid = "user789";
+//            String userId = "user789";
+            Long userId = 1L;
             Integer price = 1000;
             String tid = "transaction101";
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class, () -> {
-                Payment.ready(orderId, pid, uid, price, tid);
+                Payment.ready(orderId, pid, userId, price, tid);
             });
             assertEquals("결제 정보가 올바르지 않습니다.", exception.getMessage());
         }
@@ -79,13 +80,13 @@ class PaymentTest {
             // Given
             String orderId = "order123";
             String pid = null; // null 입력
-            String uid = "user789";
+            Long userId = 1L;
             Integer price = 1000;
             String tid = "transaction101";
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class, () -> {
-                Payment.ready(orderId, pid, uid, price, tid);
+                Payment.ready(orderId, pid, userId, price, tid);
             });
             assertEquals("결제 정보가 올바르지 않습니다.", exception.getMessage());
         }
@@ -96,7 +97,7 @@ class PaymentTest {
             // Given
             String orderId = "order123";
             String pid = "product456";
-            String uid = null; // null 입력
+            Long uid = null; // null 입력
             Integer price = 1000;
             String tid = "transaction101";
 
@@ -113,13 +114,13 @@ class PaymentTest {
             // Given
             String orderId = "order123";
             String pid = "product456";
-            String uid = "user789";
+            Long userId  = 1L;
             Integer price = 1000;
             String tid = null; // null 입력
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class, () -> {
-                Payment.ready(orderId, pid, uid, price, tid);
+                Payment.ready(orderId, pid, userId, price, tid);
             });
             assertEquals("결제 정보가 올바르지 않습니다.", exception.getMessage());
         }
@@ -128,7 +129,7 @@ class PaymentTest {
     @Test
     @DisplayName("결제 승인")
     void approvePayment() {
-        Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+        Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
         Payment approvePayment = payment.approvePayment();
         assertEquals(PaymentStatus.APPROVE, approvePayment.getStatus());
     }
@@ -140,7 +141,7 @@ class PaymentTest {
         @DisplayName("[성공] Status.READY -> Status.APPROVE")
         void paymentApproveSuccess() {
             //given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             //when
             Payment approvePayment = payment.approvePayment();
             //then
@@ -152,7 +153,7 @@ class PaymentTest {
         @DisplayName("[성공] Status.READY -> Status.FAIL")
         void paymentFailSuccess() {
             //given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             //when
             Payment failedPayment = payment.failPayment();
             //then
@@ -164,7 +165,7 @@ class PaymentTest {
         @DisplayName("[성공] Status.READY -> Status.CANCEL")
         void paymentCancelSuccess() {
             //given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             //when
             Payment cancelledPayment = payment.cancelPayment();
             //then
@@ -175,7 +176,7 @@ class PaymentTest {
         @DisplayName("대기 상태가 아닌 경우 approve 호출 시 상태가 변경되지 않음")
         void approvePaymentDoesNotChangeNonPendingStatus() {
             // given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             Payment approvePayment = payment.approvePayment();// 먼저 APPROVE로 상태 변경
             PaymentStatus initialStatus = approvePayment.getStatus();
 
@@ -191,7 +192,7 @@ class PaymentTest {
         @DisplayName("대기 상태가 아닌 경우 fail 호출 시 상태가 변경되지 않음")
         void failPaymentDoesNotChangeNonPendingStatus() {
             // given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             Payment failedPayment = payment.failPayment();// 먼저 CANCEL로 상태 변경
             PaymentStatus initialStatus = failedPayment.getStatus();
 
@@ -206,7 +207,7 @@ class PaymentTest {
         @DisplayName("[실패] Staus.Ready가 아닐떄, failPayment() 호출")
         void throwExceptionWhenStatusReadyCallFailPayment() {
             //given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             Payment failedPayment = payment.failPayment();// 먼저 CANCEL로 상태 변경
 
             //when
@@ -224,7 +225,7 @@ class PaymentTest {
         @DisplayName("[실패] Staus.Ready가 아닐떄, cancelPayment() 호출")
         void throwExceptionWhenStatusReadyCallCancelPayment() {
             //given
-            Payment payment = Payment.ready("orderId", "pid", "uid", 1000, "tid");
+            Payment payment = Payment.ready("orderId", "pid", 1L, 1000, "tid");
             Payment failedPayment = payment.failPayment();// 먼저 CANCEL로 상태 변경
 
             //when

@@ -73,7 +73,7 @@ class CouponServiceTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.USER)
                 .build();
 
@@ -94,7 +94,7 @@ class CouponServiceTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 
@@ -123,7 +123,7 @@ class CouponServiceTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 
@@ -152,14 +152,14 @@ class CouponServiceTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.USER)
                 .build();
 
             User anotherUser = User.builder()
                 .id(2L)
                 .nickname("test2")
-                .uuid("uuid333")
+//                .uuid("uuid333")
                 .role(Role.USER)
                 .build();
 
@@ -191,14 +191,14 @@ class CouponServiceTest {
             User seller = User.builder()
                 .id(5L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                . uuid("uuid")
                 .role(Role.USER)
                 .build();
 

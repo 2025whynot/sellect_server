@@ -35,7 +35,7 @@ class AuthenticationResolverTest {
         // given
         User user = User.builder()
             .id(1L)
-            .uuid("uuid-user")
+//            .uuid("uuid-user")
             .nickname("userNickname")
             .role(Role.USER)
             .createdAt(null)
@@ -59,7 +59,7 @@ class AuthenticationResolverTest {
         // given
         User seller = User.builder()
             .id(2L)
-            .uuid("uuid-seller")
+//            .uuid("uuid-seller")
             .nickname("sellerNickname")
             .role(Role.SELLER)
             .createdAt(null)
@@ -84,7 +84,7 @@ class AuthenticationResolverTest {
         // given
         User seller = User.builder()
             .id(2L)
-            .uuid("uuid-seller")
+//            .uuid("uuid-seller")
             .nickname("sellerNickname")
             .role(Role.SELLER)
             .createdAt(null)
@@ -107,7 +107,7 @@ class AuthenticationResolverTest {
         // given
         User seller = User.builder()
             .id(2L)
-            .uuid("uuid-seller")
+//            .uuid("uuid-seller")
             .nickname("sellerNickname")
             .role(Role.USER)
             .createdAt(null)

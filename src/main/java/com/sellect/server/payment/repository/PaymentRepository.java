@@ -11,5 +11,6 @@ public interface PaymentRepository {
 
     Optional<Payment> findByPid(String pid);
 
-    Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable);
+//    Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable);
+    Page<Payment> findPaymentHistoryByUser(Long userId, Pageable pageable);
 }

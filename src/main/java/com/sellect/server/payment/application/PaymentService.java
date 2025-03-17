@@ -22,8 +22,8 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public List<PaymentHistoryResponse> getPaymentHistory(User user, Pageable pageable) {
-        Page<Payment> paymentHistoryByUser = paymentRepository.findPaymentHistoryByUser(
-            user.getUuid(), pageable);
+//        Page<Payment> paymentHistoryByUser = paymentRepository.findPaymentHistoryByUser(user.getUuid(), pageable);
+        Page<Payment> paymentHistoryByUser = paymentRepository.findPaymentHistoryByUser(user.getId(), pageable);
 
         return paymentHistoryByUser.getContent().stream()
             .map(PaymentHistoryResponse::of)

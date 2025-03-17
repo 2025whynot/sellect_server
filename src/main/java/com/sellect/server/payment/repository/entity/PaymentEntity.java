@@ -28,7 +28,8 @@ public class PaymentEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String pid;
-    private String uid;
+    //    private String uid;
+    private Long userId;
     private String orderId;
     private Integer price;
     private String tid;
@@ -39,7 +40,8 @@ public class PaymentEntity extends BaseTimeEntity {
         return PaymentEntity.builder()
             .id(payment.getId())
             .pid(payment.getPid())
-            .uid(payment.getUid())
+//            .uid(payment.getUid())
+            .userId(payment.getUserId())
             .orderId(payment.getOrderId())
             .price(payment.getPrice())
             .tid(payment.getTid())
@@ -54,7 +56,8 @@ public class PaymentEntity extends BaseTimeEntity {
         return Payment.builder()
             .id(this.id)
             .pid(this.pid)
-            .uid(this.uid)
+//            .uid(this.uid)
+            .userId(this.userId)
             .orderId(this.orderId)
             .price(this.price)
             .tid(this.tid)

@@ -16,7 +16,7 @@ import lombok.Getter;
 public class User {
 
     private final Long id;
-    private final String uuid;
+//    private final String uuid;
     private final String nickname;  // 닉네임은 변경 가능하도록 설정
     private final Role role;
     private final LocalDateTime createdAt;
@@ -25,7 +25,7 @@ public class User {
 
     public static User register(String nickname, Role role) {
         return User.builder()
-            .uuid(UUID.randomUUID().toString())
+//            .uuid(UUID.randomUUID().toString())
             .nickname(nickname)
             .role(role)
             .createdAt(LocalDateTime.now())
@@ -37,7 +37,7 @@ public class User {
     public User delete() {
         return User.builder()
             .id(this.id)
-            .uuid(this.uuid)
+//            .uuid(this.uuid)
             .nickname(this.nickname)
             .role(this.role)
             .createdAt(this.createdAt)

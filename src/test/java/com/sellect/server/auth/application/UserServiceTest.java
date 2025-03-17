@@ -38,7 +38,7 @@ class UserServiceTest {
             // given
             User user = User.builder()
                 .id(1L)
-                .uuid("test-uuid")
+//                .uuid("test-uuid")
                 .nickname("test-nickname")
                 .role(Role.USER)
                 .createdAt(LocalDateTime.now())

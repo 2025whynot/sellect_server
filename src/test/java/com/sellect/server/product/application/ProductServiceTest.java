@@ -73,7 +73,7 @@ class ProductServiceTest {
 
         seller = User.builder()
             .id(1L)
-            .uuid(UUID.randomUUID().toString())
+//            .uuid(UUID.randomUUID().toString())
             .nickname("seller")
             .role(Role.SELLER)
             .build();
@@ -543,7 +543,7 @@ class ProductServiceTest {
             // Given
             User otherSeller = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.SELLER)
                 .build();
             ProductModifyRequest request = ProductModifyRequest.builder().price("150.00").build();
@@ -596,7 +596,7 @@ class ProductServiceTest {
         @DisplayName("권한 없는 사용자가 삭제 시 예외 발생")
         void remove_UnauthorizedSeller_ThrowsException() {
             // Given
-            User otherSeller = User.builder().id(2L).uuid(UUID.randomUUID().toString())
+            User otherSeller = User.builder().id(2L)
                 .role(Role.SELLER).build();
 
             // When & Then
@@ -817,7 +817,7 @@ class ProductServiceTest {
             // Given
             User otherSeller = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.SELLER)
                 .build();
 
@@ -930,7 +930,7 @@ class ProductServiceTest {
             // Given
             User otherSeller = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.SELLER)
                 .build();
 
@@ -992,7 +992,7 @@ class ProductServiceTest {
             // Given
             User otherSeller = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.SELLER)
                 .build();
 
@@ -1030,7 +1030,7 @@ class ProductServiceTest {
             // Given: 주문 데이터 추가
             User user = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.USER)
                 .build();
             Orders completedOrder = Orders.register(user, new BigDecimal("400.00"),
@@ -1064,12 +1064,12 @@ class ProductServiceTest {
             // Given: 여러 주문 데이터 추가
             User user1 = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.USER)
                 .build();
             User user2 = User.builder()
                 .id(3L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.USER)
                 .build();
             Orders completedOrder = Orders.register(user1, new BigDecimal("400.00"),
@@ -1111,7 +1111,7 @@ class ProductServiceTest {
             // Given: product1에만 주문 데이터 추가
             User user = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.USER)
                 .build();
             Orders completedOrder = Orders.register(user, new BigDecimal("300.00"),
@@ -1138,7 +1138,7 @@ class ProductServiceTest {
             // Given: PENDING 상태 주문만 추가
             User user = User.builder()
                 .id(2L)
-                .uuid(UUID.randomUUID().toString())
+//                .uuid(UUID.randomUUID().toString())
                 .role(Role.USER)
                 .build();
             Orders pendingOrder = Orders.register(user, new BigDecimal("500.00"),
