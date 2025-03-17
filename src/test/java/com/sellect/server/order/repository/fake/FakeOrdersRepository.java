@@ -48,6 +48,12 @@ public class FakeOrdersRepository implements OrdersRepository {
             .toList();
     }
 
+    // todo : 테스트시 작성 필요
+    @Override
+    public Optional<Orders> findByIdWithPessimisticLock(Long id) {
+        return Optional.empty();
+    }
+
     public void clear() {
         data.clear();
     }
