@@ -12,11 +12,11 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
     private final UserJpaRepository userJpaRepository;
 
-    @Override
-    public Optional<User> findByUuid(String uuid) {
-        Optional<UserEntity> userEntity = userJpaRepository.findByUuid(uuid);
-        return userEntity.map(UserEntity::toModel);
-    }
+//    @Override
+//    public Optional<User> findByUuid(String uuid) {
+//        Optional<UserEntity> userEntity = userJpaRepository.findByUuid(uuid);
+//        return userEntity.map(UserEntity::toModel);
+//    }
 
     @Override
     public User save(User user) {

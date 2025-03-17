@@ -54,7 +54,7 @@ class OrdersRepositoryImplTest {
 
         // UserEntity 저장
         userEntity = UserEntity.builder()
-            .uuid("test-uuid")
+//            .uuid("test-uuid")
             .nickname("Test User")
             .role(Role.USER)
             .build();

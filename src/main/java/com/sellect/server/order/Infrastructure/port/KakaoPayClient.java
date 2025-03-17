@@ -82,11 +82,11 @@ public class KakaoPayClient {
 
 
     /// 리팩터링 전 버전
-    public KakaoPayReadyRequest createKakaoPayReadyRequestV0(String partnerOrderId, String partnerUserId, String itemName, Integer quantity, Integer totalAmount, String pid) {
+    public KakaoPayReadyRequest createKakaoPayReadyRequestV0(String partnerOrderId, Long partnerUserId, String itemName, Integer quantity, Integer totalAmount, String pid) {
         return KakaoPayReadyRequest.builder()
             .cid("TC0ONETIME")
             .partnerOrderId(partnerOrderId)
-            .partnerUserId(partnerUserId)
+            .partnerUserId(String.valueOf(partnerUserId))
             .itemName(itemName)                 // TODO: 아이템 이름 가져오기(클라이언트에서 가져오는거 고려) 2025-02-28, 16:58
             .quantity(quantity)                 // TODO: 주문에서 아이템 개수  2025-02-28, 16:58
             .totalAmount(totalAmount)

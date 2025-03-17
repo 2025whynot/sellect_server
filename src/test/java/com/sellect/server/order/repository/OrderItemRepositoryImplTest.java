@@ -79,7 +79,7 @@ class OrderItemRepositoryImplTest {
         orderItemRepository = new OrderItemRepositoryImpl(orderItemJpaRepository);
 
         userEntity = UserEntity.builder()
-            .uuid("test-uuid-" + System.currentTimeMillis())
+//            .uuid("test-uuid-" + System.currentTimeMillis())
             .nickname("Test User")
             .role(Role.USER)
             .createdAt(LocalDateTime.now())
@@ -99,7 +99,7 @@ class OrderItemRepositoryImplTest {
         orders = ordersEntity.toModel();
 
         UserEntity sellerEntity = UserEntity.builder()
-            .uuid("test-uuid-" + System.currentTimeMillis())
+//            .uuid("test-uuid-" + System.currentTimeMillis())
             .nickname("Test Seller")
             .role(Role.SELLER)
             .createdAt(LocalDateTime.now())

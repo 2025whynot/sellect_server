@@ -27,7 +27,7 @@ class CouponTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 
@@ -51,7 +51,7 @@ class CouponTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 
@@ -79,7 +79,7 @@ class CouponTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-                .uuid("uuid")
+//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 

@@ -21,7 +21,7 @@ class UserTest {
             //given
             User user = User.builder()
                 .id(1L)
-                .uuid("uuid")
+//                .uuid("uuid")
                 .nickname("nickname")
                 .role(Role.USER)
                 .build();
@@ -35,7 +35,7 @@ class UserTest {
             //given
             User user = User.builder()
                 .id(1L)
-                .uuid("uuid")
+//                .uuid("uuid")
                 .nickname("nickname")
                 .role(Role.SELLER)
                 .build();
@@ -49,7 +49,7 @@ class UserTest {
     void test3() {
         User user = User.builder()
             .id(1L)
-            .uuid("uuid")
+//            .uuid("uuid")
             .nickname("nickname")
             .role(Role.USER)
             .build();
@@ -66,7 +66,7 @@ class UserTest {
     void test4() {
         User user = User.builder()
             .id(1L)
-            .uuid("uuid")
+//            .uuid("uuid")
             .nickname("nickname")
             .role(Role.SELLER)
             .build();

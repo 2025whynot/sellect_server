@@ -26,9 +26,16 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         return paymentEntity.map(PaymentEntity::toModel);
     }
 
+//    @Override
+//    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
+//        Page<PaymentEntity> paymentEntityPage = paymentJpaRepository.findByUid(uuid, pageable);
+//        return paymentEntityPage.map(PaymentEntity::toModel);
+//    }
+
     @Override
-    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
-        Page<PaymentEntity> paymentEntityPage = paymentJpaRepository.findByUid(uuid, pageable);
+    public Page<Payment> findPaymentHistoryByUser(Long userId, Pageable pageable) {
+        Page<PaymentEntity> paymentEntityPage = paymentJpaRepository.findById(userId, pageable);
         return paymentEntityPage.map(PaymentEntity::toModel);
     }
+
 }

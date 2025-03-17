@@ -87,7 +87,8 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-            .uuid(String.valueOf(UUID.randomUUID()))
+//            .uuid(String.valueOf(UUID.randomUUID()))
+//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
@@ -103,7 +104,7 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-            .uuid(String.valueOf(UUID.randomUUID()))
+//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
@@ -118,7 +119,7 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-            .uuid(String.valueOf(UUID.randomUUID()))
+//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();

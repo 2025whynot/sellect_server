@@ -23,7 +23,8 @@ public class FakePaymentRepository implements PaymentRepository {
                 .id(id++)
                 .orderId(payment.getOrderId())
                 .price(payment.getPrice())
-                .uid(payment.getUid())
+//                .uid(payment.getUid())
+                .userId(payment.getUserId())
                 .pid(payment.getPid())
                 .tid(payment.getTid())
                 .status(payment.getStatus())
@@ -42,10 +43,12 @@ public class FakePaymentRepository implements PaymentRepository {
     }
 
     @Override
-    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
+//    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
+    public Page<Payment> findPaymentHistoryByUser(Long userId, Pageable pageable) {
         // 사용자의 모든 결제 내역을 필터링하고 정렬
         List<Payment> filteredPayments = storage.values().stream()
-            .filter(payment -> payment.getUid().equals(uuid))
+//            .filter(payment -> payment.getUid().equals(uuid))
+            .filter(payment -> payment.getUserId().equals(userId))
             .sorted(Comparator.comparing(Payment::getCreatedAt, Comparator.reverseOrder())) // 최신순으로 정렬
             .collect(Collectors.toList());
         int start = (int) pageable.getOffset();
