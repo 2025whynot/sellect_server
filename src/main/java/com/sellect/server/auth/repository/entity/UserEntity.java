@@ -19,8 +19,8 @@ public class UserEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 50, unique = true)
-    private String uuid;
+//    @Column(nullable = false, length = 50, unique = true)
+//    private String uuid;
 
     @Column(nullable = false, length = 50)
     private String nickname;
@@ -32,7 +32,7 @@ public class UserEntity extends BaseTimeEntity {
     public static UserEntity from(User user) {
         return UserEntity.builder()
             .id(user.getId())
-            .uuid(user.getUuid())
+//            .uuid(user.getUuid())
             .nickname(user.getNickname())
             .role(user.getRole())
             .createdAt(user.getCreatedAt())
@@ -44,7 +44,7 @@ public class UserEntity extends BaseTimeEntity {
     public User toModel() {
         return User.builder()
             .id(this.getId())
-            .uuid(this.getUuid())
+//            .uuid(this.getUuid())
             .nickname(this.getNickname())
             .role(this.getRole())
             .createdAt(this.getCreatedAt())
