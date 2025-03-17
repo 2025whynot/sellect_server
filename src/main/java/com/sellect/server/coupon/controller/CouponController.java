@@ -12,7 +12,6 @@ import com.sellect.server.coupon.controller.response.CouponPossibleOrderResponse
 import com.sellect.server.coupon.controller.response.CouponResponse;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -67,7 +66,8 @@ public class CouponController {
         @AuthUser User user,
         @PageableDefault(page = 0, size = 5) Pageable pageable
     ) {
-        Page<ActiveCouponResponse> activeCouponList = couponService.getActiveCouponList(user, pageable);
+        Page<ActiveCouponResponse> activeCouponList = couponService.getActiveCouponList(user,
+            pageable);
         return ApiResponse.ok(activeCouponList);
     }
 
@@ -83,15 +83,14 @@ public class CouponController {
 
     // 애플리케이션 락
     @PutMapping("/register/{couponId}/app/{userId}")
-    public ApiResponse<?> registerCoupon(@PathVariable(name = "userId") Long userId, @PathVariable(name = "couponId") Long couponId) {
+    public ApiResponse<?> registerCoupon(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
             .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-//        couponService.downloadCoupon(user, couponId);
-//        log.info(String.valueOf(userId));
         couponService.downloadCouponv2(user, couponId);
         return ApiResponse.ok();
     }
@@ -100,7 +99,8 @@ public class CouponController {
     // DB 비관적 락
     // test용
     @PutMapping("/register/{couponId}/db/{userId}")
-    public ApiResponse<?> downloadCouponWithDBLock(@PathVariable(name = "userId") Long userId, @PathVariable(name = "couponId") Long couponId) {
+    public ApiResponse<?> downloadCouponWithDBLock(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
             .uuid(String.valueOf(UUID.randomUUID()))
@@ -113,18 +113,17 @@ public class CouponController {
 
     // Redis 분산락
     // test 용
-//    @PutMapping("/register/{couponId}/redis/{userId}")
-//    public ApiResponse<?> downloadCouponWithRedis(@PathVariable(name = "userId") Long userId, @PathVariable(name = "couponId") Long couponId) {
-//        User user = User.builder()
-//            .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
-//            .nickname("test" + userId)
-//            .role(Role.USER)
-//            .build();
-//        couponService.downloadCouponWithDistributeLock(user, couponId);
-//        return ApiResponse.ok();
-//    }
-
-
+    @PutMapping("/register/{couponId}/redis/{userId}")
+    public ApiResponse<?> downloadCouponWithRedis(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
+        User user = User.builder()
+            .id(userId)
+            .uuid(String.valueOf(UUID.randomUUID()))
+            .nickname("test" + userId)
+            .role(Role.USER)
+            .build();
+        couponService.downloadCouponWithDistributeLock(user, couponId);
+        return ApiResponse.ok();
+    }
 
 }

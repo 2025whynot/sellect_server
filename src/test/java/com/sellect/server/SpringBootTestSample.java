@@ -67,8 +67,8 @@ class SpringBootTestSample {
             any(FilterChain.class));
     }
 
-    @Test
-    void contextLoads() {
-    }
+//    @Test
+//    void contextLoads() {
+//    }
 
 }

@@ -11,6 +11,17 @@ permissions: write-all
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v3
 
@@ -44,6 +55,10 @@ jobs:
           storage.s3.secret-key: ${{ secrets.S3_SECRET_KEY }}
           storage.s3.region: ${{ secrets.S3_REGION }}
           server.host: ${{ secrets.HOST_URL }}
+          spring.data.host: ${{ secrets.REDIS_HOST }}
+          spring.data.port: ${{secrets.REDIS_PORT}}
+          redisson.address: ${{secrets.REDISSON_ADDRESS}}
+
 
       - name: Grant Execute Permission For Gradlew
         run: chmod +x gradlew

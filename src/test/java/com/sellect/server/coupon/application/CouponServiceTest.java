@@ -34,8 +34,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-//import org.redisson.api.RedissonClient;
-//import org.redisson.api.RedissonClient;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +46,7 @@ class CouponServiceTest {
     CouponRepository couponRepository;
     UserReceivedCouponRepository userReceivedCouponRepository;
     ProductRepository productRepository;
-//    RedissonClient redissonClient;
+    RedissonClient redissonClient;
     PlatformTransactionManager platformTransactionManager;
 
     @BeforeEach
@@ -57,8 +56,9 @@ class CouponServiceTest {
         couponRepository = new FakeCouponRepository();
         userReceivedCouponRepository = new FakeuserReceivedCouponRepository();
         productRepository = new FakeProductRepository();
-//        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository, redissonClient);
-        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository);
+        couponService = new CouponService(platformTransactionManager, couponRepository,
+            userReceivedCouponRepository, productRepository, redissonClient);
+//        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository);
     }
 
 
@@ -558,7 +558,7 @@ class CouponServiceTest {
             then(couponList.get(0).userReceivedCouponId()).isEqualTo(2L);
             then(couponList.get(1).userReceivedCouponId()).isEqualTo(1L);
         }
-        
+
         @Test
         @DisplayName("존재하지 않는 상품 ID가 포함된 경우 예외를 던진다.")
         void willFailWithNonExistentProductId() {
