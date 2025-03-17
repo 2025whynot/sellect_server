@@ -57,6 +57,7 @@ public class Orders {
     }
 
     // 쿠폰 적용
+    // 동시성 해야함
     public Orders applyCoupon(UserReceivedCoupon coupon) {
         validateCoupon(coupon);
         return Orders.builder()

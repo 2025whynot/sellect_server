@@ -36,6 +36,7 @@ public class OrderItem {
     }
 
     // 재고 확인 및 차감
+    // todo: 이게 머임? <- 설명 좀...
     public Inventory deductStock(Inventory inventory) {
         return inventory.deductStock(this.quantity);
     }

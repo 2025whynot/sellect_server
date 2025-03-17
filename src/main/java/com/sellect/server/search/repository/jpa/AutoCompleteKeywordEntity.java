@@ -2,6 +2,7 @@ package com.sellect.server.search.repository.jpa;
 
 import com.sellect.server.common.BaseTimeEntity;
 import com.sellect.server.search.domain.AutoCompleteKeyword;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,7 @@ public class AutoCompleteKeywordEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String keyword;
 
     private Long frequency; // null일 경우 온전한 검색어가 아님을 의미

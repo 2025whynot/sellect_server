@@ -33,4 +33,9 @@ public class OrdersRepositoryImpl implements OrdersRepository {
 
         return ordersEntities.stream().map(OrdersEntity::toModel).toList();
     }
+
+    @Override
+    public Optional<Orders> findByIdWithPessimisticLock(Long id) {
+        return ordersJpaRepository.findByIdWithPessimisticLock(id).map(OrdersEntity::toModel);
+    }
 }
