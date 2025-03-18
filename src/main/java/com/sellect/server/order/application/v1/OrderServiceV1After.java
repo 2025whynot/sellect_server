@@ -56,7 +56,7 @@ public class OrderServiceV1After {
 
     // 주문 결제
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
 
         // 주문 받아와서
         Orders order = ordersRepository.findById(orderId)
