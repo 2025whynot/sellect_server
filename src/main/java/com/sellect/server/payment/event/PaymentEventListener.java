@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -23,7 +22,7 @@ public class PaymentEventListener {
     private final KakaoPayClient kakaoPayClient;
     private final PaymentRepository paymentRepository;
 
-    @Async("paymentTaskExecutor")
+    @Async("preparePaymentExecutor")
     @EventListener
     public void kakaoPayReadyEvent(KakaoPayReadyEvent event) {
         try {
@@ -38,10 +37,14 @@ public class PaymentEventListener {
 
     //tx2
     // TODO: 보상 트랜잭션  2025-03-5, 16:29
-    @Async("paymentTaskExecutor")
+    @Async("approvePaymentExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void kakaoPayApproveEvent(KakaoPayApproveEvent event) {
-        Payment approvePayment = approveAndSavePayment(event);
+
+        // Transactional 보장이 안되기에 메서드로 분리한 거 하나로!
+        Payment approvePayment = event.getPayment().approvePayment();
+        paymentRepository.save(approvePayment);
+
         requestKakaoPayApporve(event, approvePayment);
     }
 
@@ -56,13 +59,6 @@ public class PaymentEventListener {
             response.tid()
         );
         paymentRepository.save(payment);
-    }
-
-    @Transactional
-    public Payment approveAndSavePayment(KakaoPayApproveEvent event) {
-        Payment approvePayment = event.getPayment().approvePayment();
-        paymentRepository.save(approvePayment);
-        return approvePayment;
     }
 
     private void requestKakaoPayApporve(KakaoPayApproveEvent event, Payment approvePayment) {
