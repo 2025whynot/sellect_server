@@ -2,7 +2,6 @@ package com.sellect.server.payment.event.listener.proxy;
 
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
-import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.KakaoPayApproveEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
 import com.sellect.server.payment.event.PaymentEventListener;
@@ -27,10 +26,5 @@ public class PaymentEventListenerProxy extends PaymentEventListener {
     public void createAndSavePayment(KakaoPayReadyEvent event, String pid,
         KakaoPayReadyResponse response) {
         super.createAndSavePayment(event, pid, response);
-    }
-
-    @Override
-    public Payment approveAndSavePayment(KakaoPayApproveEvent event) {
-        return super.approveAndSavePayment(event);
     }
 }
