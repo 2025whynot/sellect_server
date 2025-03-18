@@ -28,7 +28,8 @@ public class PaymentServiceV0 {
     public void readyPayment(User user, Long orderId, String pid, Orders order, String tid) {
         Payment payment = Payment.ready(String.valueOf(orderId),
             pid,
-            user.getUuid(),
+//            user.getUuid(),
+            user.getId(),
             order.getTotalPrice().intValue(),
             tid);
 
@@ -40,7 +41,8 @@ public class PaymentServiceV0 {
         Integer quantity = 0;
         KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequestV0(
             String.valueOf(orderId),
-            user.getUuid(),
+//            user.getUuid(),
+            user.getId(),
             "test",
             quantity,
             order.getTotalPrice().intValue(),
@@ -71,7 +73,8 @@ public class PaymentServiceV0 {
             .cid("TC0ONETIME")
             .tid(payment.getTid())
             .partnerOrderId(payment.getOrderId())
-            .partnerUserId(payment.getUid())
+//            .partnerUserId(payment.getUid())
+            .partnerUserId(String.valueOf(payment.getUserId()))
             .pgToken(token)
             .build();
 

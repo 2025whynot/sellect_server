@@ -76,7 +76,7 @@ class OrderServiceTest {
         userRepository.clear();
         user = User.builder()
             .id(1L)
-            .uuid("userUuid")
+//            .uuid("userUuid")
             .build();
         sut = new OrderService(
             ordersRepository,
@@ -311,7 +311,8 @@ class OrderServiceTest {
             Payment payment = Payment.builder()
                 .pid("pid123")
                 .orderId(order.getId().toString())
-                .uid(user.getUuid())
+//                .uid(user.getUuid())
+                .userId(user.getId())
                 .build();
 
             paymentRepository.save(payment);
@@ -361,7 +362,8 @@ class OrderServiceTest {
             Payment payment = Payment.builder()
                 .pid("pid123")
                 .orderId(order.getId().toString())
-                .uid(user.getUuid())
+//                .uid(user.getUuid())
+                .userId(user.getId())
                 .build();
             paymentRepository.save(payment);
 
@@ -384,7 +386,8 @@ class OrderServiceTest {
             Payment payment = Payment.builder()
                 .pid("pid123")
                 .orderId(order.getId().toString())
-                .uid("invalid-uuid")
+//                .uid("invalid-uuid")
+                .userId(user.getId())
                 .build();
 
             paymentRepository.save(payment);

@@ -93,8 +93,8 @@ public class OrderService {
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
         Long orderId = Long.valueOf(payment.getOrderId());
-        User user = userRepository.findByUuid(payment.getUid())
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+//        User user = userRepository.findByUuid(payment.getUid()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+        User user = userRepository.findById(payment.getUserId()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
         Orders order = getOrderById(orderId);
         List<OrderItem> orderItems = getOrderItemsByOrderId(orderId);

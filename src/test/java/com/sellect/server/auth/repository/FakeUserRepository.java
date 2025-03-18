@@ -11,22 +11,23 @@ public class FakeUserRepository implements UserRepository {
     private final Map<Long, User> userStore = new HashMap<>();
     private long sequence = 1L;
 
-    @Override
-    public Optional<User> findByUuid(String uuid) {
-        User foundUser = userStore.values().stream()
-            .filter(user -> user.getUuid().equals(uuid))
-            .findFirst()
-            .orElse(null);
-
-        return Optional.ofNullable(foundUser);
-    }
+//    @Override
+//    public Optional<User> findByUuid(String uuid) {
+//        User foundUser = userStore.values().stream()
+////            .filter(user -> user.getUuid().equals(uuid))
+//            .filter(user -> user.getId().equals(uuid))
+//            .findFirst()
+//            .orElse(null);
+//
+//        return Optional.ofNullable(foundUser);
+//    }
 
     @Override
     public User save(User user) {
         if (user.getId() == null) {
             user = User.builder()
                 .id(sequence++)
-                .uuid(user.getUuid())
+//                .uuid(user.getUuid())
                 .nickname(user.getNickname())
                 .role(user.getRole())
                 .createdAt(user.getCreatedAt())

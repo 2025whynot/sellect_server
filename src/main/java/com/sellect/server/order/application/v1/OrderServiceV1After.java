@@ -102,8 +102,8 @@ public class OrderServiceV1After {
         // todo: (UUID 검색 - 성능 이슈 고려 필요)
         // todo: pid를 컬럼에서 pk (payment_id)로 통일함에 따라 굳이 uuid로 userRepository 찾을 필요없이 paymentRepository를 찾는다.
         // todo: 바꿔야함 paymentRepository.findByidAndUuid() - 2번째 발표 이후
-        User user = userRepository.findByUuid(payment.getUid())
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+//        User user = userRepository.findByUuid(payment.getUid()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+        User user = userRepository.findById(payment.getUserId()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
         // ------------------------------- [중복 결제 방지 - (1/3)] -------------------------------
         // 비관적 락 적용 (PESSIMISTIC_WRITE) - 동시에 같은 주문을 처리하지 못하도록

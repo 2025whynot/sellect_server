@@ -48,7 +48,8 @@ public class UserAuthService {
         User user = userRepository.findById(userAuth.getUser().getId())
             .orElseThrow(() -> new IllegalArgumentException("Invalid user"));
 
-        String accessToken = jwtUtil.generateAccessToken(user.getUuid(), user.getRole().name());
+//        String accessToken = jwtUtil.generateAccessToken(user.getUuid(), user.getRole().name());
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getRole().name());
         String role = String.valueOf(user.getRole());
         String nickname = user.getNickname();
 

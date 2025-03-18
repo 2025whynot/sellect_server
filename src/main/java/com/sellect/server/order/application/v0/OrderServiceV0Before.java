@@ -70,8 +70,8 @@ public class OrderServiceV0Before {
             // start
             Long orderId = Long.valueOf(payment.getOrderId());
             // todo: 여기 개느릴듯 uuid로 찾기에
-            User user = userRepository.findByUuid(payment.getUid())
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+//            User user = userRepository.findByUuid(payment.getUid()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+            User user = userRepository.findById(payment.getUserId()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
             // todo: ------------------------------- 중복 결제 방지 (1) -------------------------------
             // todo: findByIdWithLock

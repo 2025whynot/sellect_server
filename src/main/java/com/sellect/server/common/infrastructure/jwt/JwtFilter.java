@@ -2,6 +2,8 @@ package com.sellect.server.common.infrastructure.jwt;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,10 +33,15 @@ public class JwtFilter extends OncePerRequestFilter {
         FilterChain filterChain) throws ServletException, IOException {
         String token = jwtUtil.extractToken(request);
         if (token != null && jwtUtil.isTokenValid(token)) {
-            String uuid = jwtUtil.extractUuid(token);
 
-            // todo: exception 던지기
-            User user = userRepository.findByUuid(uuid).orElse(null);
+//            String uuid = jwtUtil.extractUuid(token);
+//            User user = userRepository.findByUuid(uuid).orElse(null);
+
+            // AccessToken에 들어있는 UserId를 통해 User 찾기
+            Long userId = jwtUtil.extractUserId(token);
+            User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CommonException(BError.NOT_USER));
+
             if (user != null) {
                 List<GrantedAuthority> authorities = List.of(
                     new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));

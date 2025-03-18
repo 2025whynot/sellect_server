@@ -50,7 +50,8 @@ public class PaymentEventListener {
         Payment payment = Payment.ready(
             String.valueOf(event.getOrderId()),
             pid,
-            event.getUser().getUuid(),
+//            event.getUser().getUuid(),
+            event.getUser().getId(),
             event.getOrder().getTotalPrice().intValue(),
             response.tid()
         );
@@ -69,7 +70,8 @@ public class PaymentEventListener {
             .cid("TC0ONETIME")
             .tid(approvePayment.getTid())
             .partnerOrderId(approvePayment.getOrderId())
-            .partnerUserId(approvePayment.getUid())
+//            .partnerUserId(approvePayment.getUid())
+            .partnerUserId(String.valueOf(approvePayment.getUserId()))
             .pgToken(event.getToken())
             .build();
 
@@ -88,7 +90,8 @@ public class PaymentEventListener {
         Integer quantity = 0;
         KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
             String.valueOf(event.getOrderId()),
-            event.getUser().getUuid(),
+//            event.getUser().getUuid(),
+            String.valueOf(event.getUser().getId()),
             "test",
             quantity,
             event.getOrder().getTotalPrice().intValue(),

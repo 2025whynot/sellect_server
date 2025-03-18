@@ -50,7 +50,7 @@ public class PaymentEventListenerTest {
             //given
             User user = User.builder()
                 .id(1L)
-                .uuid("test-uuid")
+//                .uuid("test-uuid")
                 .build();
 
             KakaoPayReadyResponse kakaoPayReadyResponse = KakaoPayReadyResponse.builder()
@@ -79,7 +79,7 @@ public class PaymentEventListenerTest {
             // given
             User user = User.builder()
                 .id(1L)
-                .uuid("test-uuid")
+//                .uuid("test-uuid")
                 .build();
 
             Orders order = mock(Orders.class);
@@ -110,7 +110,7 @@ public class PaymentEventListenerTest {
         @DisplayName("[성공] 카카오 결제 승인 이벤트")
         void willSuccess() {
             //given
-            Payment payment = Payment.ready("order1", "pid1", "user1", 1000, "tid1");
+            Payment payment = Payment.ready("order1", "pid1", 1L, 1000, "tid1");
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
                 "pgToken123", "test_pid");
             // 이벤트에 future setter가 있다면 아래와 같이 설정
@@ -130,7 +130,7 @@ public class PaymentEventListenerTest {
         @DisplayName("[실패] 카카오 결제 승인 이벤트 - API 호출 실패")
         void willFail() {
             // given
-            Payment payment = Payment.ready("order1", "pid1", "user1", 1000, "tid1");
+            Payment payment = Payment.ready("order1", "pid1", 1L, 1000, "tid1");
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
                 "pgToken123", "test_pid");
 

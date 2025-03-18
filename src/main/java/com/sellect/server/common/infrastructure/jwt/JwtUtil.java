@@ -36,6 +36,17 @@ public class JwtUtil {
             .compact();
     }
 
+    // User uuid가 아닌 User id를 payload에 넣도록 설정
+    public String generateAccessToken(Long userId, String role) {
+        return Jwts.builder()
+            .setSubject(String.valueOf(userId))
+            .claim("role", role)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_TIME))
+            .signWith(secretKey, SignatureAlgorithm.HS256)
+            .compact();
+    }
+
 
     public boolean isTokenValid(String token) {
         try {
@@ -48,6 +59,11 @@ public class JwtUtil {
 
     public String extractUuid(String token) {
         return extractClaims(token).getSubject();
+    }
+
+    public Long extractUserId(String token) {
+        String subject = extractClaims(token).getSubject();
+        return Long.parseLong(subject);
     }
 
     public String extractRole(String token) {
@@ -88,5 +104,4 @@ public class JwtUtil {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
