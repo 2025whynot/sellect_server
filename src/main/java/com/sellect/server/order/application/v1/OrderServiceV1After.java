@@ -60,39 +60,49 @@ public class OrderServiceV1After {
     private final DataSourceTransactionManager transactionManager;
 
     // 주문 결제
-    @Transactional
     public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
 
-        // 주문 받아와서
-        Orders order = ordersRepository.findById(orderId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
+        // 트랜잭션 정의 및 시작
+        TransactionDefinition definition = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(definition);
+        Orders order = null;
 
-        // 유저의 주문인지 확인
-        order.validateOwner(user);
+        try {
+            // 주문 받아와서
+            order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
-        // 쿠폰 적용
-        if (userReceivedCouponId != null) {
-            UserReceivedCoupon coupon = userReceivedCouponRepository.findById(userReceivedCouponId)
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "쿠폰"));
-            order = ordersRepository.save(order.applyCoupon(coupon));
+            // 유저의 주문인지 확인
+            order.validateOwner(user);
+
+            // 쿠폰 적용
+            if (userReceivedCouponId != null) {
+                UserReceivedCoupon coupon = userReceivedCouponRepository.findById(
+                        userReceivedCouponId)
+                    .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "쿠폰"));
+                order = ordersRepository.save(order.applyCoupon(coupon));
+            }
+
+            transactionManager.commit(status);
+        } catch (CommonException e) {
+            transactionManager.rollback(status);
+            throw e;
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR,
+                "preparePayment() - 결제 준비 중 오류 발생");
         }
 
-        // todo: 일단 결제 관련은 PASS
-        // todo: 추후 검토 예정
-        // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (1/2)] -------------------------------
+        // 트랜잭션 커밋 후 이벤트 발행
         CompletableFuture<String> future = new CompletableFuture<>();
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
-        String nextRedirectPcUrl = null;
         try {
-            nextRedirectPcUrl = future.get();
+            return future.get(); // nextRedirectPcUrl [결제 요청 QR]
+            // 여기서 톰캣 스레드가 대기
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
-
-        // 결제 요청
-        return nextRedirectPcUrl;
-        // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (2/2)] -------------------------------
     }
 
     public void approvePayment(final Long pid, final String token) {
