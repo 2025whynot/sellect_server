@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,7 +67,7 @@ public class OrderServiceV1After {
         // 트랜잭션 정의 및 시작
         TransactionDefinition definition = new DefaultTransactionDefinition();
         TransactionStatus status = transactionManager.getTransaction(definition);
-        Orders order = null;
+        Orders order;
 
         try {
             // 주문 받아와서
@@ -89,8 +91,7 @@ public class OrderServiceV1After {
             throw e;
         } catch (Exception e) {
             transactionManager.rollback(status);
-            throw new CommonException(BError.INTERNAL_SERVER_ERROR,
-                "preparePayment() - 결제 준비 중 오류 발생");
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "preparePayment() - 결제 준비 중 오류 발생");
         }
 
         // 트랜잭션 커밋 후 이벤트 발행
@@ -98,10 +99,18 @@ public class OrderServiceV1After {
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
         try {
-            return future.get(); // nextRedirectPcUrl [결제 요청 QR]
-            // 여기서 톰캣 스레드가 대기
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            return future.get(3, TimeUnit.SECONDS); //여기서 톰캣 스레드가 대기 - 타임아웃 추가, 응답 : nextRedirectPcUrl [결제 요청 QR]
+        } catch (InterruptedException e) { // 3초 이전에 톰캣 스레드 interrupt()
+            Thread.currentThread().interrupt();
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "결제 준비 중 인터럽트 발생");
+        } catch (ExecutionException e) { // 비동기 작업 예외
+            Throwable cause = e.getCause();
+            if (cause instanceof CommonException) {
+                throw (CommonException) cause;
+            }
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "결제 준비 중 오류: " + cause.getMessage());
+        } catch (TimeoutException e) { // 톰캣 대기 타임 아웃 초과 (타임아웃 지정 시)
+            throw new CommonException(BError.TIMEOUT, "결제 준비 시간이 초과되었습니다");
         }
     }
 

@@ -18,6 +18,8 @@ public enum BError implements Error {
     NOT_SUPPORTED("NOT_SUPPORTED", "%1 not supported"),
     NOT_REGISTERED("NOT_REGISTERED", "%1 not registered"),
     INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "[INTERNAL_SERVER_ERROR] - %1"),
+    TIMEOUT("TIMEOUT", "[TIMEOUT] - %1"),
+    DB_ERROR("DB_ERROR", "[DB_ERROR] - %1"),
 
     NOT_SELLER("NOT_SELLER", "%1 is not a seller"),
     NOT_USER("NOT_USER", "%1 is not a user"),
