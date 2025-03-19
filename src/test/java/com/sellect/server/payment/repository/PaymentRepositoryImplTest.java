@@ -42,7 +42,7 @@ class PaymentRepositoryImplTest {
         @DisplayName("[성공] payment를 저장한다.")
         void willSuccess() {
             //given
-            Payment payment = Payment.ready("orderId", "pid-test", 1L, 1000, "tid");
+            Payment payment = Payment.ready(1234L, "pid-test", 1L, 1000, "tid");
 
             //when
             paymentRepository.save(payment);
@@ -61,7 +61,7 @@ class PaymentRepositoryImplTest {
         @DisplayName("[성공]")
         void willSuccess() {
             //given
-            Payment payment = Payment.ready("orderId", "pid-test", 1L, 1000, "tid");
+            Payment payment = Payment.ready(1234L, "pid-test", 1L, 1000, "tid");
             PaymentEntity save = paymentJpaRepository.save(PaymentEntity.from(payment));
 
             //when
@@ -83,9 +83,9 @@ class PaymentRepositoryImplTest {
         void willSuccess() {
             //given
             Long userId = 1L;
-            Payment payment1 = Payment.ready("1", "pid-test", userId, 1000, "tid");
-            Payment payment2 = Payment.ready("22", "pid-test2", userId, 2000, "tid");
-            Payment payment3 = Payment.ready("333", "pid-test3", userId, 3000, "tid");
+            Payment payment1 = Payment.ready(1L, "pid-test", userId, 1000, "tid");
+            Payment payment2 = Payment.ready(22L, "pid-test2", userId, 2000, "tid");
+            Payment payment3 = Payment.ready(333L, "pid-test3", userId, 3000, "tid");
             PaymentEntity save1 = paymentJpaRepository.save(PaymentEntity.from(payment1));
             PaymentEntity save2 = paymentJpaRepository.save(PaymentEntity.from(payment2));
             PaymentEntity save3 = paymentJpaRepository.save(PaymentEntity.from(payment3));
@@ -99,7 +99,7 @@ class PaymentRepositoryImplTest {
             then(paymentHistory).isNotNull();
             then(paymentHistory).hasSize(3);
             then(paymentHistory).allMatch(payment -> payment.getUserId().equals(userId));
-            then(paymentHistory).extracting(Payment::getOrderId).containsExactlyInAnyOrder("1", "22", "333");
+            then(paymentHistory).extracting(Payment::getOrdersId).containsExactlyInAnyOrder(1L, 22L, 333L);
             then(paymentHistory).extracting(Payment::getPrice).containsExactlyInAnyOrder(1000, 2000, 3000);
 
         }

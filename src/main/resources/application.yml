@@ -26,8 +26,9 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
-redisson:
-  address: ${REDISSON_ADDRESS}
+#
+#redisson:
+#  address: ${REDISSON_ADDRESS}
 
 server:
   host: ${HOST_URL}

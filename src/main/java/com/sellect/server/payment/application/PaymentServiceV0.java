@@ -25,7 +25,7 @@ public class PaymentServiceV0 {
     private final KakaoPayClient kakaoPayClient;
 
     public void readyPayment(User user, Long orderId, String pid, Orders order, String tid) {
-        Payment payment = Payment.ready(String.valueOf(orderId),
+        Payment payment = Payment.ready(orderId,
             pid,
 //            user.getUuid(),
             user.getId(),
@@ -75,7 +75,7 @@ public class PaymentServiceV0 {
         ApproveRequest approveRequest = ApproveRequest.builder()
             .cid("TC0ONETIME")
             .tid(payment.getTid())
-            .partnerOrderId(payment.getOrderId())
+            .partnerOrderId(String.valueOf(payment.getOrdersId()))
             .partnerUserId(String.valueOf(payment.getUserId()))
             .pgToken(token)
             .build();

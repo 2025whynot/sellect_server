@@ -27,6 +27,13 @@ public class Orders {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
+//    private final List<OrderItem> orderItems;  // 추가
+//
+//    // 주문 아이템이 존재하는지 확인
+//    public boolean hasOrderItems() {
+//        return orderItems != null && !orderItems.isEmpty();
+//    }
+
 
     public static Orders register(User user, BigDecimal totalPrice, OrderStatus status) {
         return Orders.builder()
@@ -39,7 +46,8 @@ public class Orders {
     }
 
     // 주문 상태 변경
-    public Orders changeStatus(OrderStatus status) {
+    public Orders completeOrder() {
+        // 앞서 락으로 막지만 그래도 한번 더!
         if (this.status == OrderStatus.COMPLETED) {
             throw new CommonException(BError.NOT_VALID, "이미 완료된 주문입니다.");
         }
@@ -49,7 +57,7 @@ public class Orders {
             .userReceivedCoupon(this.userReceivedCoupon)
             .totalPrice(this.totalPrice)
             .orderNumber(this.orderNumber)
-            .status(status)
+            .status(OrderStatus.COMPLETED)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .deleteAt(this.deleteAt)
@@ -103,6 +111,13 @@ public class Orders {
     public void validateOwner(User user) {
         if (!this.user.getId().equals(user.getId())) {
             throw new CommonException(BError.NOT_VALID, "해당 주문에 접근 권한이 없습니다.");
+        }
+    }
+
+    // OrderServiceV1After 부터 사용
+    public void validateNotCompleted() {
+        if (this.status == OrderStatus.COMPLETED) {
+            throw new CommonException(BError.NOT_VALID, "이미 완료(확정)된 주문입니다.");
         }
     }
 }

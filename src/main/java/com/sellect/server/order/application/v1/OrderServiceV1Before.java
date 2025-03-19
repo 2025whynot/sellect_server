@@ -79,7 +79,7 @@ public class OrderServiceV1Before {
         // todo: 추후 검토 예정
         // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (1/2)] -------------------------------
         CompletableFuture<String> future = new CompletableFuture<>();
-        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, orderId, order,
+        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order,
             future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
         String nextRedirectPcUrl = null;
@@ -101,9 +101,6 @@ public class OrderServiceV1Before {
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST,
                 String.format("Payment %s", pid))); // String.format()으로 바꿈
 
-        // 문제 없음
-        Long orderId = Long.valueOf(payment.getOrderId());
-
         // todo: (UUID 검색 - 성능 이슈 고려 필요)
         // todo: pid를 컬럼에서 pk (payment_id)로 통일함에 따라 굳이 uuid로 userRepository 찾을 필요없이 paymentRepository를 찾는다.
         // todo: 바꿔야함 paymentRepository.findByidAndUuid() - 2번째 발표 이후
@@ -112,7 +109,7 @@ public class OrderServiceV1Before {
 
         // ------------------------------- [중복 결제 방지 - (1/3)] -------------------------------
         // 비관적 락 적용 (PESSIMISTIC_WRITE) - 동시에 같은 주문을 처리하지 못하도록
-        Orders order = ordersRepository.findByIdWithPessimisticLock(orderId)
+        Orders order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId())
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
         // orderService 기준 새로 추가!!!
@@ -123,7 +120,7 @@ public class OrderServiceV1Before {
 
         // ------------------------------- [중복 결제 방지 - (2/3)] -------------------------------
         // todo: 일단 패스
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
         if (orderItems.isEmpty()) {
             throw new CommonException(BError.NOT_EXIST, "주문 아이템");
         }
@@ -131,10 +128,9 @@ public class OrderServiceV1Before {
         // ------------------------------- [재고 동시성 방지  - (1/2)] -------------------------------
         List<Inventory> deductedInventories = orderItems.stream()
             .map(orderItem -> {
-                Product product = orderItem.getProduct();
                 // DB 락
                 Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                        product.getId())
+                        orderItem.getProductId())
                     .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
                 // 재고 확인 및 차감
                 // todo: OOP를 다시 적용할 것! (일단 패스)
@@ -149,7 +145,7 @@ public class OrderServiceV1Before {
         // 굳이 savedOrder를 통해 처리할 필요가 있음? 계속 사용한 Order면 되지 않음?
         // Orders savedOrder = ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); //BEFORE[1]
         // clearCartAndDeleteCouponAsync(user, savedOrder); // BEFORE[1]
-        ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); // AFTER[1]
+        ordersRepository.save(order.completeOrder()); // AFTER[1]
         // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
         // clearCartAndDeleteCouponAsync(user, order); // AFTER[1] <- 굳이 별도의 메서드로 빼서 트랜잭션을 할 필요가 있을까?
 
@@ -335,11 +331,11 @@ public class OrderServiceV1Before {
         return OrderDetailGetResponse.from(order, discountCost, orderItemsResponse);
     }
 
-    // 확인!
-    // Mapping이기에 private 적합
     private OrderItemGetResponse convertToOrderItemResponse(OrderItem orderItem) {
-        Product product = orderItem.getProduct();
-        String thumbnailImageUrl = productImageRepository.findByThumbnailImage(product.getId())
+        Long productId = orderItem.getProductId();
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "상품"));
+        String thumbnailImageUrl = productImageRepository.findByThumbnailImage(productId)
             .getImageUrl();
         return OrderItemGetResponse.from(orderItem, product, thumbnailImageUrl);
     }

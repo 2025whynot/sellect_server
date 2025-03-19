@@ -14,7 +14,6 @@ import com.sellect.server.order.repository.entity.OrderStatus;
 import com.sellect.server.payment.application.PaymentServiceV0;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.product.domain.Inventory;
-import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.InventoryRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +63,6 @@ public class OrderServiceV0After {
         // todo: 사실 이 부분부터 낙관적 락을 고려하는게 맞지 않을까. <- 그렇다고 하면 밑에 주문관련 락을 걸 필요가 사라짐
         Payment payment = paymentService.findReadyPaymentByPid(pid);
         try {
-            Long orderId = Long.valueOf(payment.getOrderId());
             // todo: (UUID 검색 - 성능 이슈 고려 필요)
             // todo: pid를 컬럼에서 pk (payment_id)로 통일함에 따라 굳이 uuid로 userRepository 찾을 필요없이 paymentRepository를 찾는다.
             // 바꿔야함 paymentRepository.findByidAndUuid() - 2번째 발표 이후
@@ -73,7 +71,7 @@ public class OrderServiceV0After {
 
             // ------------------------------- [중복 결제 방지 - (1/3)] -------------------------------
             // 비관적 락 적용 (PESSIMISTIC_WRITE) - 동시에 같은 주문을 처리하지 못하도록
-            Orders order = ordersRepository.findByIdWithPessimisticLock(orderId)
+            Orders order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId())
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
             // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
@@ -82,7 +80,7 @@ public class OrderServiceV0After {
             }
             // ------------------------------- [중복 결제 방지 - (2/3)] -------------------------------
             // todo: 일단 패스
-            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
             if (orderItems.isEmpty()) {
                 throw new CommonException(BError.NOT_EXIST, "주문 아이템");
             }
@@ -90,10 +88,9 @@ public class OrderServiceV0After {
             // ------------------------------- [재고 동시성 방지  - (1/2)] -------------------------------
             List<Inventory> deductedInventories = orderItems.stream()
                 .map(orderItem -> {
-                    Product product = orderItem.getProduct();
                     // DB 락
                     Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                            product.getId())
+                            orderItem.getProductId())
                         .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
                     // 재고 확인 및 차감
                     // todo: OOP를 다시 적용할 것! (일단 패스)
@@ -106,7 +103,7 @@ public class OrderServiceV0After {
             inventoryRepository.saveAll(deductedInventories); // AFTER
             // ------------------------------- [재고 동시성 방지  - (2/2)] -------------------------------
 
-            ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED));
+            ordersRepository.save(order.completeOrder());
             // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
 
             // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS

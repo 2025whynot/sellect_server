@@ -60,7 +60,7 @@ public class PaymentEventListenerTest {
 
             Orders order = mock(Orders.class);
             CompletableFuture<String> future = new CompletableFuture<>();
-            KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, 1L, order, future);
+            KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
 
             when(order.getTotalPrice()).thenReturn(BigDecimal.valueOf(1000L));
             when(kakaoPayClient.readyPayment(any())).thenReturn(kakaoPayReadyResponse);
@@ -84,7 +84,7 @@ public class PaymentEventListenerTest {
 
             Orders order = mock(Orders.class);
             CompletableFuture<String> future = new CompletableFuture<>();
-            KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, 1L, order, future);
+            KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
 
             when(order.getTotalPrice()).thenReturn(BigDecimal.valueOf(1000L));
             when(kakaoPayClient.readyPayment(any())).thenThrow(new CommonException(BError.KAKKO_READY_FAIL));
@@ -110,7 +110,7 @@ public class PaymentEventListenerTest {
         @DisplayName("[성공] 카카오 결제 승인 이벤트")
         void willSuccess() {
             //given
-            Payment payment = Payment.ready("order1", "pid1", 1L, 1000, "tid1");
+            Payment payment = Payment.ready(1234L, "pid1", 1L, 1000, "tid1");
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
                 "pgToken123", "test_pid");
             // 이벤트에 future setter가 있다면 아래와 같이 설정
@@ -130,7 +130,7 @@ public class PaymentEventListenerTest {
         @DisplayName("[실패] 카카오 결제 승인 이벤트 - API 호출 실패")
         void willFail() {
             // given
-            Payment payment = Payment.ready("order1", "pid1", 1L, 1000, "tid1");
+            Payment payment = Payment.ready(1234L, "pid1", 1L, 1000, "tid1");
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
                 "pgToken123", "test_pid");
 

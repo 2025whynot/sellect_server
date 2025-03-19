@@ -21,7 +21,7 @@ public class FakeOrderItemRepository implements OrderItemRepository {
                 mutableOrderItems.add(OrderItem.builder()
                     .id(idSequence++)
                     .orders(item.getOrders())
-                    .product(item.getProduct())
+                    .productId(item.getProductId())
                     .price(item.getPrice())
                     .quantity(item.getQuantity())
                     .build());
@@ -43,7 +43,7 @@ public class FakeOrderItemRepository implements OrderItemRepository {
     @Override
     public Optional<BigDecimal> calculateSalesByProductId(Long productId) {
         BigDecimal totalSales = data.stream()
-            .filter(item -> item.getProduct().getId().equals(productId))
+            .filter(item -> item.getProductId().equals(productId))
             .filter(item -> item.getOrders().getStatus()
                 .equals(OrderStatus.COMPLETED)) // 주문 상태가 COMPLETED인 경우만
             .map(item -> item.getPrice()
@@ -55,7 +55,7 @@ public class FakeOrderItemRepository implements OrderItemRepository {
     @Override
     public Optional<Integer> countCompleteOrdersByProductId(Long productId) {
         long uniqueOrderCount = data.stream()
-            .filter(item -> item.getProduct().getId().equals(productId))
+            .filter(item -> item.getProductId().equals(productId))
             .filter(item -> item.getOrders().getStatus()
                 .equals(OrderStatus.COMPLETED)) // 주문 상태가 COMPLETED인 경우만
             .map(item -> item.getOrders().getId())
@@ -67,7 +67,7 @@ public class FakeOrderItemRepository implements OrderItemRepository {
     @Override
     public Optional<BigDecimal> calculateTotalSalesByProductIds(List<Long> productIds) {
         BigDecimal totalSales = data.stream()
-            .filter(item -> productIds.contains(item.getProduct().getId()))
+            .filter(item -> productIds.contains(item.getProductId()))
             .filter(item -> item.getOrders().getStatus()
                 .equals(OrderStatus.COMPLETED)) // 주문 상태가 COMPLETED인 경우만
             .map(item -> item.getPrice()
@@ -87,7 +87,7 @@ public class FakeOrderItemRepository implements OrderItemRepository {
             OrderItem newItem = OrderItem.builder()
                 .id(idSequence++)
                 .orders(orderItem.getOrders())
-                .product(orderItem.getProduct())
+                .productId(orderItem.getProductId())
                 .price(orderItem.getPrice())
                 .quantity(orderItem.getQuantity())
                 .build();

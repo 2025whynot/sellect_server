@@ -304,13 +304,13 @@ class OrderServiceTest {
                 OrderItem.builder()
                     .id(1L)
                     .orders(order)
-                    .product(product)
+                    .productId(product.getId())
                     .quantity(5)
                     .build()));
 
             Payment payment = Payment.builder()
                 .pid("pid123")
-                .orderId(order.getId().toString())
+                .ordersId(order.getId())
 //                .uid(user.getUuid())
                 .userId(user.getId())
                 .build();
@@ -355,13 +355,13 @@ class OrderServiceTest {
                 OrderItem.builder()
                     .id(1L)
                     .orders(order)
-                    .product(product)
+                    .productId(product.getId())
                     .quantity(10)
                     .build()));
 
             Payment payment = Payment.builder()
                 .pid("pid123")
-                .orderId(order.getId().toString())
+                .ordersId(order.getId())
 //                .uid(user.getUuid())
                 .userId(user.getId())
                 .build();
@@ -385,7 +385,7 @@ class OrderServiceTest {
 
             Payment payment = Payment.builder()
                 .pid("pid123")
-                .orderId(order.getId().toString())
+                .ordersId(order.getId())
 //                .uid("invalid-uuid")
                 .userId(user.getId())
                 .build();
@@ -514,7 +514,7 @@ class OrderServiceTest {
                 OrderItem.builder()
                     .id(1L)
                     .orders(savedOrder)
-                    .product(product1)
+                    .productId(product1.getId())
                     .build()
             ));
 

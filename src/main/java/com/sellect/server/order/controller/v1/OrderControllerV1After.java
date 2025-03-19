@@ -33,7 +33,7 @@ public class OrderControllerV1After {
     @PostMapping("/order/payment/{orderId}/ready")
     public ApiResponse<String> readyPayment(@AuthUser User user, @PathVariable Long orderId,
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
-        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
+        String redirectionUrl = orderService.preparePayment(user, orderId, userReceivedCouponId);
         return ApiResponse.ok(redirectionUrl);
     }
 

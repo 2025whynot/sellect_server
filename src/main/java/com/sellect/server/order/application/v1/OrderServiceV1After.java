@@ -1,5 +1,6 @@
 package com.sellect.server.order.application.v1;
 
+import com.sellect.server.auth.application.UserService;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.exception.CommonException;
@@ -54,9 +55,11 @@ public class OrderServiceV1After {
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    private final UserService userService;
+
     // 주문 결제
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
 
         // 주문 받아와서
         Orders order = ordersRepository.findById(orderId)
@@ -76,8 +79,7 @@ public class OrderServiceV1After {
         // todo: 추후 검토 예정
         // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (1/2)] -------------------------------
         CompletableFuture<String> future = new CompletableFuture<>();
-        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, orderId, order,
-            future);
+        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
         String nextRedirectPcUrl = null;
         try {
@@ -92,65 +94,38 @@ public class OrderServiceV1After {
     }
 
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(final String pid, final String token) {
 
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
 
-        Long orderId = Long.valueOf(payment.getOrderId());
+        userRepository.findById(payment.getUserId())
+            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
-        // todo: (UUID 검색 - 성능 이슈 고려 필요)
-        // todo: pid를 컬럼에서 pk (payment_id)로 통일함에 따라 굳이 uuid로 userRepository 찾을 필요없이 paymentRepository를 찾는다.
-        // todo: 바꿔야함 paymentRepository.findByidAndUuid() - 2번째 발표 이후
-//        User user = userRepository.findByUuid(payment.getUid()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
-        User user = userRepository.findById(payment.getUserId()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+        // TODO 쿠폰 동시성 해결을 위한 락 구현
 
-        // ------------------------------- [중복 결제 방지 - (1/3)] -------------------------------
-        // 비관적 락 적용 (PESSIMISTIC_WRITE) - 동시에 같은 주문을 처리하지 못하도록
-        Orders order = ordersRepository.findByIdWithPessimisticLock(orderId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
+        Orders order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId()) // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
+            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
 
-        // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
-        if (order.getStatus() == OrderStatus.COMPLETED) {
-            throw new CommonException(BError.NOT_VALID, "이미 완료(확정)된 주문입니다.");
+        order.validateNotCompleted();
+
+        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
+        if (orderItems.isEmpty()) { // 서비스에 위임
+            throw new CommonException(BError.NOT_VALID, "orderId");
         }
 
-        // ------------------------------- [중복 결제 방지 - (2/3)] -------------------------------
-        // todo: 일단 패스
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
-        if (orderItems.isEmpty()) {
-            throw new CommonException(BError.NOT_EXIST, "주문 아이템");
-        }
-
-        // ------------------------------- [재고 동시성 방지  - (1/2)] -------------------------------
         List<Inventory> deductedInventories = orderItems.stream()
             .map(orderItem -> {
-                Product product = orderItem.getProduct();
-                // DB 락
                 Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                        product.getId())
-                    .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
-                // 재고 확인 및 차감
-                // todo: OOP를 다시 적용할 것! (일단 패스)
-                return orderItem.deductStock(inventory);
+                        orderItem.getProductId()) // orderItem 의 Product 연관관계가 꼭 필요한가?
+                    .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
+                return inventory.deductStock(orderItem.getQuantity());
             })
             .toList();
 
         inventoryRepository.saveAll(deductedInventories);
-        // ------------------------------- [재고 동시성 방지  - (2/2)] -------------------------------
+        ordersRepository.save(order.completeOrder());
 
-        ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED)); // AFTER[1]
-        // ------------------------------- [중복 결제 방지 - (3/3)] -------------------------------
-
-
-        // todo: 해당 부분은 동시성이 괜찮을까?
-        // todo: 주문에 대한 락이 잡혀있는 지금 상황에서 쿠폰 사용에 대한 동시성은 불필요할까?
-        // todo: 이는 직접 테스트를 통해 확인해보고 싶음.
-        if (order.getUserReceivedCoupon() != null) {
-            userReceivedCouponRepository.save(order.getUserReceivedCoupon().useCoupon());
-        }
-
-        // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS
         KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
         eventPublisher.publishEvent(event);
     }
@@ -190,7 +165,6 @@ public class OrderServiceV1After {
             OrderStatus.PENDING);
         Orders savedOrder = ordersRepository.save(order);
 
-
         Set<Long> productIds = new HashSet<>();
         List<OrderItem> orderItems = request.orderItems().stream()
             .map(orderItemAddRequest -> {
@@ -206,7 +180,6 @@ public class OrderServiceV1After {
                 Inventory inventory = inventoryRepository.findByProductId(product.getId())
                     .orElseThrow(
                         () -> new CommonException(BError.NOT_EXIST, "inventory"));
-
 
                 // 현재 수량 기준으로 주문이 가능하더라도
                 // 어짜피 결제에서 재고 동시성 한번 하기에 최소한 불필요한 주문생성을 막기 위한 로직인듯.
@@ -289,8 +262,10 @@ public class OrderServiceV1After {
     }
 
     private OrderItemGetResponse convertToOrderItemResponse(OrderItem orderItem) {
-        Product product = orderItem.getProduct();
-        String thumbnailImageUrl = productImageRepository.findByThumbnailImage(product.getId())
+        Long productId = orderItem.getProductId();
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "상품"));
+        String thumbnailImageUrl = productImageRepository.findByThumbnailImage(productId)
             .getImageUrl();
         return OrderItemGetResponse.from(orderItem, product, thumbnailImageUrl);
     }
