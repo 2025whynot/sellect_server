@@ -24,6 +24,13 @@ public class SecurityConfig {
     @Value("${cloudfront.domain-name}")
     private String CLOUDFRONT_DOMAIN_NAME;
 
+    private static final String[] LOAD_TEST_PATHS = {
+        "/api/v1/coupon/register/**",
+        "/api/v0/test/**",
+        "/api/v1/test/**",
+    };
+
+
     private static final String[] SWAGGER_PATHS = {
         "/swagger-resources/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/**"
     };
@@ -34,8 +41,6 @@ public class SecurityConfig {
         "/api/v1/auth/login",
         "/api/v1/auth/seller/signup",
         "/api/v1/batch/performance-test", // 배치 테스트
-        // 테스트
-        "/api/v1/coupon/register/**"
     };
 
     // 인증 x JWT o
@@ -71,6 +76,7 @@ public class SecurityConfig {
         http = commonConfig(http);
 
         http.authorizeHttpRequests(auth -> auth
+            .requestMatchers(LOAD_TEST_PATHS).permitAll() // 인증 없이 허용
             .requestMatchers(NO_JWT_PATHS).permitAll() // 인증 없이 허용
             .requestMatchers(PUBLIC_PATHS).permitAll() // JWT는 필요하지만 인증 없이 접근 가능
             .requestMatchers(SWAGGER_PATHS).permitAll() // Swagger 문서 접근 가능

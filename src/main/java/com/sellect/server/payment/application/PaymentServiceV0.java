@@ -5,7 +5,6 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
-import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.payment.controller.request.ApproveRequest;
@@ -51,7 +50,11 @@ public class PaymentServiceV0 {
 
         KakaoPayReadyResponse kakaoPayReadyResponse = kakaoPayClient.readyPayment(request);
         readyPayment(user, orderId, pid, order, kakaoPayReadyResponse.tid());
-        return kakaoPayReadyResponse.next_redirect_pc_url();
+//        return kakaoPayReadyResponse.next_redirect_pc_url();
+
+        // 테스트를 위해 pid 리턴
+        kakaoPayReadyResponse.next_redirect_pc_url();
+        return pid;
     }
 
     private String generatePaymentId() {
@@ -73,12 +76,11 @@ public class PaymentServiceV0 {
             .cid("TC0ONETIME")
             .tid(payment.getTid())
             .partnerOrderId(payment.getOrderId())
-//            .partnerUserId(payment.getUid())
             .partnerUserId(String.valueOf(payment.getUserId()))
             .pgToken(token)
             .build();
 
-        KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(approveRequest);
-        log.info("Payment approved for pid: {}", pid);
+        // todo 테스트를 위해서 외부 API 호출 주석 처리
+//        KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(approveRequest);
     }
 }

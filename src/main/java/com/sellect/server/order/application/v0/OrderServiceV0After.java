@@ -111,7 +111,7 @@ public class OrderServiceV0After {
 
             // todo : 결제 서비스에 요청 - 해당 부분 일단 PASS
             // todo: 일단은 결제 승인 전에 로직 구현을 검증
-            // paymentService.paymentApprove(pid, token, payment);
+             paymentService.paymentApprove(pid, token, payment);
         } catch (Exception e) {
 //            log.error("Failed to approve payment for pid: {}", pid, e);
             log.info("OrderService - [Duplicated] Failed to approve payment for pid: {}", pid);
