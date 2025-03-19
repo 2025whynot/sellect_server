@@ -17,10 +17,10 @@ public record OrderItemGetResponse(
     public static OrderItemGetResponse from(OrderItem orderItem, Product product,
         String imageUrl) {
         return new OrderItemGetResponse(
-            orderItem.getProduct().getId(),
+            orderItem.getProductId(),
             product.getBrand().getName(), // todo: N+1 발생 원인 부분 (임시로 일단 구현에 집중)
-            orderItem.getProduct().getName(),
-            orderItem.getProduct().getPrice(),
+            product.getName(),
+            product.getPrice(),
             orderItem.getQuantity(),
             imageUrl
         );

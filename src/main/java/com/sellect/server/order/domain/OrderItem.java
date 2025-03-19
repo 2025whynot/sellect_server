@@ -16,7 +16,7 @@ public class OrderItem {
 
     private final Long id;
     private final Orders orders;
-    private final Product product;
+    private final Long productId;
     private final BigDecimal price;
     private final int quantity;
     private final LocalDateTime createdAt;
@@ -25,9 +25,11 @@ public class OrderItem {
     // 주문 상품 생성
     public static OrderItem register(Orders orders, Product product, BigDecimal price,
         int quantity) {
+        // TODO: Product.deletedAt Null 체크
+
         return OrderItem.builder()
             .orders(orders)
-            .product(product)
+            .productId(product.getId())
             .price(price)
             .quantity(quantity)
             .createdAt(LocalDateTime.now())
@@ -36,8 +38,9 @@ public class OrderItem {
     }
 
     // 재고 확인 및 차감
-    // todo: 이게 머임? <- 설명 좀...
+    // V1After부터는 안 씀 (Legacy V0)
     public Inventory deductStock(Inventory inventory) {
         return inventory.deductStock(this.quantity);
     }
+
 }

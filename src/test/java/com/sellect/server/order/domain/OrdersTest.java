@@ -86,8 +86,7 @@ public class OrdersTest {
                 .build();
 
             // when
-            OrderStatus newStatus = OrderStatus.COMPLETED;
-            Orders updatedOrder = order.changeStatus(newStatus);
+            Orders updatedOrder = order.completeOrder();
 
             // then
             assertNotNull(updatedOrder);
@@ -96,7 +95,6 @@ public class OrdersTest {
             assertEquals(order.getUserReceivedCoupon(), updatedOrder.getUserReceivedCoupon());
             assertEquals(order.getTotalPrice(), updatedOrder.getTotalPrice());
             assertEquals(order.getOrderNumber(), updatedOrder.getOrderNumber());
-            assertEquals(newStatus, updatedOrder.getStatus());
             assertEquals(order.getCreatedAt(), updatedOrder.getCreatedAt());
             assertNotEquals(order.getUpdatedAt(), updatedOrder.getUpdatedAt());
             assertEquals(order.getDeleteAt(), updatedOrder.getDeleteAt());
@@ -115,7 +113,7 @@ public class OrdersTest {
 
             // when & then
             CommonException exception = assertThrows(CommonException.class,
-                () -> order.changeStatus(OrderStatus.PENDING));
+                () -> order.completeOrder());
             assertEquals("이미 완료된 주문입니다. is not valid", exception.getMessage());
         }
     }
