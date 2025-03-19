@@ -55,8 +55,6 @@ public class OrderServiceV1After {
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    private final UserService userService;
-
     // 주문 결제
     @Transactional
     public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
