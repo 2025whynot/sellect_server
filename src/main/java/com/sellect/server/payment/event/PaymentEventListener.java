@@ -57,7 +57,7 @@ public class PaymentEventListener {
                     }
                 }
             } catch (HttpClientErrorException e) { // 재시도 불필요: 클라이언트 오류
-                errorMsg = "카카오페이 요청 오류: " + e.getMessage();
+                errorMsg = "카카오페이 준비 요청 오류: " + e.getMessage();
                 break;
             } catch (Exception e) { // 기타 예외: 즉시 실패 처리
                 errorMsg = e.getMessage();
@@ -77,11 +77,49 @@ public class PaymentEventListener {
     @Async("approvePaymentExecutor")
     @EventListener
     public void kakaoPayApproveEvent(KakaoPayApproveEvent event) {
+        int retryCount = 0;
+        boolean success = false;
+        String errorMsg = null;
 
-        Payment approvePayment = event.getPayment().approvePayment();
-        paymentRepository.save(approvePayment);
+        Payment approvePayment;
+        try {
+            approvePayment = event.getPayment().approvePayment();
+            paymentRepository.save(approvePayment);
+        } catch (DataAccessException e) {
+            log.error("결제 승인 상태 저장 실패: pid={}", event.getPid(), e);
+            throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패: " + e.getMessage());
+        }
 
-        requestKakaoPayApporve(event, approvePayment);
+        while (retryCount <= 1 && !success) {
+            log.info("카카오페이 승인 요청 시도: retryCount={}, pid={}", retryCount, event.getPid());
+            try {
+                requestKakaoPayApporve(event, approvePayment);
+                success = true;
+            } catch (ResourceAccessException | HttpServerErrorException e) {
+                retryCount++;
+                errorMsg = e.getMessage();
+                if (retryCount <= 1) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        errorMsg = "재시도 중 인터럽트: " + ie.getMessage();
+                        break;
+                    }
+                }
+            } catch (HttpClientErrorException e) {
+                errorMsg = "카카오페이 승인 요청 오류: " + e.getMessage();
+                break;
+            } catch (Exception e) {
+                errorMsg = e.getMessage();
+                break;
+            }
+        }
+
+        if (!success) {
+            log.error("카카오페이 승인 실패: pid={}, error={}", event.getPid(), errorMsg);
+            // todo: 보상 트랜잭션
+        }
     }
 
     private void createAndSavePreparedPayment(KakaoPayReadyEvent event, Long pid,
@@ -106,20 +144,12 @@ public class PaymentEventListener {
             .cid("TC0ONETIME")
             .tid(approvePayment.getTid())
             .partnerOrderId(String.valueOf(approvePayment.getOrdersId()))
-//            .partnerUserId(approvePayment.getUid())
             .partnerUserId(String.valueOf(approvePayment.getUserId()))
             .pgToken(event.getToken())
             .build();
 
-        //터졋어..
-        KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(
-            approveRequest);
-
-        //재시도
-
-        //복귀(saga 패턴)
-        //이벤트 발생
-
+        KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(approveRequest);
+        log.info("카카오페이 승인 완료: pid={}", event.getPid());
     }
 
     private KakaoPayReadyResponse requestKakaoPayReady(Long pid, final KakaoPayReadyEvent event) {
