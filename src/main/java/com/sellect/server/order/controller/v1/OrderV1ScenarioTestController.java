@@ -60,7 +60,7 @@ public class OrderV1ScenarioTestController {
 
 //        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
 //        return ApiResponse.ok(redirectionUrl);
-        String pid = orderService.payOrder(user, orderId, userReceivedCouponId);
+        String pid = orderService.preparePayment(user, orderId, userReceivedCouponId);
         return ApiResponse.ok(pid);
     }
 
