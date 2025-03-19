@@ -1,5 +1,6 @@
 package com.sellect.server.order.application.v1;
 
+import com.sellect.server.auth.application.UserService;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.exception.CommonException;
@@ -54,6 +55,8 @@ public class OrderServiceV1After {
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    private final UserService userService;
+
     // 주문 결제
     @Transactional
     public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
@@ -91,7 +94,7 @@ public class OrderServiceV1After {
     }
 
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(final String pid, final String token) {
 
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
@@ -126,7 +129,6 @@ public class OrderServiceV1After {
         KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
         eventPublisher.publishEvent(event);
     }
-
 
     // ----------------------[밑에 로직들은 핵심이 아니기에 우선순위에 배제] ---------------------------
 
@@ -163,7 +165,6 @@ public class OrderServiceV1After {
             OrderStatus.PENDING);
         Orders savedOrder = ordersRepository.save(order);
 
-
         Set<Long> productIds = new HashSet<>();
         List<OrderItem> orderItems = request.orderItems().stream()
             .map(orderItemAddRequest -> {
@@ -179,7 +180,6 @@ public class OrderServiceV1After {
                 Inventory inventory = inventoryRepository.findByProductId(product.getId())
                     .orElseThrow(
                         () -> new CommonException(BError.NOT_EXIST, "inventory"));
-
 
                 // 현재 수량 기준으로 주문이 가능하더라도
                 // 어짜피 결제에서 재고 동시성 한번 하기에 최소한 불필요한 주문생성을 막기 위한 로직인듯.
