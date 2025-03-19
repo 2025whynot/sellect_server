@@ -94,7 +94,7 @@ public class OrderServiceV1After {
     }
 
     @Transactional
-    public void approvePayment(final String pid, final String token) {
+    public void approvePayment(final Long pid, final String token) {
 
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));

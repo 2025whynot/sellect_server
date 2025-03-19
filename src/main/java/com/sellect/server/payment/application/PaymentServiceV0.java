@@ -1,5 +1,6 @@
 package com.sellect.server.payment.application;
 
+import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
@@ -11,7 +12,6 @@ import com.sellect.server.order.domain.Orders;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class PaymentServiceV0 {
     private final PaymentRepository paymentRepository;
     private final KakaoPayClient kakaoPayClient;
 
-    public void readyPayment(User user, Long orderId, String pid, Orders order, String tid) {
+    public void readyPayment(User user, Long orderId, Long pid, Orders order, String tid) {
         Payment payment = Payment.ready(orderId,
             pid,
 //            user.getUuid(),
@@ -37,28 +37,23 @@ public class PaymentServiceV0 {
     }
 
     public String getKakaoPayReadyResponse(User user, Long orderId, Orders order) {
-        String pid = generatePaymentId();
+        Long generatePid = generatePid();
         Integer quantity = 0;
         KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequestV0(
             String.valueOf(orderId),
-//            user.getUuid(),
             user.getId(),
             "test",
             quantity,
             order.getTotalPrice().intValue(),
-            pid
+            generatePid
         );
 
         KakaoPayReadyResponse kakaoPayReadyResponse = kakaoPayClient.readyPayment(request);
-        readyPayment(user, orderId, pid, order, kakaoPayReadyResponse.tid());
+        readyPayment(user, orderId, generatePid, order, kakaoPayReadyResponse.tid());
         return kakaoPayReadyResponse.next_redirect_pc_url();
     }
 
-    private String generatePaymentId() {
-        return String.valueOf(UUID.randomUUID());
-    }
-
-    public Payment findReadyPaymentByPid(String pid) {
+    public Payment findReadyPaymentByPid(Long pid) {
         return paymentRepository.findByPid(pid)
             .orElseThrow(
                 () -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
@@ -80,5 +75,9 @@ public class PaymentServiceV0 {
 
         KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(approveRequest);
         log.info("Payment approved for pid: {}", pid);
+    }
+
+    private Long generatePid() {
+        return TsidCreator.getTsid().toLong(); // UUID 대신 TSID 기반 ID 생성
     }
 }

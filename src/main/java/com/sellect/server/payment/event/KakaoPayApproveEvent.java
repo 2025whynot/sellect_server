@@ -14,11 +14,11 @@ public class KakaoPayApproveEvent {
     private String token;
     private String pid;
 
-    public static KakaoPayApproveEvent publish(Payment payment, String token, String pid) {
+    public static KakaoPayApproveEvent publish(Payment payment, String token, Long pid) {
         return KakaoPayApproveEvent.builder()
             .payment(payment)
             .token(token)
-            .pid(pid)
+            .pid(String.valueOf(pid))
             .build();
     }
 

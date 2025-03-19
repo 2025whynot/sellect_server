@@ -58,7 +58,7 @@ public class OrderServiceV0After {
 
 
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(Long pid, String token) {
         // Question 1
         // todo: 사실 이 부분부터 낙관적 락을 고려하는게 맞지 않을까. <- 그렇다고 하면 밑에 주문관련 락을 걸 필요가 사라짐
         Payment payment = paymentService.findReadyPaymentByPid(pid);

@@ -15,7 +15,7 @@ import lombok.Getter;
 public class Payment {
 
     private final Long id;
-    private final String pid;
+    private final Long pid;
     private final Long ordersId;
     private final Long userId;
     private final Integer price;
@@ -26,7 +26,7 @@ public class Payment {
 
     // API 결제 준비 단게
     // 카카오 페이로부터 받아오는 tid 저장 및 상태 저장
-    public static Payment ready(Long ordersId, String pid, Long userId, Integer price, String tid) {
+    public static Payment ready(Long ordersId, Long pid, Long userId, Integer price, String tid) {
         if (price < 0) {
             throw new CommonException(BError.PAYMENT_FAILED, "결제 금액은 0원 보다 높어야 합니다.");
         }
@@ -38,7 +38,6 @@ public class Payment {
         return Payment.builder()
             .ordersId(ordersId)
             .price(price)
-//            .uid(uid)
             .userId(userId)
             .pid(pid)
             .tid(tid)
@@ -55,7 +54,6 @@ public class Payment {
                 .ordersId(this.ordersId)
                 .price(this.price)
                 .pid(this.pid)
-//                .uid(this.uid)
                 .userId(this.userId)
                 .status(PaymentStatus.APPROVE)
                 .tid(this.tid)
@@ -77,7 +75,6 @@ public class Payment {
             .ordersId(this.ordersId)
             .price(this.price)
             .pid(this.pid)
-//            .uid(this.uid)
             .userId(this.userId)
             .status(PaymentStatus.FAIL)
             .tid(this.tid)
@@ -96,7 +93,6 @@ public class Payment {
             .ordersId(this.ordersId)
             .price(this.price)
             .pid(this.pid)
-//            .uid(this.uid)
             .userId(this.userId)
             .status(PaymentStatus.CANCEL)
             .tid(this.tid)

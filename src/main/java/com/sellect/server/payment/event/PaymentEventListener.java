@@ -1,5 +1,6 @@
 package com.sellect.server.payment.event;
 
+import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
@@ -7,7 +8,6 @@ import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -26,7 +26,7 @@ public class PaymentEventListener {
     @EventListener
     public void kakaoPayReadyEvent(KakaoPayReadyEvent event) {
         try {
-            String pid = String.valueOf(UUID.randomUUID());
+            long pid = TsidCreator.getTsid().toLong();// UUID 대신 TSID 기반 ID 생성
             KakaoPayReadyResponse response = requestKakaoPayReady(pid, event);
             createAndSavePayment(event, pid, response);
             event.getFuture().complete(response.next_redirect_pc_url());
@@ -48,7 +48,7 @@ public class PaymentEventListener {
         requestKakaoPayApporve(event, approvePayment);
     }
 
-    public void createAndSavePayment(KakaoPayReadyEvent event, String pid,
+    public void createAndSavePayment(KakaoPayReadyEvent event, Long pid,
         KakaoPayReadyResponse response) {
         Payment payment = Payment.ready(
             event.getOrders().getId(),
@@ -82,7 +82,7 @@ public class PaymentEventListener {
 
     }
 
-    private KakaoPayReadyResponse requestKakaoPayReady(String pid, KakaoPayReadyEvent event) {
+    private KakaoPayReadyResponse requestKakaoPayReady(Long pid, final KakaoPayReadyEvent event) {
         Integer quantity = 0;
         KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
             String.valueOf(event.getOrders().getId()),
@@ -91,7 +91,7 @@ public class PaymentEventListener {
             "test",
             quantity,
             event.getOrders().getTotalPrice().intValue(),
-            pid
+            String.valueOf(pid)
         );
         return kakaoPayClient.readyPayment(request);
     }
