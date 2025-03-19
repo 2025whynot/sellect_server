@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 @RequiredArgsConstructor
 @Component
@@ -35,10 +33,9 @@ public class PaymentEventListener {
         }
     }
 
-    //tx2
     // TODO: 보상 트랜잭션  2025-03-5, 16:29
     @Async("approvePaymentExecutor")
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void kakaoPayApproveEvent(KakaoPayApproveEvent event) {
 
         // Transactional 보장이 안되기에 메서드로 분리한 거 하나로!

@@ -1,6 +1,5 @@
 package com.sellect.server.order.application.v1;
 
-import com.sellect.server.auth.application.UserService;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.exception.CommonException;
@@ -37,8 +36,12 @@ import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +57,7 @@ public class OrderServiceV1After {
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final DataSourceTransactionManager transactionManager;
 
     // 주문 결제
     @Transactional
@@ -91,39 +95,60 @@ public class OrderServiceV1After {
         // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (2/2)] -------------------------------
     }
 
-    @Transactional
     public void approvePayment(final Long pid, final String token) {
 
-        Payment payment = paymentRepository.findByPid(pid)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
+        // 트랜잭션 정의 및 시작
+        TransactionDefinition definition = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(definition);
 
-        userRepository.findById(payment.getUserId())
-            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
+        Payment payment;
+        Orders order;
 
-        // TODO 쿠폰 동시성 해결을 위한 락 구현
+        try {
+            payment = paymentRepository.findByPid(pid)
+                .orElseThrow(() -> new CommonException(
+                    BError.NOT_EXIST, String.format("Payment %s", pid)));
 
-        Orders order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId()) // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
-            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
+            userRepository.findById(payment.getUserId())
+                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
-        order.validateNotCompleted();
+            // TODO 쿠폰 동시성 해결을 위한 락 구현
 
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
-        if (orderItems.isEmpty()) { // 서비스에 위임
-            throw new CommonException(BError.NOT_VALID, "orderId");
+            // todo: 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
+            order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId())
+                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
+
+            order.validateNotCompleted();
+
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
+            if (orderItems.isEmpty()) { // 서비스에 위임
+                throw new CommonException(BError.NOT_VALID, "orderId");
+            }
+
+            List<Inventory> deductedInventories = orderItems.stream()
+                .map(orderItem -> {
+                    Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
+                            orderItem.getProductId()) // orderItem 의 Product 연관관계가 꼭 필요한가?
+                        .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
+                    return inventory.deductStock(orderItem.getQuantity());
+                })
+                .toList();
+
+            inventoryRepository.saveAll(deductedInventories);
+            ordersRepository.save(order.completeOrder());
+
+            // 트랜잭션 커밋
+            transactionManager.commit(status);
+        } catch (CommonException e) {
+            // 예외 발생 시 롤백
+            transactionManager.rollback(status);
+            throw e;
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "approvePayment() - 결제 승인 중 오류 발생");
         }
 
-        List<Inventory> deductedInventories = orderItems.stream()
-            .map(orderItem -> {
-                Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                        orderItem.getProductId()) // orderItem 의 Product 연관관계가 꼭 필요한가?
-                    .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
-                return inventory.deductStock(orderItem.getQuantity());
-            })
-            .toList();
-
-        inventoryRepository.saveAll(deductedInventories);
-        ordersRepository.save(order.completeOrder());
-
+        // 트랜잭션 커밋 후 이벤트 발행
         KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
         eventPublisher.publishEvent(event);
     }
