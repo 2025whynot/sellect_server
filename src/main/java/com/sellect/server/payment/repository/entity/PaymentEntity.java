@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -27,13 +28,20 @@ public class PaymentEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String pid;
+
     //    private String uid;
     private Long userId;
-    private String orderId;
+
+    @JoinColumn(name = "orders_id")
+    private Long ordersId;
+
     private Integer price;
+
     private String tid;
     @Enumerated(value = EnumType.STRING)
+
     private PaymentStatus status;
 
     public static PaymentEntity from(Payment payment) {
@@ -42,7 +50,7 @@ public class PaymentEntity extends BaseTimeEntity {
             .pid(payment.getPid())
 //            .uid(payment.getUid())
             .userId(payment.getUserId())
-            .orderId(payment.getOrderId())
+            .ordersId(payment.getOrdersId())
             .price(payment.getPrice())
             .tid(payment.getTid())
             .status(payment.getStatus())
@@ -58,7 +66,7 @@ public class PaymentEntity extends BaseTimeEntity {
             .pid(this.pid)
 //            .uid(this.uid)
             .userId(this.userId)
-            .orderId(this.orderId)
+            .ordersId(this.ordersId)
             .price(this.price)
             .tid(this.tid)
             .status(this.status)

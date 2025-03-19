@@ -1,7 +1,6 @@
 package com.sellect.server.order.repository.entity;
 
 import com.sellect.server.order.domain.OrderItem;
-import com.sellect.server.product.repository.ProductEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,9 +35,11 @@ public class OrderItemEntity {
     @JoinColumn(name = "orders_id")
     private OrdersEntity ordersEntity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "product_id")
+//    private ProductEntity productEntity;
     @JoinColumn(name = "product_id")
-    private ProductEntity productEntity;
+    private Long productId;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
@@ -56,7 +57,8 @@ public class OrderItemEntity {
         return OrderItem.builder()
             .id(this.id)
             .orders(this.ordersEntity.toModel())
-            .product(this.productEntity.toModel())
+//            .product(this.productEntity.toModel())
+            .productId(this.productId)
             .price(this.price)
             .quantity(this.quantity)
             .createdAt(this.createdAt)
@@ -68,7 +70,8 @@ public class OrderItemEntity {
         return OrderItemEntity.builder()
             .id(orderItem.getId())
             .ordersEntity(OrdersEntity.from(orderItem.getOrders()))
-            .productEntity(ProductEntity.from(orderItem.getProduct()))
+//            .productEntity(ProductEntity.from(orderItem.getProduct()))
+            .productId(orderItem.getProductId())
             .price(orderItem.getPrice())
             .quantity(orderItem.getQuantity())
             .createdAt(orderItem.getCreatedAt())

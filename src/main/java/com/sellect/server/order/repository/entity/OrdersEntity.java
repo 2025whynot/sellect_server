@@ -52,6 +52,9 @@ public class OrdersEntity extends BaseTimeEntity {
     @Column(nullable = false, length = 20)
     private OrderStatus status;
 
+//    @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<OrderItemEntity> orderItems; // 추가
+
     public Orders toModel() {
         return Orders.builder()
             .id(this.id)
