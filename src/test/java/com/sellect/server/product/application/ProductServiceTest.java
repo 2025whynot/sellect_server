@@ -1,5 +1,9 @@
 package com.sellect.server.product.application;
 
+import static com.sellect.server.product.application.FakeStorageClient.FAKE_IMAGE_STORAGE_URL;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.brand.domain.Brand;
@@ -12,7 +16,6 @@ import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.entity.OrderStatus;
 import com.sellect.server.order.repository.fake.FakeOrderItemRepository;
-import static com.sellect.server.product.application.FakeStorageClient.FAKE_IMAGE_STORAGE_URL;
 import com.sellect.server.product.controller.request.ImageContextCreateRequest;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
@@ -31,9 +34,6 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -1037,13 +1037,13 @@ class ProductServiceTest {
                 OrderStatus.COMPLETED);
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(completedOrder)
-                .product(product1)
+                .productId(product1.getId())
                 .price(new BigDecimal("100.00"))
                 .quantity(2)
                 .build());
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(completedOrder)
-                .product(product2)
+                .productId(product2.getId())
                 .price(new BigDecimal("200.00"))
                 .quantity(1)
                 .build());
@@ -1079,19 +1079,19 @@ class ProductServiceTest {
 
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(completedOrder)
-                .product(product1)
+                .productId(product1.getId())
                 .price(new BigDecimal("100.00"))
                 .quantity(2) // 200
                 .build());
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(completedOrder)
-                .product(product2)
+                .productId(product2.getId())
                 .price(new BigDecimal("200.00"))
                 .quantity(1) // 200
                 .build());
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(pendingOrder)
-                .product(product2)
+                .productId(product2.getId())
                 .price(new BigDecimal("50.00"))
                 .quantity(1) // PENDING 이므로 제외
                 .build());
@@ -1118,7 +1118,7 @@ class ProductServiceTest {
                 OrderStatus.COMPLETED);
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(completedOrder)
-                .product(product1)
+                .productId(product1.getId())
                 .price(new BigDecimal("100.00"))
                 .quantity(3) // 300
                 .build());
@@ -1145,7 +1145,7 @@ class ProductServiceTest {
                 OrderStatus.PENDING);
             orderItemRepository.addOrderItem(OrderItem.builder()
                 .orders(pendingOrder)
-                .product(product1)
+                .productId(product1.getId())
                 .price(new BigDecimal("100.00"))
                 .quantity(5) // 500, 하지만 PENDING 이므로 제외
                 .build());

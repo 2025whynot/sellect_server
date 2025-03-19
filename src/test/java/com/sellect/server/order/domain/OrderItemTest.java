@@ -54,7 +54,6 @@ public class OrderItemTest {
         // then
         assertNotNull(orderItem);
         assertEquals(orders, orderItem.getOrders());
-        assertEquals(product, orderItem.getProduct());
         assertEquals(price, orderItem.getPrice());
         assertEquals(quantity, orderItem.getQuantity());
         assertNotNull(orderItem.getCreatedAt());
