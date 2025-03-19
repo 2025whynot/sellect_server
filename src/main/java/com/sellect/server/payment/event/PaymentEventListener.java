@@ -60,7 +60,7 @@ public class PaymentEventListener {
                 errorMsg = "카카오페이 요청 오류: " + e.getMessage();
                 break;
             } catch (Exception e) { // 기타 예외: 즉시 실패 처리
-                errorMsg = "카카오페이 결제 준비 실패: " + e.getMessage();
+                errorMsg = e.getMessage();
                 break;
             }
         }

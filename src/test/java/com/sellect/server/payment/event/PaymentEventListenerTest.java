@@ -98,7 +98,7 @@ public class PaymentEventListenerTest {
             // future가 예외로 완료되었는지 확인
             ExecutionException exception = assertThrows(ExecutionException.class, future::get);
             assertThat(exception.getCause()).isInstanceOf(RuntimeException.class);
-            assertThat(exception.getCause().getMessage()).isEqualTo("kakao pay ready fail");
+            assertThat(exception.getCause().getMessage()).isEqualTo("카카오페이 결제 준비 실패: kakao pay ready fail");
         }
 
     }
