@@ -309,7 +309,7 @@ class OrderServiceTest {
                     .build()));
 
             Payment payment = Payment.builder()
-                .pid("pid123")
+                .pid(123L)
                 .ordersId(order.getId())
 //                .uid(user.getUuid())
                 .userId(user.getId())
@@ -318,7 +318,7 @@ class OrderServiceTest {
             paymentRepository.save(payment);
 
             // When
-            sut.approvePayment("pid123", "token123");
+            sut.approvePayment(123L, "token123");
 
             // Then
             Orders updatedOrder = ordersRepository.findById(order.getId()).orElseThrow();
@@ -360,7 +360,7 @@ class OrderServiceTest {
                     .build()));
 
             Payment payment = Payment.builder()
-                .pid("pid123")
+                .pid(123L)
                 .ordersId(order.getId())
 //                .uid(user.getUuid())
                 .userId(user.getId())
@@ -369,7 +369,7 @@ class OrderServiceTest {
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class,
-                () -> sut.approvePayment("pid123", "token123"));
+                () -> sut.approvePayment(123L, "token123"));
             assertEquals("재고 부족 is not valid", exception.getMessage());
         }
 
@@ -384,7 +384,7 @@ class OrderServiceTest {
                 .build());
 
             Payment payment = Payment.builder()
-                .pid("pid123")
+                .pid(123L)
                 .ordersId(order.getId())
 //                .uid("invalid-uuid")
                 .userId(user.getId())
@@ -394,7 +394,7 @@ class OrderServiceTest {
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class,
-                () -> sut.approvePayment("pid123", "token123"));
+                () -> sut.approvePayment(123L, "token123"));
             assertEquals("user does not exist", exception.getMessage());
         }
 

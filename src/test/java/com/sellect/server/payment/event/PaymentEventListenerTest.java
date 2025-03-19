@@ -110,9 +110,9 @@ public class PaymentEventListenerTest {
         @DisplayName("[성공] 카카오 결제 승인 이벤트")
         void willSuccess() {
             //given
-            Payment payment = Payment.ready(1234L, "pid1", 1L, 1000, "tid1");
+            Payment payment = Payment.ready(1234L, 123L, 1L, 1000, "tid1");
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
-                "pgToken123", "test_pid");
+                "pgToken123", 123L);
             // 이벤트에 future setter가 있다면 아래와 같이 설정
             // kakaoPayApproveEvent.setFuture(future);
 
@@ -130,9 +130,9 @@ public class PaymentEventListenerTest {
         @DisplayName("[실패] 카카오 결제 승인 이벤트 - API 호출 실패")
         void willFail() {
             // given
-            Payment payment = Payment.ready(1234L, "pid1", 1L, 1000, "tid1");
+            Payment payment = Payment.ready(1234L, 123L, 1L, 1000, "tid1");
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
-                "pgToken123", "test_pid");
+                "pgToken123", 123L);
 
             when(kakaoPayClient.paymentApprove(any())).thenThrow(new CommonException(BError.KAKKO_APPROVE_FAIL));
 

@@ -23,7 +23,7 @@ public class PaymentEventListenerProxy extends PaymentEventListener {
     }
 
     @Override
-    public void createAndSavePayment(KakaoPayReadyEvent event, String pid,
+    public void createAndSavePayment(KakaoPayReadyEvent event, Long pid,
         KakaoPayReadyResponse response) {
         super.createAndSavePayment(event, pid, response);
     }
