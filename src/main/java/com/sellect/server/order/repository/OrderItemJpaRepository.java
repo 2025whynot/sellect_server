@@ -15,21 +15,21 @@ public interface OrderItemJpaRepository extends JpaRepository<OrderItemEntity, L
     @Query("SELECT SUM(o.totalPrice) "
         + "FROM OrderItemEntity oi "
         + "JOIN oi.ordersEntity o "
-        + "WHERE oi.productEntity.id = :productId "
+        + "WHERE oi.productId = :productId "
         + "AND o.status = 'COMPLETED'")
     Optional<BigDecimal> calculateSalesByProductId(@Param("productId") Long productId);
 
     @Query("SELECT SUM(o.totalPrice) "
         + "FROM OrderItemEntity oi "
         + "JOIN oi.ordersEntity o "
-        + "WHERE oi.productEntity.id IN :productIds "
+        + "WHERE oi.productId IN :productIds "
         + "AND o.status = 'COMPLETED'")
     Optional<BigDecimal> calculateTotalSalesByProductIds(List<Long> productIds);
 
     @Query("SELECT COUNT(DISTINCT o.id) "
         + "FROM OrderItemEntity oi "
         + "JOIN oi.ordersEntity o "
-        + "WHERE oi.productEntity.id = :productId "
+        + "WHERE oi.productId = :productId "
         + "AND o.status = 'COMPLETED'")
     Optional<Integer> countCompletedOrdersByProductId(@Param("productId") Long productId);
 

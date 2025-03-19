@@ -21,7 +21,7 @@ public class FakePaymentRepository implements PaymentRepository {
         if (payment.getId() == null) {
             payment = Payment.builder()
                 .id(id++)
-                .orderId(payment.getOrderId())
+                .ordersId(payment.getOrdersId())
                 .price(payment.getPrice())
 //                .uid(payment.getUid())
                 .userId(payment.getUserId())

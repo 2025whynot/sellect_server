@@ -72,7 +72,7 @@ public class OrderService {
         }
 
         CompletableFuture<String> future = new CompletableFuture<>();
-        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, orderId, order,
+        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order,
             future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
         String nextRedirectPcUrl = null;
@@ -92,18 +92,18 @@ public class OrderService {
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
-        Long orderId = Long.valueOf(payment.getOrderId());
+
 //        User user = userRepository.findByUuid(payment.getUid()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
         User user = userRepository.findById(payment.getUserId()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
-        Orders order = getOrderById(orderId);
-        List<OrderItem> orderItems = getOrderItemsByOrderId(orderId);
+        Orders order = getOrderById(payment.getOrdersId());
+        List<OrderItem> orderItems = getOrderItemsByOrderId(order.getId());
 
         List<Inventory> deductedInventories = orderItems.stream()
             .map(orderItem -> {
-                Product product = orderItem.getProduct();
                 // DB 락
-                Inventory inventory = inventoryRepository.findWithLockByProductId(product.getId())
+                Inventory inventory = inventoryRepository.findWithLockByProductId(
+                        orderItem.getProductId())
                     .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
                 // 재고 확인 및 차감
                 return orderItem.deductStock(inventory);
@@ -111,7 +111,7 @@ public class OrderService {
             .toList();
         deductedInventories.forEach(inventoryRepository::save);
         // 주문 완료
-        Orders savedOrder = ordersRepository.save(order.changeStatus(OrderStatus.COMPLETED));
+        Orders savedOrder = ordersRepository.save(order.completeOrder());
         // 장바구니 비우기 및 쿠폰 삭제
         clearCartAndDeleteCouponAsync(user, savedOrder);
 
@@ -226,8 +226,10 @@ public class OrderService {
     }
 
     private OrderItemGetResponse convertToOrderItemResponse(OrderItem orderItem) {
-        Product product = orderItem.getProduct();
-        String thumbnailImageUrl = productImageRepository.findByThumbnailImage(product.getId())
+        Long productId = orderItem.getProductId();
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "상품"));
+        String thumbnailImageUrl = productImageRepository.findByThumbnailImage(productId)
             .getImageUrl();
         return OrderItemGetResponse.from(orderItem, product, thumbnailImageUrl);
     }

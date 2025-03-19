@@ -51,11 +51,11 @@ public class PaymentEventListener {
     public void createAndSavePayment(KakaoPayReadyEvent event, String pid,
         KakaoPayReadyResponse response) {
         Payment payment = Payment.ready(
-            String.valueOf(event.getOrderId()),
+            event.getOrders().getId(),
             pid,
 //            event.getUser().getUuid(),
             event.getUser().getId(),
-            event.getOrder().getTotalPrice().intValue(),
+            event.getOrders().getTotalPrice().intValue(),
             response.tid()
         );
         paymentRepository.save(payment);
@@ -65,7 +65,7 @@ public class PaymentEventListener {
         ApproveRequest approveRequest = ApproveRequest.builder()
             .cid("TC0ONETIME")
             .tid(approvePayment.getTid())
-            .partnerOrderId(approvePayment.getOrderId())
+            .partnerOrderId(String.valueOf(approvePayment.getOrdersId()))
 //            .partnerUserId(approvePayment.getUid())
             .partnerUserId(String.valueOf(approvePayment.getUserId()))
             .pgToken(event.getToken())
@@ -85,12 +85,12 @@ public class PaymentEventListener {
     private KakaoPayReadyResponse requestKakaoPayReady(String pid, KakaoPayReadyEvent event) {
         Integer quantity = 0;
         KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
-            String.valueOf(event.getOrderId()),
+            String.valueOf(event.getOrders().getId()),
 //            event.getUser().getUuid(),
             String.valueOf(event.getUser().getId()),
             "test",
             quantity,
-            event.getOrder().getTotalPrice().intValue(),
+            event.getOrders().getTotalPrice().intValue(),
             pid
         );
         return kakaoPayClient.readyPayment(request);

@@ -16,8 +16,7 @@ public class Payment {
 
     private final Long id;
     private final String pid;
-    private final String orderId;
-//    private final String uid;
+    private final Long ordersId;
     private final Long userId;
     private final Integer price;
     private final String tid;
@@ -27,17 +26,17 @@ public class Payment {
 
     // API 결제 준비 단게
     // 카카오 페이로부터 받아오는 tid 저장 및 상태 저장
-    public static Payment ready(String orderId, String pid, Long userId, Integer price, String tid) {
+    public static Payment ready(Long ordersId, String pid, Long userId, Integer price, String tid) {
         if (price < 0) {
             throw new CommonException(BError.PAYMENT_FAILED, "결제 금액은 0원 보다 높어야 합니다.");
         }
 
-        if (orderId == null || pid == null || userId == null || tid == null) {
+        if (ordersId == null || pid == null || userId == null || tid == null) {
             throw new CommonException(BError.PAYMENT_FAILED, "결제 정보가 올바르지 않습니다.");
         }
 
         return Payment.builder()
-            .orderId(orderId)
+            .ordersId(ordersId)
             .price(price)
 //            .uid(uid)
             .userId(userId)
@@ -53,7 +52,7 @@ public class Payment {
         if (status.equals(PaymentStatus.READY)) {
             return Payment.builder()
                 .id(this.id)
-                .orderId(this.orderId)
+                .ordersId(this.ordersId)
                 .price(this.price)
                 .pid(this.pid)
 //                .uid(this.uid)
@@ -75,7 +74,7 @@ public class Payment {
 
         return Payment.builder()
             .id(this.id)
-            .orderId(this.orderId)
+            .ordersId(this.ordersId)
             .price(this.price)
             .pid(this.pid)
 //            .uid(this.uid)
@@ -94,7 +93,7 @@ public class Payment {
         }
         return Payment.builder()
             .id(this.id)
-            .orderId(this.orderId)
+            .ordersId(this.ordersId)
             .price(this.price)
             .pid(this.pid)
 //            .uid(this.uid)

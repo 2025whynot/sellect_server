@@ -15,7 +15,7 @@ public record PaymentHistoryResponse(
     public static PaymentHistoryResponse of(Payment payment) {
         return PaymentHistoryResponse.builder()
             .id(payment.getId())
-            .orderId(payment.getOrderId())
+            .orderId(String.valueOf(payment.getOrdersId()))
             .pid(payment.getPid())
             .status(String.valueOf(payment.getStatus()))
             .price(String.valueOf(payment.getPrice()))
