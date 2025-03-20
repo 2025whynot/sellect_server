@@ -84,7 +84,7 @@ public class Payment {
 
     public Payment failReady() {
         if (status != PaymentStatus.READY) {
-            throw new CommonException(BError.NOT_VALID, "결제 상태가 READY가 아님: ");
+            throw new CommonException(BError.NOT_VALID, "결제 상태가 READY 아님: ");
         }
         return Payment.builder()
             .id(this.id)

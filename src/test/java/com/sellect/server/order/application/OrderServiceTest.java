@@ -279,7 +279,7 @@ class OrderServiceTest {
 
         @Test
         @DisplayName("재고 차감 및 주문 완료 상태 변경")
-        void testApprovePaymentOrderCompletion() {
+        void testApproveOrderCompletion() {
             // Given
             userRepository.save(user); // UUID를 위해 저장
 
@@ -331,7 +331,7 @@ class OrderServiceTest {
 
         @Test
         @DisplayName("재고 부족 시 예외 발생")
-        void testApprovePaymentStockInsufficient() {
+        void testApproveStockInsufficient() {
             // Given
             userRepository.save(user); // UUID를 위해 저장
 
@@ -375,7 +375,7 @@ class OrderServiceTest {
 
         @Test
         @DisplayName("존재하지 않는 사용자일 경우 예외 발생")
-        void testApprovePaymentInvalidUser() {
+        void testApproveInvalidUser() {
             // Given
             Orders order = ordersRepository.save(Orders.builder()
                 .id(1L)
