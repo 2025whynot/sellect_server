@@ -57,7 +57,7 @@ public class Orders {
             .build();
     }
 
-    public Orders failOrder() {
+    public Orders failPending() {
         if (this.status != OrderStatus.PENDING) {
             throw new CommonException(BError.NOT_VALID, "PENDING 상태에서만 롤백 가능");
         }
@@ -68,12 +68,29 @@ public class Orders {
             .userReceivedCoupon(this.userReceivedCoupon)
             .totalPrice(this.totalPrice)
             .orderNumber(this.orderNumber)
-            .status(OrderStatus.FAILED)
+            .status(OrderStatus.FAILED_PENDING)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .deleteAt(this.deleteAt)
             .build();
+    }
 
+    public Orders failComplete() {
+        if (this.status != OrderStatus.COMPLETED) {
+            throw new CommonException(BError.NOT_VALID, "COMPLETED 상태에서만 롤백 가능");
+        }
+
+        return Orders.builder()
+            .id(this.id)
+            .user(this.user)
+            .userReceivedCoupon(this.userReceivedCoupon)
+            .totalPrice(this.totalPrice)
+            .orderNumber(this.orderNumber)
+            .status(OrderStatus.FAILED_COMPLETED)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
     }
 
     // 쿠폰 적용

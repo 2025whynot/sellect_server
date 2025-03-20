@@ -60,7 +60,7 @@ public class PaymentServiceV0 {
     }
 
     public void paymentApprove(String pid, String token, Payment payment) {
-        Payment approvePayment = payment.approvePayment();
+        Payment approvePayment = payment.approve();
         paymentRepository.save(approvePayment);
 
         // 카카오 한테 요청 보내기

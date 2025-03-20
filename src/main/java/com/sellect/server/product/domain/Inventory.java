@@ -69,4 +69,16 @@ public class Inventory {
             .deleteAt(LocalDateTime.now())
             .build();
     }
+
+    // 차감된 재고 복구
+    public Inventory restoreStock(int quantity) {
+        return Inventory.builder()
+            .id(this.id)
+            .product(this.product)
+            .stock(this.stock + quantity)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
+    }
 }

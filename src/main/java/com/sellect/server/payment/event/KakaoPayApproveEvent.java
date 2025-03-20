@@ -12,13 +12,13 @@ import lombok.Getter;
 public class KakaoPayApproveEvent {
     private Payment payment;
     private String token;
-    private String pid;
+    private Long pid;
 
     public static KakaoPayApproveEvent publish(Payment payment, String token, Long pid) {
         return KakaoPayApproveEvent.builder()
             .payment(payment)
             .token(token)
-            .pid(String.valueOf(pid))
+            .pid(pid)
             .build();
     }
 

@@ -22,10 +22,10 @@ public class AsyncConfig {
     @Bean(name = "preparePaymentExecutor")
     public ThreadPoolTaskExecutor preparePaymentExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); // 최소 스레드 개수
-        executor.setMaxPoolSize(10); // 최대 스레드 개수
-        executor.setQueueCapacity(50); // 대기 큐 크기
-        executor.setThreadNamePrefix("preparePaymentExecutor AsyncThread - "); // 스레드 이름 지정
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("preparePaymentExecutor AsyncThread - ");
         executor.initialize();
         return executor;
     }
@@ -33,10 +33,10 @@ public class AsyncConfig {
     @Bean(name = "approvePaymentExecutor")
     public ThreadPoolTaskExecutor approvePaymentExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); // 최소 스레드 개수
-        executor.setMaxPoolSize(10); // 최대 스레드 개수
-        executor.setQueueCapacity(50); // 대기 큐 크기
-        executor.setThreadNamePrefix("approvePaymentExecutor AsyncThread - "); // 스레드 이름 지정
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("approvePaymentExecutor AsyncThread - ");
         executor.initialize();
         return executor;
     }
@@ -45,10 +45,22 @@ public class AsyncConfig {
     @Bean(name = "preparePaymentCompensationExecutor")
     public ThreadPoolTaskExecutor preparePaymentCompensationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); // 최소 스레드 개수
-        executor.setMaxPoolSize(10); // 최대 스레드 개수
-        executor.setQueueCapacity(50); // 대기 큐 크기
-        executor.setThreadNamePrefix("preparePaymentCompensationExecutor AsyncThread - "); // 스레드 이름 지정
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("preparePaymentCompensationExecutor AsyncThread - ");
+        executor.initialize();
+        return executor;
+    }
+
+    // approvePayment 보상 트랜잭션 이벤트 큐
+    @Bean(name = "approvePaymentCompensationExecutor")
+    public ThreadPoolTaskExecutor approvePaymentCompensationExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("approvePaymentCompensationExecutor AsyncThread - ");
         executor.initialize();
         return executor;
     }

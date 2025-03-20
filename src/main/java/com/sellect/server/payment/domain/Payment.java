@@ -47,8 +47,8 @@ public class Payment {
             .build();
     }
 
-    public Payment approvePayment() {
-        if (status.equals(PaymentStatus.READY)) {
+    public Payment approve() {
+        if (status == PaymentStatus.READY) {
             return Payment.builder()
                 .id(this.id)
                 .ordersId(this.ordersId)
@@ -64,10 +64,9 @@ public class Payment {
         return this;
     }
 
-    public Payment failPayment() {
-        if (!status.equals(PaymentStatus.READY)) {
-            throw new CommonException(BError.FAIL_FOR_REASON, "failPayment()",
-                "PaymentStatus is not Ready");
+    public Payment failApprove() {
+        if (status != PaymentStatus.APPROVE) {
+            throw new CommonException(BError.NOT_VALID, "결제 상태가 APPROVE 아님: ");
         }
 
         return Payment.builder()
@@ -76,14 +75,14 @@ public class Payment {
             .price(this.price)
             .pid(this.pid)
             .userId(this.userId)
-            .status(PaymentStatus.FAIL)
+            .status(PaymentStatus.FAIL_APPROVE)
             .tid(this.tid)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .build();
     }
 
-    public Payment failPreparedPayment() {
+    public Payment failReady() {
         if (status != PaymentStatus.READY) {
             throw new CommonException(BError.NOT_VALID, "결제 상태가 READY가 아님: ");
         }
@@ -93,16 +92,16 @@ public class Payment {
             .price(this.price)
             .pid(this.pid)
             .userId(this.userId)
-            .status(PaymentStatus.FAIL)
+            .status(PaymentStatus.FAIL_READY)
             .tid(this.tid)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .build();
     }
 
-
-    public Payment cancelPayment() {
-        if (!status.equals(PaymentStatus.READY)) {
+    // todo: 수정 필요 READY가 아니라 APPROVE 아닌가?
+    public Payment cancel() {
+        if (status != PaymentStatus.READY) {
             throw new CommonException(BError.FAIL_FOR_REASON, "cancelPayment()",
                 "PaymentStatus is not Ready");
         }

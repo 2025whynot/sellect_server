@@ -84,14 +84,14 @@ public class PaymentEventListener {
 
     @Async("approvePaymentExecutor")
     @EventListener
-    public void kakaoPayApproveEvent(KakaoPayApproveEvent event) {
+    public void kakaoPayApproveEvent(final KakaoPayApproveEvent event) {
         int retryCount = 0;
         boolean success = false;
         String errorMsg = null;
 
         Payment approvePayment;
         try {
-            approvePayment = event.getPayment().approvePayment();
+            approvePayment = event.getPayment().approve();
             paymentRepository.save(approvePayment);
         } catch (DataAccessException e) {
             log.error("결제 승인 상태 저장 실패: pid={}", event.getPid(), e);
@@ -126,7 +126,13 @@ public class PaymentEventListener {
 
         if (!success) {
             log.error("카카오페이 승인 실패: pid={}, error={}", event.getPid(), errorMsg);
-            // todo: 보상 트랜잭션
+            eventPublisher.publishEvent(
+                PaymentApproveFailedEvent.builder()
+                    .payment(approvePayment)
+                    .pid(event.getPid())
+                    .reason(errorMsg)
+                    .build()
+            );
         }
     }
 
