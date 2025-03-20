@@ -40,6 +40,12 @@ public class FakeOrdersRepository implements OrdersRepository {
             .findFirst();
     }
 
+    // todo: 테스트 작성 시 구현
+    @Override
+    public Optional<Orders> findByIdAndStatus(Long id, OrderStatus status) {
+        return Optional.empty();
+    }
+
     @Override
     public List<Orders> findCompletedOrdersByUser(User user, OrderStatus status) {
         return data.stream()

@@ -26,17 +26,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 public class PaymentEventListenerTest {
 
     private FakePaymentRepository paymentRepository = new FakePaymentRepository();
     private KakaoPayClient kakaoPayClient = mock(KakaoPayClient.class);
     private PaymentEventListenerProxy paymentEventListener;
+    private ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
     @BeforeEach
     void setUp() {
         // 프록시 객체를 수동으로 생성
-        paymentEventListener = new PaymentEventListenerProxy(kakaoPayClient, paymentRepository);
+        paymentEventListener = new PaymentEventListenerProxy(kakaoPayClient, paymentRepository, eventPublisher);
     }
 
 

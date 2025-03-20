@@ -5,10 +5,11 @@ import com.sellect.server.payment.event.KakaoPayApproveEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
 import com.sellect.server.payment.event.PaymentEventListener;
 import com.sellect.server.payment.repository.PaymentRepository;
+import org.springframework.context.ApplicationEventPublisher;
 
 public class PaymentEventListenerProxy extends PaymentEventListener {
-    public PaymentEventListenerProxy(KakaoPayClient kakaoPayClient, PaymentRepository paymentRepository) {
-        super(kakaoPayClient, paymentRepository);
+    public PaymentEventListenerProxy(KakaoPayClient kakaoPayClient, PaymentRepository paymentRepository, ApplicationEventPublisher eventPublisher) {
+        super(kakaoPayClient, paymentRepository, eventPublisher);
     }
 
     @Override
