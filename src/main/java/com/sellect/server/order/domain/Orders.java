@@ -58,7 +58,7 @@ public class Orders {
     }
 
     public Orders failOrder() {
-        if (!OrderStatus.PENDING.equals(status)) {
+        if (this.status != OrderStatus.PENDING) {
             throw new CommonException(BError.NOT_VALID, "PENDING 상태에서만 롤백 가능");
         }
 
