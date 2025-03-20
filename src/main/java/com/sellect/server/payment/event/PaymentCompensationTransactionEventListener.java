@@ -40,11 +40,11 @@ public class PaymentCompensationTransactionEventListener {
 
                 ordersRepository.save(order.failPending()); // 주문 상태 실패로 변경 (PENDING → FAILED_PENDING)
                 success = true;
-                log.info("결제 준비 실패 보상 트랜잭션 완료: orderId={}, reason={}", order.getId(), event.getReason());
+                log.info("결제 준비 실패 보상 트랜잭션 완료:  orderId={}, pid={}, reason={}", order.getId(), event.getPid(), event.getReason());
             } catch (Exception e) {
-                log.warn("결제 준비 보상 트랜잭션 재시도: orderId={}, retryCount={}, error={}", order.getId(), retryCount, e.getMessage());
+                log.warn("결제 준비 보상 트랜잭션 재시도: orderId={}, pid={}, reason={}", order.getId(), event.getPid(), event.getReason(), e);
                 if (retryCount == 1) { // 최대 1회까지만 시도
-                    log.error("결제 준비 보상 트랜잭션 최종 실패: orderId={}, reason={}", order.getId(), event.getReason(), e);
+                    log.error("결제 준비 보상 트랜잭션 최종 실패: orderId={}, pid={}, reason={}", order.getId(), event.getPid(), event.getReason(), e);
                     break;
                 }
 
@@ -52,7 +52,7 @@ public class PaymentCompensationTransactionEventListener {
                     Thread.sleep(1000); // 1초 대기 후 재시도
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
-                    log.error("결제 준비 보상 트랜잭션 재시도 중 인터럽트: orderId={}", order.getId(), ie);
+                    log.error("결제 준비 보상 트랜잭션 재시도 중 인터럽트: orderId={}, pid={}", order.getId(), event.getPid(), ie);
                     break;
                 }
             }
