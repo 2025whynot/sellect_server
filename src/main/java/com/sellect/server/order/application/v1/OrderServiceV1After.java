@@ -62,7 +62,7 @@ public class OrderServiceV1After {
     private final PlatformTransactionManager transactionManager;
 
     // 주문 결제
-    public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
+    public String preparePayment(User user, Long orderId) {
 
         // 트랜잭션 정의 및 시작
         TransactionDefinition definition = new DefaultTransactionDefinition();
@@ -70,20 +70,11 @@ public class OrderServiceV1After {
         Orders order;
 
         try {
-            // PENDING 주문 조회 : 왜냐하면 준비, 승인 보상트랜잭션에서 CANCEL 발생 가능성 있기에 -> Exception 발생 방지
             order = ordersRepository.findByIdAndStatus(orderId, OrderStatus.PENDING)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "PENDING ORDER"));
 
             // 유저의 주문인지 확인
             order.validateOwner(user);
-
-            // 쿠폰 적용
-            if (userReceivedCouponId != null) {
-                UserReceivedCoupon coupon = userReceivedCouponRepository.findById(
-                        userReceivedCouponId)
-                    .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "쿠폰"));
-                order = ordersRepository.save(order.applyCoupon(coupon));
-            }
 
             transactionManager.commit(status);
         } catch (CommonException e) {
@@ -124,15 +115,12 @@ public class OrderServiceV1After {
         Orders order;
 
         try {
-            // todo:[한번 더 생각해보기] CANCEL 상태를 걸러서 조회해야하는가? pid를 통해서 조회하기에 문제는 없다.
             payment = paymentRepository.findByPid(pid)
                 .orElseThrow(() -> new CommonException(
                     BError.NOT_EXIST, String.format("Payment %s", pid)));
 
             userRepository.findById(payment.getUserId())
                 .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
-
-            // TODO 쿠폰 동시성 해결을 위한 락 구현
 
             // todo: 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
             order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId())
@@ -148,7 +136,7 @@ public class OrderServiceV1After {
             List<Inventory> deductedInventories = orderItems.stream()
                 .map(orderItem -> {
                     Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                            orderItem.getProductId()) // orderItem 의 Product 연관관계가 꼭 필요한가?
+                            orderItem.getProductId())
                         .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
                     return inventory.deductStock(orderItem.getQuantity());
                 })

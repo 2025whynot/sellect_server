@@ -93,8 +93,7 @@ public class Orders {
             .build();
     }
 
-    // 쿠폰 적용
-    // 동시성 해야함
+    // 쿠폰 적용의 경우 후순위로 미뤄짐. [03-21 이후로]
     public Orders applyCoupon(UserReceivedCoupon coupon) {
         validateCoupon(coupon);
         return Orders.builder()
