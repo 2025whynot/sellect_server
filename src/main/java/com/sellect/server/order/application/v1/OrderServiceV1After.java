@@ -71,6 +71,7 @@ public class OrderServiceV1After {
 
         try {
             // 주문 받아와서
+            // todo: PENDING 인 것에 대해서만 조회 : 왜냐하면 준비, 승인 보상트랜잭션에서 CANCEL 여러개 조회 가능
             order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
 
@@ -124,6 +125,7 @@ public class OrderServiceV1After {
         Orders order;
 
         try {
+            // todo:[한번 더 생각해보기] CANCEL 상태를 걸러서 조회해야하는가? pid를 통해서 조회하기에 문제는 없다.
             payment = paymentRepository.findByPid(pid)
                 .orElseThrow(() -> new CommonException(
                     BError.NOT_EXIST, String.format("Payment %s", pid)));

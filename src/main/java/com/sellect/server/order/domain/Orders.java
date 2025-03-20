@@ -27,13 +27,6 @@ public class Orders {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
-//    private final List<OrderItem> orderItems;  // 추가
-//
-//    // 주문 아이템이 존재하는지 확인
-//    public boolean hasOrderItems() {
-//        return orderItems != null && !orderItems.isEmpty();
-//    }
-
 
     public static Orders register(User user, BigDecimal totalPrice, OrderStatus status) {
         return Orders.builder()
@@ -62,6 +55,25 @@ public class Orders {
             .updatedAt(LocalDateTime.now())
             .deleteAt(this.deleteAt)
             .build();
+    }
+
+    public Orders failOrder() {
+        if (!OrderStatus.PENDING.equals(status)) {
+            throw new CommonException(BError.NOT_VALID, "PENDING 상태에서만 롤백 가능");
+        }
+
+        return Orders.builder()
+            .id(this.id)
+            .user(this.user)
+            .userReceivedCoupon(this.userReceivedCoupon)
+            .totalPrice(this.totalPrice)
+            .orderNumber(this.orderNumber)
+            .status(OrderStatus.FAILED)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
+
     }
 
     // 쿠폰 적용

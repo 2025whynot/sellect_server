@@ -12,6 +12,7 @@ import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Async;
@@ -27,6 +28,7 @@ public class PaymentEventListener {
 
     private final KakaoPayClient kakaoPayClient;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Async("preparePaymentExecutor")
     @EventListener
@@ -41,7 +43,7 @@ public class PaymentEventListener {
             log.warn("카카오페이 API 재시도 시도: retryCount={}, orderId={}", retryCount, event.getOrders().getId());
             try {
                 KakaoPayReadyResponse response = requestKakaoPayReady(pid, event);
-                createAndSavePreparedPayment(event, pid, response);
+                createAndSavePreparedPayment(event, pid, response); // payment 저장 (READY) [항상은 아님]
                 event.getFuture().complete(response.next_redirect_pc_url());
                 success = true;
             } catch (ResourceAccessException | HttpServerErrorException e) { // 재시도 가능한 예외: 네트워크 오류, 서버 오류
@@ -70,7 +72,13 @@ public class PaymentEventListener {
             event.getFuture().completeExceptionally(
                 new CommonException(BError.PAYMENT_FAILED, "카카오페이 결제 준비 실패: " + errorMsg)
             );
-            // todo: 보상 트랜잭션
+            eventPublisher.publishEvent(
+                PaymentPrepareFailedEvent.builder()
+                    .orders(event.getOrders())
+                    .pid(pid)
+                    .reason(errorMsg)
+                    .build()
+            );
         }
     }
 

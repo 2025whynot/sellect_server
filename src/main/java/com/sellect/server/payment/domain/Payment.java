@@ -83,6 +83,24 @@ public class Payment {
             .build();
     }
 
+    public Payment failPreparedPayment() {
+        if (status != PaymentStatus.READY) {
+            throw new CommonException(BError.NOT_VALID, "결제 상태가 READY가 아님: ");
+        }
+        return Payment.builder()
+            .id(this.id)
+            .ordersId(this.ordersId)
+            .price(this.price)
+            .pid(this.pid)
+            .userId(this.userId)
+            .status(PaymentStatus.FAIL)
+            .tid(this.tid)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .build();
+    }
+
+
     public Payment cancelPayment() {
         if (!status.equals(PaymentStatus.READY)) {
             throw new CommonException(BError.FAIL_FOR_REASON, "cancelPayment()",
