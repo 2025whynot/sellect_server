@@ -98,25 +98,6 @@ public class Payment {
             .updatedAt(LocalDateTime.now())
             .build();
     }
-
-    // todo: 수정 필요 READY가 아니라 APPROVE 아닌가?
-    public Payment cancel() {
-        if (status != PaymentStatus.READY) {
-            throw new CommonException(BError.FAIL_FOR_REASON, "cancelPayment()",
-                "PaymentStatus is not Ready");
-        }
-        return Payment.builder()
-            .id(this.id)
-            .ordersId(this.ordersId)
-            .price(this.price)
-            .pid(this.pid)
-            .userId(this.userId)
-            .status(PaymentStatus.CANCEL)
-            .tid(this.tid)
-            .createdAt(this.createdAt)
-            .updatedAt(LocalDateTime.now())
-            .build();
-    }
 }
 
 
