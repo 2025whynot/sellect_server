@@ -28,6 +28,11 @@ public class OrdersRepositoryImpl implements OrdersRepository {
     }
 
     @Override
+    public Optional<Orders> findByIdAndStatus(Long id, OrderStatus status) {
+        return ordersJpaRepository.findByIdAndStatus(id, status).map(OrdersEntity::toModel);
+    }
+
+    @Override
     public List<Orders> findCompletedOrdersByUser(User user, OrderStatus status) {
         List<OrdersEntity> ordersEntities = ordersJpaRepository.findCompletedOrdersByUser(
             UserEntity.from(user), status);

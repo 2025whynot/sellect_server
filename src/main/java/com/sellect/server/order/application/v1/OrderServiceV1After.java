@@ -70,10 +70,9 @@ public class OrderServiceV1After {
         Orders order;
 
         try {
-            // 주문 받아와서
-            // todo: PENDING 인 것에 대해서만 조회 : 왜냐하면 준비, 승인 보상트랜잭션에서 CANCEL 여러개 조회 가능
-            order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
+            // PENDING 주문 조회 : 왜냐하면 준비, 승인 보상트랜잭션에서 CANCEL 발생 가능성 있기에 -> Exception 발생 방지
+            order = ordersRepository.findByIdAndStatus(orderId, OrderStatus.PENDING)
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "PENDING ORDER"));
 
             // 유저의 주문인지 확인
             order.validateOwner(user);
