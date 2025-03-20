@@ -38,8 +38,8 @@ import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +59,7 @@ public class OrderServiceV1After {
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final DataSourceTransactionManager transactionManager;
+    private final PlatformTransactionManager transactionManager;
 
     // 주문 결제
     public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
