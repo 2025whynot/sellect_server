@@ -95,7 +95,14 @@ public class PaymentEventListener {
             paymentRepository.save(approvePayment);
         } catch (DataAccessException e) {
             log.error("결제 승인 상태 저장 실패: pid={}", event.getPid(), e);
-            throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패: " + e.getMessage());
+            eventPublisher.publishEvent( // 예외를 반환 전에 보상 트랜잭션 이벤트를 발행해서 주문, 재고 복구시키기
+                PaymentApproveFailedEvent.builder()
+                    .payment(event.getPayment())
+                    .pid(event.getPid())
+                    .reason("DB 저장 실패: " + e.getMessage())
+                    .build()
+            );
+            throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패");
         }
 
         while (retryCount <= 1 && !success) {
