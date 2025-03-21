@@ -1,4 +1,4 @@
-package com.sellect.server.order.Infrastructure.message;
+package com.sellect.server.payment.event.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

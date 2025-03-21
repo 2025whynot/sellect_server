@@ -16,6 +16,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -23,7 +25,11 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 @EnableKafka
 public class KafkaConfig {
 
-    private static final String KAFKA_PAY_READY_GROUP = "pay-ready-group";
+    private static final String BASE_PACKAGES = "com.sellect.server.*";
+    private static final String PAY_READY_GROUP = "pay-ready-group";
+    private static final String PAY_APPROVE_GROUP = "pay-approve-group";
+    private static final String ORDER_COMPLETE_GROUP = "order-complete-group";
+    private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String KAFKA_BOOTSTRAP_SERVERS;
@@ -41,27 +47,89 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(props);
     }
 
+    // KafkaTemplate 설정
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
+    // (order-complete-reply) ReplyingKafkaTemplate 설정
     @Bean
-    public ConsumerFactory<String, Object> payReadyGroupConsumer() {
+    public ReplyingKafkaTemplate<String, Object, Object> orderCompleteReplyingKafkaTemplate() {
+        ConcurrentMessageListenerContainer<String, Object> container = orderCompleteReplyContainerFactory()
+            .createContainer("order-complete-reply");
+        container.getContainerProperties().setGroupId(ORDER_COMPLETE_REPLY_GROUP);
+        return new ReplyingKafkaTemplate<>(producerFactory(), container);
+    }
+
+    // 공통 ConsumerFactory 생성 메서드
+    private ConsumerFactory<String, Object> createConsumerFactory(String groupId) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BOOTSTRAP_SERVERS);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, KAFKA_PAY_READY_GROUP);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KAFKA_AUTO_OFFSET_RESET);
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.sellect.server.order.Infrastructure.message");
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, BASE_PACKAGES);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
+    // 공통 ConcurrentKafkaListenerContainerFactory 생성 메서드
+    private ConcurrentKafkaListenerContainerFactory<String, Object> createListenerContainerFactory(
+        ConsumerFactory<String, Object> consumerFactory, KafkaTemplate<String, Object> replyTemplate) {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+        if (replyTemplate != null) {
+            factory.setReplyTemplate(replyTemplate); // 응답이 필요한 경우에만 설정
+        }
+        return factory;
+    }
+
+    // (pay-ready-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> payReadyGroupConsumer() {
+        return createConsumerFactory(PAY_READY_GROUP);
+    }
+
+    // (pay-ready-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(payReadyGroupConsumer());
-        return factory;
+        return createListenerContainerFactory(payReadyGroupConsumer(), null);
+    }
+
+    // (pay-approve-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> payApproveGroupConsumer() {
+        return createConsumerFactory(PAY_APPROVE_GROUP);
+    }
+
+    // (pay-approve-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> payApproveContainerFactory() {
+        return createListenerContainerFactory(payApproveGroupConsumer(), null);
+    }
+
+    // (order-complete-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> orderCompleteGroupConsumer() {
+        return createConsumerFactory(ORDER_COMPLETE_GROUP);
+    }
+
+    // (order-complete-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteContainerFactory() {
+        return createListenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
+    }
+
+    // (order-complete-reply-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> orderCompleteReplyGroupConsumer() {
+        return createConsumerFactory(ORDER_COMPLETE_REPLY_GROUP);
+    }
+
+    // (order-complete-reply-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteReplyContainerFactory() {
+        return createListenerContainerFactory(orderCompleteReplyGroupConsumer(), null);
     }
 }
