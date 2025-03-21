@@ -60,7 +60,7 @@ public class OrderV1ScenarioTestController {
 
 //        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
 //        return ApiResponse.ok(redirectionUrl);
-        String pid = orderService.preparePayment(user, orderId, userReceivedCouponId);
+        String pid = orderService.preparePayment(user, orderId);
         return ApiResponse.ok(pid);
     }
 
@@ -75,7 +75,7 @@ public class OrderV1ScenarioTestController {
 
         long threadId = Thread.currentThread().getId();
         log.info("{} - [V0] approve", threadId);
-        orderService.approvePayment(pid, token);
+        orderService.approvePayment(Long.valueOf(pid), token);
         log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }

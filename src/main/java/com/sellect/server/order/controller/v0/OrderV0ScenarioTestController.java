@@ -1,7 +1,6 @@
 package com.sellect.server.order.controller.v0;
 
 import com.sellect.server.auth.domain.User;
-import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.order.application.OrderService;
 import com.sellect.server.order.application.v0.OrderServiceV0After;
@@ -77,8 +76,9 @@ public class OrderV0ScenarioTestController {
         @RequestParam("pg_token") String token) {
 
         long threadId = Thread.currentThread().getId();
+
         log.info("{} - [V0] approve", threadId);
-        orderService.approvePayment(pid, token);
+        orderService.approvePayment(Long.valueOf(pid), token);
         log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }

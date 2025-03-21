@@ -59,7 +59,7 @@ public class PaymentServiceV0 {
                 () -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
     }
 
-    public void paymentApprove(String pid, String token, Payment payment) {
+    public void paymentApprove(Long pid, String token, Payment payment) {
         Payment approvePayment = payment.approve();
         paymentRepository.save(approvePayment);
 
