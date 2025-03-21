@@ -9,7 +9,7 @@ public interface PaymentRepository {
 
     void save(Payment payment);
 
-    Optional<Payment> findByPid(String pid);
+    Optional<Payment> findByPid(Long pid);
 
 //    Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable);
     Page<Payment> findPaymentHistoryByUser(Long userId, Pageable pageable);

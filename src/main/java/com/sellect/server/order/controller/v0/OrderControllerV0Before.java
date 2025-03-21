@@ -1,6 +1,8 @@
 package com.sellect.server.order.controller.v0;
 
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.order.application.v0.OrderServiceV0Before;
@@ -38,10 +40,14 @@ public class OrderControllerV0Before {
         @PathVariable String pid,
         @RequestParam("pg_token") String token) {
 
+        Long longPid = convertToLong(pid);
+
         long threadId = Thread.currentThread().getId();
 //        Thread.currentThread().setName("kakao-pay-thread");
         log.info("{} - [V0] approve", threadId);
-        orderService.approvePayment(pid, token);
+
+        orderService.approvePayment(longPid, token);
+
         log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }
@@ -62,5 +68,12 @@ public class OrderControllerV0Before {
         return ApiResponse.ok();
     }
 
-
+    private Long convertToLong(String pid) {
+        try {
+            return Long.parseLong(pid);
+        } catch (NumberFormatException e) {
+            log.error("Invalid pid format: {}", pid);
+            throw new CommonException(BError.NOT_VALID, "Invalid pid format: " + pid);
+        }
+    }
 }

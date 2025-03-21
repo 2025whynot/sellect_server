@@ -21,4 +21,7 @@ public interface OrdersJpaRepository extends JpaRepository<OrdersEntity, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM OrdersEntity o WHERE o.id = :id")
     Optional<OrdersEntity> findByIdWithPessimisticLock(@Param("id") Long id);
+
+    // v1 After
+    Optional<OrdersEntity> findByIdAndStatus(Long id, OrderStatus status);
 }

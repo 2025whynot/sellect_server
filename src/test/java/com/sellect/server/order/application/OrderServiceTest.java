@@ -279,7 +279,7 @@ class OrderServiceTest {
 
         @Test
         @DisplayName("재고 차감 및 주문 완료 상태 변경")
-        void testApprovePaymentOrderCompletion() {
+        void testApproveOrderCompletion() {
             // Given
             userRepository.save(user); // UUID를 위해 저장
 
@@ -309,7 +309,7 @@ class OrderServiceTest {
                     .build()));
 
             Payment payment = Payment.builder()
-                .pid("pid123")
+                .pid(123L)
                 .ordersId(order.getId())
 //                .uid(user.getUuid())
                 .userId(user.getId())
@@ -318,7 +318,7 @@ class OrderServiceTest {
             paymentRepository.save(payment);
 
             // When
-            sut.approvePayment("pid123", "token123");
+            sut.approvePayment(123L, "token123");
 
             // Then
             Orders updatedOrder = ordersRepository.findById(order.getId()).orElseThrow();
@@ -331,7 +331,7 @@ class OrderServiceTest {
 
         @Test
         @DisplayName("재고 부족 시 예외 발생")
-        void testApprovePaymentStockInsufficient() {
+        void testApproveStockInsufficient() {
             // Given
             userRepository.save(user); // UUID를 위해 저장
 
@@ -360,7 +360,7 @@ class OrderServiceTest {
                     .build()));
 
             Payment payment = Payment.builder()
-                .pid("pid123")
+                .pid(123L)
                 .ordersId(order.getId())
 //                .uid(user.getUuid())
                 .userId(user.getId())
@@ -369,13 +369,13 @@ class OrderServiceTest {
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class,
-                () -> sut.approvePayment("pid123", "token123"));
+                () -> sut.approvePayment(123L, "token123"));
             assertEquals("재고 부족 is not valid", exception.getMessage());
         }
 
         @Test
         @DisplayName("존재하지 않는 사용자일 경우 예외 발생")
-        void testApprovePaymentInvalidUser() {
+        void testApproveInvalidUser() {
             // Given
             Orders order = ordersRepository.save(Orders.builder()
                 .id(1L)
@@ -384,7 +384,7 @@ class OrderServiceTest {
                 .build());
 
             Payment payment = Payment.builder()
-                .pid("pid123")
+                .pid(123L)
                 .ordersId(order.getId())
 //                .uid("invalid-uuid")
                 .userId(user.getId())
@@ -394,7 +394,7 @@ class OrderServiceTest {
 
             // When & Then
             CommonException exception = assertThrows(CommonException.class,
-                () -> sut.approvePayment("pid123", "token123"));
+                () -> sut.approvePayment(123L, "token123"));
             assertEquals("user does not exist", exception.getMessage());
         }
 

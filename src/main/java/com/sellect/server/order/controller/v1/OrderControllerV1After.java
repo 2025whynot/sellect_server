@@ -32,8 +32,9 @@ public class OrderControllerV1After {
      */
     @PostMapping("/order/payment/{orderId}/ready")
     public ApiResponse<String> readyPayment(@AuthUser User user, @PathVariable Long orderId,
-        @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
-        String redirectionUrl = orderService.preparePayment(user, orderId, userReceivedCouponId);
+        @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) { // 쿠폰 적용의 경우 후순위로 미뤄짐.
+
+        String redirectionUrl = orderService.preparePayment(user, orderId);
         return ApiResponse.ok(redirectionUrl);
     }
 

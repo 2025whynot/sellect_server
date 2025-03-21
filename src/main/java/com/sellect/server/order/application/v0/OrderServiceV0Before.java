@@ -59,7 +59,7 @@ public class OrderServiceV0Before {
 
     // todo: 여기에도 궁금한데 한번 걸어보자. 지금 현재 findReadyPaymentByPid로 찾아와서 결제 완료가 되는데 이게 잘 되는건가?
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(Long pid, String token) {
         // 확인한다.
         // todo: 넘겨도 될듯
         // todo: 성능 이슈 생길 가능성 있음 (random UUID 타입 미지정) 인덱스 시 애매함..
