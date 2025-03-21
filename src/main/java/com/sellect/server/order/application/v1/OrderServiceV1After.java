@@ -26,6 +26,7 @@ import com.sellect.server.product.repository.InventoryRepository;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -131,7 +132,13 @@ public class OrderServiceV1After {
                 throw new CommonException(BError.NOT_VALID, "orderId");
             }
 
-            List<Inventory> deductedInventories = orderItems.stream()
+            // todo: 일단은 기아 현상이 발생하더라도 데드락 발생을 없애고 싶음.
+            // todo: 이 부분은 튜닝이 매우 필요함!
+            List<OrderItem> sortedOrderItems = orderItems.stream()
+                .sorted(Comparator.comparing(OrderItem::getProductId)) // productId 오름차순 정렬
+                .toList();
+
+            List<Inventory> deductedInventories = sortedOrderItems.stream()
                 .map(orderItem -> {
                     Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
                             orderItem.getProductId())

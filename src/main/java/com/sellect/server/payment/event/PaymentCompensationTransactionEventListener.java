@@ -10,6 +10,7 @@ import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.repository.InventoryRepository;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,14 @@ public class PaymentCompensationTransactionEventListener {
 
                 // 재고 복구 (비관적 락 사용)
                 List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
-                List<Inventory> restoredInventories = orderItems.stream()
+
+                // todo: 성능 튜닝 지점
+                // 데드락 방지 (대신 기아현상 발생 가능성 있음)
+                List<OrderItem> sortedOrderItems = orderItems.stream()
+                    .sorted(Comparator.comparing(OrderItem::getProductId)) // productId 오름차순 정렬
+                    .toList();
+
+                List<Inventory> restoredInventories = sortedOrderItems.stream()
                     .map(orderItem -> {
                         Inventory inventory = inventoryRepository.findWithWriteLockByProductId(orderItem.getProductId())
                             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "재고"));
