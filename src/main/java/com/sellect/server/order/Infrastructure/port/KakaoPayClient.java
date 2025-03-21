@@ -32,29 +32,32 @@ public class KakaoPayClient {
     public KakaoPayReadyResponse readyPayment(KakaoPayReadyRequest request) {
         HttpHeaders headers = createHeaders();
         HttpEntity<KakaoPayReadyRequest> readyRequest = new HttpEntity<>(request, headers);
-        ResponseEntity<KakaoPayReadyResponse> response = restTemplate.exchange(KAKAO_PAY_API_URL,
-            HttpMethod.POST, readyRequest,
-            KakaoPayReadyResponse.class);
+//        ResponseEntity<KakaoPayReadyResponse> response = restTemplate.exchange(KAKAO_PAY_API_URL,
+//            HttpMethod.POST, readyRequest,
+//            KakaoPayReadyResponse.class);
 
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_READY_FAIL);
-        }
+//        if (response.getStatusCode() != HttpStatus.OK) {
+//            throw new CommonException(BError.KAKKO_READY_FAIL);
+//        }
 
-        return response.getBody();
+//        return response.getBody();
+
+        return new KakaoPayReadyResponse("test-tid", false, "2025-02-28T16:58:00", "https://test.com", "https://test.com", "https://test.com", "https://test.com", "");
     }
 
     // approve
     public KakaoPayApproveResponse paymentApprove(ApproveRequest approveRequest) {
         HttpHeaders headers = createHeaders();
         HttpEntity<ApproveRequest> request = new HttpEntity<>(approveRequest, headers);
-        ResponseEntity<KakaoPayApproveResponse> response = restTemplate.exchange(KAKAO_PAY_APPROVE_API_URL,
-            HttpMethod.POST, request, KakaoPayApproveResponse.class);
+//        ResponseEntity<KakaoPayApproveResponse> response = restTemplate.exchange(KAKAO_PAY_APPROVE_API_URL,
+//            HttpMethod.POST, request, KakaoPayApproveResponse.class);
 
-        if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_APPROVE_FAIL);
-        }
-
-        return response.getBody();
+//        if (response.getStatusCode() != HttpStatus.OK) {
+//            throw new CommonException(BError.KAKKO_APPROVE_FAIL);
+//        }
+//
+//        return response.getBody();
+        return null;
     }
 
 

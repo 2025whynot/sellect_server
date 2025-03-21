@@ -32,6 +32,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -88,9 +89,11 @@ dependencies {
     // Blaze-Persistence QueryDSL Integration
     implementation 'com.blazebit:blaze-persistence-integration-querydsl-expressions-jakarta:1.6.14'
 
-
     // Redis 의존성 추가
     implementation 'org.redisson:redisson-spring-boot-starter:3.17.7'
+
+    // Kafka 의존성 추가
+    implementation 'org.springframework.kafka:spring-kafka'
 
 //	implementation 'org.flywaydb:flyway-core'
 //	implementation 'org.flywaydb:flyway-mysql'

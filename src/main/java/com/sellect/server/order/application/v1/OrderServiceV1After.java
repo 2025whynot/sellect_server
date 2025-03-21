@@ -28,6 +28,7 @@ import com.sellect.server.product.repository.InventoryRepository;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -113,8 +114,11 @@ public class OrderServiceV1After {
         if (orderItems.isEmpty()) { // 서비스에 위임
             throw new CommonException(BError.NOT_VALID, "orderId");
         }
+        List<OrderItem> sortedOrderItems = orderItems.stream()
+            .sorted(Comparator.comparing(OrderItem::getProductId)) // productId 오름차순 정렬
+            .toList();
 
-        List<Inventory> deductedInventories = orderItems.stream()
+        List<Inventory> deductedInventories = sortedOrderItems.stream()
             .map(orderItem -> {
                 Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
                         orderItem.getProductId()) // orderItem 의 Product 연관관계가 꼭 필요한가?

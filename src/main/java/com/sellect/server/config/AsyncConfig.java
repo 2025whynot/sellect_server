@@ -22,9 +22,9 @@ public class AsyncConfig {
     @Bean(name = "preparePaymentExecutor")
     public ThreadPoolTaskExecutor preparePaymentExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); // 최소 스레드 개수
-        executor.setMaxPoolSize(10); // 최대 스레드 개수
-        executor.setQueueCapacity(50); // 대기 큐 크기
+        executor.setCorePoolSize(15); // 최소 스레드 개수
+        executor.setMaxPoolSize(30); // 최대 스레드 개수
+        executor.setQueueCapacity(500); // 대기 큐 크기
         executor.setThreadNamePrefix("preparePaymentExecutor AsyncThread - "); // 스레드 이름 지정
         executor.initialize();
         return executor;
@@ -33,9 +33,9 @@ public class AsyncConfig {
     @Bean(name = "approvePaymentExecutor")
     public ThreadPoolTaskExecutor approvePaymentExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); // 최소 스레드 개수
-        executor.setMaxPoolSize(10); // 최대 스레드 개수
-        executor.setQueueCapacity(50); // 대기 큐 크기
+        executor.setCorePoolSize(15); // 최소 스레드 개수
+        executor.setMaxPoolSize(30); // 최대 스레드 개수
+        executor.setQueueCapacity(500); // 대기 큐 크기
         executor.setThreadNamePrefix("approvePaymentExecutor AsyncThread - "); // 스레드 이름 지정
         executor.initialize();
         return executor;
