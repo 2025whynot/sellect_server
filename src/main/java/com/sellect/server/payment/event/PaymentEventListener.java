@@ -29,7 +29,9 @@ public class PaymentEventListener {
             String pid = String.valueOf(UUID.randomUUID());
             KakaoPayReadyResponse response = requestKakaoPayReady(pid, event);
             createAndSavePayment(event, pid, response);
-            event.getFuture().complete(response.next_redirect_pc_url());
+            // todo: 부하 테스트를 위해 주석처리
+//            event.getFuture().complete(response.next_redirect_pc_url());
+            event.getFuture().complete(pid);
         } catch (Exception e) {
             event.getFuture().completeExceptionally(e);
         }
@@ -93,7 +95,13 @@ public class PaymentEventListener {
             event.getOrders().getTotalPrice().intValue(),
             pid
         );
-        return kakaoPayClient.readyPayment(request);
+
+        // todo: 테스트를 위해서 주석처리
+//        return kakaoPayClient.readyPayment(request);
+
+        return KakaoPayReadyResponse.builder()
+            .tid("test-tid")
+            .build();
     }
 
 }
