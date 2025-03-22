@@ -3,7 +3,8 @@ package com.sellect.server.order.controller.v4;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
-import com.sellect.server.order.application.v4.OrderServiceV4;
+import com.sellect.server.order.application.v4.OrderServiceV4_0;
+import com.sellect.server.order.controller.response.PaymentUrlRetrieveResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,18 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v4")
 public class OrderControllerV4 {
 
-    private final OrderServiceV4 orderService;
+    private final OrderServiceV4_0 orderService;
 
     @PostMapping("/order/payment/{orderId}/ready")
-    public ApiResponse<Void> readyPayment(@AuthUser User user, @PathVariable Long orderId,
+    public ApiResponse<Void> readyPayment(
+        @AuthUser User user,
+        @PathVariable Long orderId,
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
         orderService.preparePayment(user, orderId, userReceivedCouponId);
         return ApiResponse.ok();
     }
 
-    @GetMapping("/order/payment/{orderId}/ready")
-    public ApiResponse<String> getPaymentUrl(@AuthUser User user, @PathVariable Long orderId) {
+    @GetMapping("/order/payment/{orderId}/redirect-url")
+    public ApiResponse<PaymentUrlRetrieveResponse> retrievePaymentUrl(
+        @AuthUser User user,
+        @PathVariable Long orderId) {
         String paymentUrl = orderService.getPaymentUrl(user, orderId);
-        return ApiResponse.ok(paymentUrl);
+        return ApiResponse.ok(PaymentUrlRetrieveResponse.builder()
+            .paymentUrl(paymentUrl)
+            .urlRetrieved(paymentUrl == null ? Boolean.FALSE : Boolean.TRUE)
+            .build());
     }
 }

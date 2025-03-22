@@ -8,24 +8,21 @@ import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.event.message.OrderCompleteMessage;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OrderServiceV4 {
+public class OrderServiceV4_0 {
 
     private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
 
@@ -71,19 +68,17 @@ public class OrderServiceV4 {
         // 유저의 주문인지 확인
         order.validateOwner(user);
 
+        // TODO: 멱등성 보장하는지 체크 혹은 보장하지 않아도 상관없는지 체크
+        // TODO: 재시도 횟수에 따른 예외 발생 추가
         String key = REDIS_KEY_PREFIX + orderId;
-        try {
-            String redirectUrl = redisTemplate.opsForValue().get(key);
-            if (redirectUrl == null) {
-                log.debug("No redirect URL found in Redis for key: {}", key);
-            } else {
-                log.debug("Retrieved redirect URL from Redis: key={}, value={}", key, redirectUrl);
-            }
-            return redirectUrl;
-        } catch (Exception e) {
-            log.error("Failed to retrieve redirect URL from Redis for key: {}", key, e);
-            throw new RuntimeException("Redis retrieve operation failed", e);
+        String redirectUrl = redisTemplate.opsForValue().get(key);
+        if (redirectUrl == null) {
+            log.debug("No redirect URL found in Redis for key: {}", key);
+        } else {
+            log.debug("Retrieved redirect URL from Redis: key={}, value={}", key, redirectUrl);
         }
+
+        return redirectUrl;
     }
 
     @Transactional
