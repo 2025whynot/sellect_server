@@ -4,6 +4,8 @@ import com.sellect.server.common.exception.util.ErrMsgUtil;
 
 // For Business Logic
 public enum BError implements Error {
+
+    // common
     REQUIRED("REQUIRED", "%1 is required"),
     NOT_EXIST("NOT_EXIST", "%1 does not exist"),
     EXIST("EXIST", "%1 already exists"),
@@ -17,17 +19,25 @@ public enum BError implements Error {
     FAIL_FOR_REASON("FAIL_FOR_REASON", "%1 failed for reason (%2)"),
     NOT_SUPPORTED("NOT_SUPPORTED", "%1 not supported"),
     NOT_REGISTERED("NOT_REGISTERED", "%1 not registered"),
+    ACCESS_DENIED("ACCESS_DENIED", "access denied to %1"),
 
+    // user
     NOT_SELLER("NOT_SELLER", "%1 is not a seller"),
     NOT_USER("NOT_USER", "%1 is not a user"),
+
+    // coupon
     COUPON_QUANTITY_ZERO("COUPON_QUANTITY_ZERO", "The quantity of the coupon%1 is 0"),
-    ALREADY_RECEIVED("COUPON_ALREADY_REGISTERED", "The coupon%1 has already been registered"),
-    PAYMENT_FAILED("PAYMENT_FAIL", "%1"),
-    ACCESS_DENIED("NOT_ACCESSIBLE", "access denied to %1"),
+    COUPON_ALREADY_RECEIVED("COUPON_ALREADY_REGISTERED", "The coupon%1 has already been registered"),
+    COUPON_ALREADY_USED("COUPON_ALREADY_USED", "The coupon(id=%1) has already been used"),
     COUPON_EXPIRED("COUPON_EXPIRED", "The coupon%1 has expired"),
-    KAKKO_READY_FAIL("READY_FAIL", "kakao pay ready fail"),
-    KAKKO_APPROVE_FAIL("APPROVE_FAIL", "kakao pay approve fail"),
-    LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock");
+
+    // payment
+    PAYMENT_FAILED("PAYMENT_FAIL", "%1"),
+    KAKAO_READY_FAIL("READY_FAIL", "kakao pay ready fail"),
+    KAKAO_APPROVE_FAIL("APPROVE_FAIL", "kakao pay approve fail"),
+
+    // lock
+    LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock acquisition failed for %1"),;
 
 
     private final String errCode;

@@ -37,7 +37,7 @@ public class KakaoPayClient {
             KakaoPayReadyResponse.class);
 
         if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_READY_FAIL);
+            throw new CommonException(BError.KAKAO_READY_FAIL);
         }
 
         return response.getBody();
@@ -53,7 +53,7 @@ public class KakaoPayClient {
             HttpMethod.POST, request, KakaoPayApproveResponse.class);
 
         if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_APPROVE_FAIL);
+            throw new CommonException(BError.KAKAO_APPROVE_FAIL);
         }
 
         return response.getBody();

@@ -39,6 +39,7 @@ public class OrderServiceV4 {
     // 주문 결제
     @Transactional
     public void preparePayment(User user, final Long orderId, final Long userReceivedCouponId) {
+
         // 주문 조회
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
@@ -62,7 +63,14 @@ public class OrderServiceV4 {
     }
 
     public String getPaymentUrl(User user, final Long orderId) {
-        // TODO: 유저 검증
+
+        // 주문 조회
+        Orders order = ordersRepository.findById(orderId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
+
+        // 유저의 주문인지 확인
+        order.validateOwner(user);
+
         String key = REDIS_KEY_PREFIX + orderId;
         try {
             String redirectUrl = redisTemplate.opsForValue().get(key);
@@ -88,6 +96,7 @@ public class OrderServiceV4 {
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "user id"));
 
+        // TODO: 재고 처리 시 Redis 사용
         kafkaProducer.produceWithReply(
                 "order-complete", "order-complete-reply", payment.getOrdersId())
             .thenAccept(response -> {

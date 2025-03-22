@@ -85,7 +85,7 @@ public class PaymentEventListenerTest {
             KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
 
             when(order.getTotalPrice()).thenReturn(BigDecimal.valueOf(1000L));
-            when(kakaoPayClient.readyPayment(any())).thenThrow(new CommonException(BError.KAKKO_READY_FAIL));
+            when(kakaoPayClient.readyPayment(any())).thenThrow(new CommonException(BError.KAKAO_READY_FAIL));
 
             // when
             paymentEventListener.kakaoPayReadyEvent(kakaoPayReadyEvent);
@@ -132,7 +132,7 @@ public class PaymentEventListenerTest {
             KakaoPayApproveEvent kakaoPayApproveEvent = KakaoPayApproveEvent.publish(payment,
                 "pgToken123", "test_pid");
 
-            when(kakaoPayClient.paymentApprove(any())).thenThrow(new CommonException(BError.KAKKO_APPROVE_FAIL));
+            when(kakaoPayClient.paymentApprove(any())).thenThrow(new CommonException(BError.KAKAO_APPROVE_FAIL));
 
             // when
             CommonException exception = assertThrows(CommonException.class, () -> {
@@ -140,7 +140,7 @@ public class PaymentEventListenerTest {
             });
 
             // then
-            assertEquals(BError.KAKKO_APPROVE_FAIL.getMessage(), exception.getMessage());
+            assertEquals(BError.KAKAO_APPROVE_FAIL.getMessage(), exception.getMessage());
             verify(kakaoPayClient, times(1)).paymentApprove(any()); // API 호출 시도
         }
     }
