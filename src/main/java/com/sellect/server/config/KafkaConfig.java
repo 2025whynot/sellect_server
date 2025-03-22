@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +18,12 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.util.backoff.FixedBackOff;
 
 @Configuration
 @EnableKafka
@@ -30,20 +34,24 @@ public class KafkaConfig {
     private static final String PAY_APPROVE_GROUP = "pay-approve-group";
     private static final String ORDER_COMPLETE_GROUP = "order-complete-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
+    private static final Long BACK_OFF_INTERVAL = 1000L;
+    private static final Long MAX_ATTEMPTS = 3L;
 
     @Value("${spring.kafka.bootstrap-servers}")
-    private String KAFKA_BOOTSTRAP_SERVERS;
+    private String BOOTSTRAP_SERVERS;
     @Value("${spring.kafka.consumer.auto-offset-reset}")
-    private String KAFKA_AUTO_OFFSET_RESET;
+    private String AUTO_OFFSET_RESET;
 
     // Producer 설정
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BOOTSTRAP_SERVERS);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(ProducerConfig.LINGER_MS_CONFIG, 10);
+        props.put(ProducerConfig.RETRIES_CONFIG, MAX_ATTEMPTS); // 재시도 횟수
+        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, BACK_OFF_INTERVAL); // 재시도 간격
         return new DefaultKafkaProducerFactory<>(props);
     }
 
@@ -65,23 +73,32 @@ public class KafkaConfig {
     // 공통 ConsumerFactory 생성 메서드
     private ConsumerFactory<String, Object> createConsumerFactory(String groupId) {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_BOOTSTRAP_SERVERS);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, KAFKA_AUTO_OFFSET_RESET);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET_RESET);
         props.put(JsonDeserializer.TRUSTED_PACKAGES, BASE_PACKAGES);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
     // 공통 ConcurrentKafkaListenerContainerFactory 생성 메서드
     private ConcurrentKafkaListenerContainerFactory<String, Object> createListenerContainerFactory(
-        ConsumerFactory<String, Object> consumerFactory, KafkaTemplate<String, Object> replyTemplate) {
+        ConsumerFactory<String, Object> consumerFactory,
+        KafkaTemplate<String, Object> replyTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         if (replyTemplate != null) {
             factory.setReplyTemplate(replyTemplate); // 응답이 필요한 경우에만 설정
         }
+
+        // 에러 핸들러 설정
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate(),
+            (record, ex) ->
+                new TopicPartition(record.topic() + "-dlq", record.partition()));
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer,
+            new FixedBackOff(BACK_OFF_INTERVAL, MAX_ATTEMPTS));
+        factory.setCommonErrorHandler(errorHandler);
         return factory;
     }
 

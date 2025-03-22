@@ -81,7 +81,7 @@ public class OrderServiceV4_0 {
         return redirectUrl;
     }
 
-    @Transactional
+    // TODO: Transactional 어노테이션 없어도 되는지 체크
     public void approvePayment(final String pid, final String token) {
 
         Payment payment = paymentRepository.findByPid(pid)
@@ -91,9 +91,11 @@ public class OrderServiceV4_0 {
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "user id"));
 
-        // TODO: 재고 처리 시 Redis 사용
-        kafkaProducer.produceWithReply(
-                "order-complete", "order-complete-reply", payment.getOrdersId())
+        processPaymentApprovalAsync(payment, pid, token);
+    }
+
+    private void processPaymentApprovalAsync(Payment payment, String pid, String token) {
+        kafkaProducer.produceWithReply("order-complete", "order-complete-reply", payment.getOrdersId())
             .thenAccept(response -> {
                 if (Boolean.TRUE.equals(response)) {
                     log.info("Order complete processed successfully for orderId: {}", payment.getOrdersId());
@@ -105,7 +107,7 @@ public class OrderServiceV4_0 {
                 }
             })
             .exceptionally(throwable -> {
-                log.error("Error processing order complete for orderId: {}", payment.getOrdersId(), throwable);
+                log.error("Failed to process payment approval for orderId: {}", payment.getOrdersId(), throwable);
                 return null;
             });
     }
