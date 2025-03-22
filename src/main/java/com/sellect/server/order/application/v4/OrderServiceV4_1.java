@@ -104,7 +104,7 @@ public class OrderServiceV4_1 {
 
         // TTL 설정
         if (retryCount == 1) {
-            redisTemplate.expire(retryCountKey, 1, TimeUnit.HOURS);
+            redisTemplate.expire(retryCountKey, 10, TimeUnit.MINUTES);
         }
 
         // Redirect URL 조회
