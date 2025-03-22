@@ -13,6 +13,7 @@ import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderServiceV4_1 {
 
     private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
+    private static final String RETRY_KEY_PREFIX = "pay-ready:retry-count:";
+    private static final int MAX_RETRY_COUNT = 5;
 
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
@@ -68,17 +71,7 @@ public class OrderServiceV4_1 {
         // 유저의 주문인지 확인
         order.validateOwner(user);
 
-        // TODO: 멱등성 보장하는지 체크 혹은 보장하지 않아도 상관없는지 체크
-        // TODO: 재시도 횟수에 따른 예외 발생 추가
-        String key = REDIS_KEY_PREFIX + orderId;
-        String redirectUrl = redisTemplate.opsForValue().get(key);
-        if (redirectUrl == null) {
-            log.debug("No redirect URL found in Redis for key: {}", key);
-        } else {
-            log.debug("Retrieved redirect URL from Redis: key={}, value={}", key, redirectUrl);
-        }
-
-        return redirectUrl;
+        return getRedirectUrlFromRedis(user.getId(), orderId);
     }
 
     public void approvePayment(final String pid, final String token) {
@@ -93,8 +86,38 @@ public class OrderServiceV4_1 {
         processPaymentApprovalAsync(payment, pid, token);
     }
 
+    //== private methods ==//
+
+    private String getRedirectUrlFromRedis(Long userId, Long orderId) {
+        String redirectUrlKey = REDIS_KEY_PREFIX + orderId;
+        String retryCountKey = RETRY_KEY_PREFIX + userId + ":" + orderId;
+
+        // 재시도 횟수 체크 및 증가 (원자적 연산)
+        Long retryCount = redisTemplate.opsForValue().increment(retryCountKey, 1L);
+        if (retryCount == null) retryCount = 1L; // 초기 값 처리
+
+        if (retryCount > MAX_RETRY_COUNT) {
+            log.warn("Max retry count exceeded for userId: {}, orderId: {}", userId, orderId);
+            throw new CommonException(BError.FAIL_FOR_REASON, "get redirect URL from Redis",
+                "Max retry count exceeded");
+        }
+
+        // TTL 설정
+        if (retryCount == 1) {
+            redisTemplate.expire(retryCountKey, 1, TimeUnit.HOURS);
+        }
+
+        // Redirect URL 조회
+        String redirectUrl = redisTemplate.opsForValue().get(redirectUrlKey);
+        if (redirectUrl == null) {
+            log.debug("No redirect URL found in Redis for key: {}", redirectUrlKey);
+        } else {
+            log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey, redirectUrl);
+        }
+        return redirectUrl;
+    }
+
     private void processPaymentApprovalAsync(Payment payment, String pid, String token) {
-        // TODO: Redis에서 재고 관리
         kafkaProducer.produceWithReply("order-complete", "order-complete-reply", payment.getOrdersId())
             .thenAccept(response -> {
                 if (Boolean.TRUE.equals(response)) {
