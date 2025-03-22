@@ -22,8 +22,16 @@ public class InventoryRepositoryImpl implements InventoryRepository {
 
     @Override
     public Optional<Inventory> findByProductId(Long productId) {
-        return inventoryJpaRepository.findByProductEntityId(productId)
+        return inventoryJpaRepository.findByProductEntityIdAndDeleteAtIsNull(productId)
             .map(InventoryEntity::toModel);
+    }
+
+    @Override
+    public List<Inventory> findByProductIds(List<Long> productIds) {
+        return inventoryJpaRepository.findByProductEntityIdInAndDeleteAtIsNull(productIds)
+            .stream()
+            .map(InventoryEntity::toModel)
+            .toList();
     }
 
     @Override

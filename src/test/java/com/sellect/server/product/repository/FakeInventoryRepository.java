@@ -45,6 +45,15 @@ public class FakeInventoryRepository implements InventoryRepository {
     }
 
     @Override
+    public List<Inventory> findByProductIds(List<Long> productIds) {
+        return data.stream()
+            .filter(inventory -> inventory.getId() != null &&
+                productIds.contains(inventory.getProduct().getId()))
+            .filter(inventory -> inventory.getDeleteAt() == null)
+            .toList();
+    }
+
+    @Override
     public Optional<Inventory> findById(Long id) {
         return data.stream()
             .filter(inventory -> inventory.getId() != null &&

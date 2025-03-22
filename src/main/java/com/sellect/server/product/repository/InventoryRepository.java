@@ -10,6 +10,8 @@ public interface InventoryRepository {
 
     Optional<Inventory> findByProductId(Long productId);
 
+    List<Inventory> findByProductIds(List<Long> productIds);
+
     Optional<Inventory> findById(Long id);
 
     // BEFORE - READ_LOCK
