@@ -135,6 +135,7 @@ public class KafkaConfig {
     // (order-complete-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteContainerFactory() {
+        // 응답(order-complete-reply)이 필요하므로 KafkaTemplate을 설정
         return createListenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
     }
 
