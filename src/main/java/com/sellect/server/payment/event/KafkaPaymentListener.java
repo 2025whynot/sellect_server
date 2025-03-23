@@ -71,7 +71,7 @@ public class KafkaPaymentListener {
     private void storeRedirectUrlInRedis(PayReadyMessage message, KakaoPayReadyResponse response) {
         String orderIdKey = REDIS_KEY_PREFIX + message.getOrderId();
         redisTemplate.opsForValue().set(orderIdKey, response.next_redirect_pc_url());
-        redisTemplate.expire(orderIdKey, 1, TimeUnit.HOURS);
+        redisTemplate.expire(orderIdKey, 10, TimeUnit.MINUTES);
     }
 
     private KakaoPayApproveResponse requestKakaoPayApprove(PayApproveMessage message,
