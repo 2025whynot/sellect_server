@@ -102,29 +102,31 @@ public class KafkaOrderListener {
         }
 
         IntStream.range(0, productIds.size()).forEach(i -> {
-            int quantity = orderItems.get(i).getQuantity();
+            OrderItem orderItem = orderItems.get(i);
             Inventory inventory = inventories.get(i);
             Long productId = productIds.get(i);
+            int quantity = orderItem.getQuantity();
 
             if (inventory.getStock() < quantity) {
                 log.warn("Insufficient stock for productId: {}, requested: {}, available: {}",
                     productId, quantity, inventory.getStock());
-                throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
-                    "insufficient stock");
+                throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage", "insufficient stock");
             }
 
             String stockUsageKey = "product:" + productId + ":stock:usage";
-            Long stockUsage = redisTemplate.opsForSet().size(stockUsageKey);
-            stockUsage = stockUsage != null ? stockUsage : 0L;
+            String stockUsageStr = redisTemplate.opsForValue().get(stockUsageKey);
+            int stockUsage = stockUsageStr == null ? 0 : Integer.parseInt(stockUsageStr);
 
             if (stockUsage + quantity > inventory.getStock()) {
                 log.warn("Total stock exceeded for productId: {}, totalUsed: {}, requested: {}",
                     productId, stockUsage, quantity);
-                throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
-                    "request quantity exceeded total stock");
+                throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage", "request quantity exceeded total stock");
             }
 
-            redisTemplate.opsForSet().add(stockUsageKey, orderId.toString());
+            // Redis Counter 증가
+            redisTemplate.opsForValue().increment(stockUsageKey, quantity);
+
+            // TODO: RDB에 재고 히스토리 저장해야 함
         });
 
         log.info("increased stock usage for productId: {}, orderId: {}", productIds, orderId);
