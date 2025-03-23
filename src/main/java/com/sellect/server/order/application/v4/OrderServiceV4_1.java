@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OrderServiceV4_1 {
+public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것만 추가
 
     private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
     private static final String RETRY_KEY_PREFIX = "pay-ready:retry-count:";
