@@ -3,7 +3,6 @@ package com.sellect.server.payment.event;
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
-import com.sellect.server.order.Infrastructure.port.FakePayClient;
 import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
@@ -11,7 +10,6 @@ import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,13 +45,9 @@ public class PaymentEventListener {
                 KakaoPayReadyResponse response = requestKakaoPayReady(pid, event);
                 createAndSavePreparedPayment(event, pid, response); // payment 저장 (READY) [항상은 아님]
 
-                event.getFuture().complete(response.next_redirect_pc_url());
+                event.getFuture().complete(response);
                 success = true;
-
                 log.info("카카오페이 API 완료: retryCount={}, orderId={}", retryCount, event.getOrders().getId());
-
-                // [TODO: 성능 테스트를 위해서 어쩔 수 없이 추가했어야 함. 배포시 삭제해야함]
-                FakePayClient.triggerInProgress(Objects.requireNonNull(response).tid(), response.next_redirect_pc_url());
             } catch (ResourceAccessException | HttpServerErrorException e) { // 재시도 가능한 예외: 네트워크 오류, 서버 오류
                 retryCount++;
                 errorMsg = e.getMessage();

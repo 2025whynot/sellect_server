@@ -6,6 +6,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.OrderDetailGetResponse;
 import com.sellect.server.order.controller.response.OrderGetResponse;
@@ -61,7 +62,7 @@ public class OrderServiceV1After {
     private final PlatformTransactionManager transactionManager;
 
     // 주문 결제
-    public String preparePayment(User user, Long orderId) {
+    public KakaoPayReadyResponse preparePayment(User user, Long orderId) {
 
         // 트랜잭션 정의 및 시작
         TransactionDefinition definition = new DefaultTransactionDefinition();
@@ -85,7 +86,7 @@ public class OrderServiceV1After {
         }
 
         // 트랜잭션 커밋 후 이벤트 발행
-        CompletableFuture<String> future = new CompletableFuture<>();
+        CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
         try {

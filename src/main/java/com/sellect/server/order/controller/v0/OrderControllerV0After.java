@@ -5,6 +5,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.application.v0.OrderServiceV0After;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +31,9 @@ public class OrderControllerV0After {
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
 
         log.info("[V0] ready!!");
-        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
-        return ApiResponse.ok(redirectionUrl);
+        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.payOrder(user, orderId,
+            userReceivedCouponId);
+        return ApiResponse.ok(kakaoPayReadyResponse.next_redirect_pc_url());
     }
 
     // 테스트를 위해서 approve를 위해 이곳에 api url 설정
