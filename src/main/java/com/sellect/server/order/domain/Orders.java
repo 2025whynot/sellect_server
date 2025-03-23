@@ -65,6 +65,20 @@ public class Orders {
             .build();
     }
 
+    public Orders rollbackOrder() {
+        return Orders.builder()
+            .id(this.id)
+            .user(this.user)
+            .userReceivedCoupon(this.userReceivedCoupon)
+            .totalPrice(this.totalPrice)
+            .orderNumber(this.orderNumber)
+            .status(OrderStatus.PENDING)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
+    }
+
     // 쿠폰 적용
     // 동시성 해야함
     public Orders applyCoupon(UserReceivedCoupon coupon) {

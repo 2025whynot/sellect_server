@@ -17,11 +17,16 @@ public class RedisTransactionUtil {
     public void transaction(Consumer<RedisOperations<String, String>> commands) {
         redisTemplate.execute(new SessionCallback<>() {
             @Override
-            public Void execute(RedisOperations operations) throws DataAccessException {
+            public Boolean execute(RedisOperations operations) throws DataAccessException {
                 operations.multi();
-                commands.accept(operations);
-                operations.exec();
-                return null;
+                try {
+                    commands.accept(operations);
+                    operations.exec();
+                    return null;
+                } catch (Exception e) {
+                    operations.discard();
+                    throw e;
+                }
             }
         });
     }

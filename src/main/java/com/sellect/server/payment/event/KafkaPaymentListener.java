@@ -56,14 +56,14 @@ public class KafkaPaymentListener {
     }
 
     private void consumePayApproveMessage(PayApproveMessage message) {
-        // 결제 승인 요청
         paymentRepository.findByPid(message.getPid())
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
         Payment approved = message.getPayment().approvePayment();
         paymentRepository.save(approved);
 
-        requestKakaoPayApproval(message, approved);
+        // 결제 승인 요청
+        requestKakaoPayApprove(message, approved);
     }
 
     private String generatePid() {
@@ -100,7 +100,7 @@ public class KafkaPaymentListener {
         redisTemplate.expire(orderIdKey, 10, TimeUnit.MINUTES);
     }
 
-    private KakaoPayApproveResponse requestKakaoPayApproval(PayApproveMessage message,
+    private KakaoPayApproveResponse requestKakaoPayApprove(PayApproveMessage message,
         Payment payment) {
         ApproveRequest approveRequest = ApproveRequest.builder()
             .cid("TC0ONETIME")
