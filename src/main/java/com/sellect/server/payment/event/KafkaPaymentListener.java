@@ -2,22 +2,24 @@ package com.sellect.server.payment.event;
 
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
-import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
-import com.sellect.server.payment.controller.request.ApproveRequest;
-import com.sellect.server.payment.event.message.PayApproveMessage;
-import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
+import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
+import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
+import com.sellect.server.payment.event.message.PayApproveMessage;
+import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class KafkaPaymentListener {
@@ -30,30 +32,7 @@ public class KafkaPaymentListener {
 
     @KafkaListener(topics = "pay-ready", groupId = "pay-ready-group")
     public void payReadyListener(PayReadyMessage message) {
-
-        // 결제 준비 요청
-        String pid = UUID.randomUUID().toString();
-        KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
-            String.valueOf(message.getOrderId()),
-            String.valueOf(message.getUserId()),
-            "test",
-            0,
-            message.getTotalPrice(),
-            pid
-        );
-        KakaoPayReadyResponse response = kakaoPayClient.readyPayment(request);
-
-        // Payment 저장
-        Payment payment = Payment.ready(
-            message.getOrderId(),
-            pid,
-            message.getUserId(),
-            message.getTotalPrice(),
-            response.tid()
-        );
-        paymentRepository.save(payment);
-
-        storeRedirectUrlInRedis(message, response);
+        consumePayReadyMessage(message);
     }
 
     @KafkaListener(topics = "pay-approve", groupId = "pay-approve-group")
@@ -65,16 +44,59 @@ public class KafkaPaymentListener {
         Payment approved = message.getPayment().approvePayment();
         paymentRepository.save(approved);
 
-        requestKakaoPayApprove(message, approved);
+        requestKakaoPayApproval(message, approved);
     }
 
-    private void storeRedirectUrlInRedis(PayReadyMessage message, KakaoPayReadyResponse response) {
+    // === Dead Letter Queue 처리 === //
+
+
+    // === private method === //
+
+    private void consumePayReadyMessage(PayReadyMessage message) {
+        String pid = generatePid();
+
+        KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(message, pid);
+
+        savePayReadyStatus(message, pid, kakaoPayReadyResponse);
+
+        storePaymentUrlInRedis(message, kakaoPayReadyResponse);
+    }
+
+    private String generatePid() {
+        return UUID.randomUUID().toString(); // TODO: tsid로 변경
+    }
+
+    private KakaoPayReadyResponse requestKakaoPayReady(PayReadyMessage message, String pid) {
+        KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
+            String.valueOf(message.getOrderId()),
+            String.valueOf(message.getUserId()),
+            "test",
+            0,
+            message.getTotalPrice(),
+            pid
+        );
+        return kakaoPayClient.readyPayment(request);
+    }
+
+    private void savePayReadyStatus(PayReadyMessage message, String pid,
+        KakaoPayReadyResponse kakaoPayReadyResponse) {
+        Payment payment = Payment.ready(
+            message.getOrderId(),
+            pid,
+            message.getUserId(),
+            message.getTotalPrice(),
+            kakaoPayReadyResponse.tid()
+        );
+        paymentRepository.save(payment);
+    }
+
+    private void storePaymentUrlInRedis(PayReadyMessage message, KakaoPayReadyResponse response) {
         String orderIdKey = REDIS_KEY_PREFIX + message.getOrderId();
         redisTemplate.opsForValue().set(orderIdKey, response.next_redirect_pc_url());
         redisTemplate.expire(orderIdKey, 10, TimeUnit.MINUTES);
     }
 
-    private KakaoPayApproveResponse requestKakaoPayApprove(PayApproveMessage message,
+    private KakaoPayApproveResponse requestKakaoPayApproval(PayApproveMessage message,
         Payment payment) {
         ApproveRequest approveRequest = ApproveRequest.builder()
             .cid("TC0ONETIME")
