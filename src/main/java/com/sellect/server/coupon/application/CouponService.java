@@ -12,6 +12,7 @@ import com.sellect.server.coupon.controller.response.CouponResponse;
 import com.sellect.server.coupon.controller.response.SellerInfo;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
+import com.sellect.server.coupon.event.CouponDownloadEvent;
 import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.domain.Product;
@@ -22,8 +23,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RAtomicLong;
 import org.redisson.api.RLock;
+import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +53,7 @@ public class CouponService {
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
     private final RedissonClient redissonClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 판매자 쿠폰 등록
     public void uploadCoupon(User user, IssueCouponRequest issueCouponRequest) {
@@ -75,7 +80,6 @@ public class CouponService {
 
 
     /// 문제있는 코드
-    ///
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         lock.lock();
@@ -152,10 +156,8 @@ public class CouponService {
     }
 
     // 3. 분산락
-    @Transactional
     public void downloadCouponWithDistributeLock(User user, Long couponId) {
-        //        log.info("분산락 잠금");
-        String lockKey = "couponLock:" + couponId;
+        String lockKey = String.format("coupon:couponLock:%d", couponId);
         RLock lock = redissonClient.getLock(lockKey);
 
         // 락 획득 시도: 최대 5초 대기, 락 유지 시간 2초
@@ -164,14 +166,13 @@ public class CouponService {
             if (!isLock) {
                 throw new CommonException(BError.LOCK_ACQUISITION_FAILED, couponId.toString());
             }
-            Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow();
+            Coupon coupon = couponRepository.findById(couponId).orElseThrow();
             coupon.isUsable();
             if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
                 throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
             }
             Coupon decreasedCoupon = coupon.decreaseQuantity();
-            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
-                decreasedCoupon);
+            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user, decreasedCoupon);
             userReceivedCouponRepository.save(userReceivedCoupon);
             couponRepository.save(decreasedCoupon);
 
@@ -182,7 +183,52 @@ public class CouponService {
                 lock.unlock();
             }
         }
+    }
 
+    @Transactional
+    public void downloadCouponWithRedis(User user, Long couponId) {
+        String counterKey = "coupon:" + couponId + ":count";
+        String userCouponKey = "coupon:" + couponId + ":users";
+        RAtomicLong counter = redissonClient.getAtomicLong(counterKey);
+        RSet<String> userSet = redissonClient.getSet(userCouponKey);
+
+        if (!counter.isExists()) {
+            Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, couponId.toString()));
+            counter.set(coupon.getQuantity());
+        }
+
+        // Redis에서 수량 감소
+        long remaining = counter.decrementAndGet();
+        try {
+            // 수량 체크
+            Coupon coupon = couponRepository.findById(couponId).orElseThrow(() ->
+                new CommonException(BError.NOT_EXIST, couponId.toString()));
+            if (remaining < 0) {
+                counter.incrementAndGet(); // 롤백
+                throw new CommonException(BError.COUPON_QUANTITY_ZERO, couponId.toString());
+            }
+            log.info("Remaining: {}", remaining);
+
+            // 중복 체크
+            String userIdStr = user.getId().toString();
+            if (!userSet.add(userIdStr)) {
+                counter.incrementAndGet(); // 롤백
+                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+            }
+
+            // 사용자 쿠폰 저장
+            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user, coupon);
+            userReceivedCouponRepository.save(userReceivedCoupon);
+
+            // 이벤트 발행
+            eventPublisher.publishEvent(new CouponDownloadEvent(couponId));
+        } catch (Exception e) {
+            // 트랜잭션 롤백 시 Redis도 롤백
+            counter.incrementAndGet();
+            userSet.remove(user.getId().toString());
+            throw e;
+        }
     }
 
 
@@ -254,6 +300,16 @@ public class CouponService {
     public Page<ActiveCouponResponse> getActiveCouponList(User user, Pageable pageable) {
         Page<Coupon> activeCoupons = couponRepository.findAllActiveCouponList(pageable);
         return activeCoupons.map(coupon -> createActiveCouponResponse(user, coupon));
+    }
+
+    @Transactional
+    public void decreaseCouponQuantity(Long couponId) {
+//        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
+        Coupon coupon = couponRepository.findById(couponId).orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
+        Coupon decreased = coupon.decreaseQuantity();
+        couponRepository.save(decreased);
+
+        log.info("Decrease coupon quantity: {}", couponId);
     }
 
     private ActiveCouponResponse createActiveCouponResponse(User user, Coupon coupon) {
