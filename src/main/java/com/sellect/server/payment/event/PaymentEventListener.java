@@ -3,13 +3,15 @@ package com.sellect.server.payment.event;
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
-import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
+import com.sellect.server.order.Infrastructure.port.FakePayClient;
+import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +28,7 @@ import org.springframework.web.client.ResourceAccessException;
 @Component
 public class PaymentEventListener {
 
-    private final KakaoPayClient kakaoPayClient;
+    private final PayClient payClient;
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -40,12 +42,18 @@ public class PaymentEventListener {
 
         // 재시도 로직 [최대 1회]
         while (retryCount <= 1 && !success) {
-            log.warn("카카오페이 API 재시도 시도: retryCount={}, orderId={}", retryCount, event.getOrders().getId());
+            log.info("카카오페이 API 시도: retryCount={}, orderId={}", retryCount, event.getOrders().getId());
             try {
                 KakaoPayReadyResponse response = requestKakaoPayReady(pid, event);
                 createAndSavePreparedPayment(event, pid, response); // payment 저장 (READY) [항상은 아님]
+
                 event.getFuture().complete(response.next_redirect_pc_url());
                 success = true;
+
+                log.info("카카오페이 API 완료: retryCount={}, orderId={}", retryCount, event.getOrders().getId());
+
+                // [TODO: 성능 테스트를 위해서 어쩔 수 없이 추가했어야 함. 배포시 삭제해야함]
+                FakePayClient.triggerInProgress(Objects.requireNonNull(response).tid(), response.next_redirect_pc_url());
             } catch (ResourceAccessException | HttpServerErrorException e) { // 재시도 가능한 예외: 네트워크 오류, 서버 오류
                 retryCount++;
                 errorMsg = e.getMessage();
@@ -169,13 +177,13 @@ public class PaymentEventListener {
             .pgToken(event.getToken())
             .build();
 
-        KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(approveRequest);
+        KakaoPayApproveResponse kakaoPayApproveResponse = payClient.paymentApprove(approveRequest);
         log.info("카카오페이 승인 완료: pid={}", event.getPid());
     }
 
     private KakaoPayReadyResponse requestKakaoPayReady(Long pid, final KakaoPayReadyEvent event) {
         Integer quantity = 0;
-        KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
+        KakaoPayReadyRequest request = payClient.createKakaoPayReadyRequest(
             String.valueOf(event.getOrders().getId()),
 //            event.getUser().getUuid(),
             String.valueOf(event.getUser().getId()),
@@ -184,7 +192,7 @@ public class PaymentEventListener {
             event.getOrders().getTotalPrice().intValue(),
             String.valueOf(pid)
         );
-        return kakaoPayClient.readyPayment(request);
+        return payClient.readyPayment(request);
     }
 
 }

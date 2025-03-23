@@ -53,15 +53,15 @@ public class OrderV1ScenarioTestController {
         @PathVariable Long userId,
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
 
-        log.info("[V0] ready!!");
+        log.info("[V1] ready!!");
         User user = User.builder()
             .id(userId)
             .build();
 
-//        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
-//        return ApiResponse.ok(redirectionUrl);
-        String pid = orderService.preparePayment(user, orderId);
-        return ApiResponse.ok(pid);
+        String redirectionUrl = orderService.preparePayment(user, orderId);
+        return ApiResponse.ok(redirectionUrl);
+//        String pid = orderService.preparePayment(user, orderId);
+//        return ApiResponse.ok(pid);
     }
 
 
@@ -74,9 +74,9 @@ public class OrderV1ScenarioTestController {
         @RequestParam("pg_token") String token) {
 
         long threadId = Thread.currentThread().getId();
-        log.info("{} - [V0] approve", threadId);
+        log.info("{} - [V1] approve", threadId);
         orderService.approvePayment(Long.valueOf(pid), token);
-        log.info("{} - [V0] success", threadId);
+        log.info("{} - [V1] success", threadId);
         return ApiResponse.ok(pid + "success");
     }
 }

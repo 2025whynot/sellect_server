@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 @RequiredArgsConstructor
-public class KakaoPayClient {
+public class KakaoPayClient implements PayClient {
     @Value("${kakao.pay.secret-key}")
     private String PAY_SECRET_KEY;
     @Value("${server.host}")
@@ -29,6 +29,7 @@ public class KakaoPayClient {
     private final RestTemplate restTemplate;
 
     // ready
+    @Override
     public KakaoPayReadyResponse readyPayment(KakaoPayReadyRequest request) {
         HttpHeaders headers = createHeaders();
         HttpEntity<KakaoPayReadyRequest> readyRequest = new HttpEntity<>(request, headers);
@@ -44,6 +45,7 @@ public class KakaoPayClient {
     }
 
     // approve
+    @Override
     public KakaoPayApproveResponse paymentApprove(ApproveRequest approveRequest) {
         HttpHeaders headers = createHeaders();
         HttpEntity<ApproveRequest> request = new HttpEntity<>(approveRequest, headers);
@@ -57,7 +59,7 @@ public class KakaoPayClient {
         return response.getBody();
     }
 
-
+    @Override
     public KakaoPayReadyRequest createKakaoPayReadyRequest(String partnerOrderId, String partnerUserId, String itemName, Integer quantity, Integer totalAmount, String pid) {
         return KakaoPayReadyRequest.builder()
             .cid("TC0ONETIME")
