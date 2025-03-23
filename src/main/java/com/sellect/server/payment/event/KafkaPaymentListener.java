@@ -37,14 +37,7 @@ public class KafkaPaymentListener {
 
     @KafkaListener(topics = "pay-approve", groupId = "pay-approve-group")
     public void payApproveListener(PayApproveMessage message) {
-        // 결제 승인 요청
-        paymentRepository.findByPid(message.getPid())
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
-
-        Payment approved = message.getPayment().approvePayment();
-        paymentRepository.save(approved);
-
-        requestKakaoPayApproval(message, approved);
+        consumePayApproveMessage(message);
     }
 
     // === Dead Letter Queue 처리 === //
@@ -60,6 +53,17 @@ public class KafkaPaymentListener {
         savePayReadyStatus(message, pid, kakaoPayReadyResponse);
 
         storePaymentUrlInRedis(message, kakaoPayReadyResponse);
+    }
+
+    private void consumePayApproveMessage(PayApproveMessage message) {
+        // 결제 승인 요청
+        paymentRepository.findByPid(message.getPid())
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
+
+        Payment approved = message.getPayment().approvePayment();
+        paymentRepository.save(approved);
+
+        requestKakaoPayApproval(message, approved);
     }
 
     private String generatePid() {

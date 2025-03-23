@@ -8,6 +8,8 @@ import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.order.domain.Orders;
+import com.sellect.server.order.event.message.OrderCompleteMessage;
+import com.sellect.server.order.event.message.OrderCompleteReplyMessage;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
@@ -36,7 +38,6 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
     private final KafkaProducer kafkaProducer;
     private final RedisTemplate<String, String> redisTemplate;
 
-    // 주문 결제
     @Transactional
     public void preparePayment(User user, final Long orderId, final Long userReceivedCouponId) {
 
@@ -83,7 +84,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "user id"));
 
-        processPaymentApprovalAsync(payment, pid, token);
+        processPaymentApproval(payment, pid, token);
     }
 
     //== private methods ==//
@@ -117,11 +118,13 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         return redirectUrl;
     }
 
-    private void processPaymentApprovalAsync(Payment payment, String pid, String token) {
-        kafkaProducer.produceWithReply("order-complete", "order-complete-reply", payment.getOrdersId())
-            .thenAccept(response -> {
-                if (Boolean.TRUE.equals(response)) {
-                    log.info("Order complete processed successfully for orderId: {}", payment.getOrdersId());
+    private void processPaymentApproval(Payment payment, String pid, String token) {
+        kafkaProducer.produceWithReply("order-complete", "order-complete-reply",
+                OrderCompleteMessage.builder().payment(payment))
+            .thenAccept(reply -> {
+                OrderCompleteReplyMessage orderCompleteReplyMessage = (OrderCompleteReplyMessage) reply;
+                if (orderCompleteReplyMessage.getOrderCompleted()) {
+                    log.info("Order complete processed successfully for orderId: {}", orderCompleteReplyMessage.getOrderId());
                     kafkaProducer.produce("pay-approve", PayApproveMessage.builder()
                         .payment(payment)
                         .pid(pid)

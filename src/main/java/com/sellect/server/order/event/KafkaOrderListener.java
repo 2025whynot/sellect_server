@@ -5,6 +5,7 @@ import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.OrderCompleteMessage;
+import com.sellect.server.order.event.message.OrderCompleteReplyMessage;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.product.domain.Inventory;
@@ -33,25 +34,32 @@ public class KafkaOrderListener {
     @KafkaListener(topics = "order-complete", groupId = "order-complete-group",
         containerFactory = "orderCompleteContainerFactory")
     @SendTo("order-complete-reply")
-    public Boolean orderCompleteListener(OrderCompleteMessage message) {
+    public OrderCompleteReplyMessage orderCompleteListener(OrderCompleteMessage message) {
+        return consumeOrderCompleteMessage(message);
+    }
 
-        Long orderId = message.getPayment().getOrdersId();
+    // === private method === //
 
-        Orders order = ordersRepository.findById(orderId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
+    private OrderCompleteReplyMessage consumeOrderCompleteMessage(OrderCompleteMessage message) {
 
+        Orders order = findOrder(message);
         order.validateNotCompleted();
 
-//        processInventories(order);
-        boolean increased = increaseStockUsage(order.getId());
+//        processInventories(order); // v4.0
+        boolean increased = increaseStockUsage(order.getId()); // v4.1
         if (!increased) {
             log.warn("Failed to increase stock usage for orderId: {}", order.getId());
-            return Boolean.FALSE;
+            return OrderCompleteReplyMessage.onFail(order.getId());
         }
 
-        ordersRepository.save(order.completeOrder());
+        saveOrderCompletedStatus(order);
+        return OrderCompleteReplyMessage.onComplete(order.getId());
+    }
 
-        return Boolean.TRUE;
+    private Orders findOrder(OrderCompleteMessage message) {
+        Long orderId = message.getPayment().getOrdersId();
+        return ordersRepository.findById(orderId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
     }
 
     // TODO: pay-approve가 실패하는 이벤트에 대한 리스너 추가
@@ -72,9 +80,10 @@ public class KafkaOrderListener {
         inventoryRepository.saveAll(processedInventories);
     }
 
-    // redis에서 주문한 상품의 재고 사용량을 증가 (v4.1)
+    // Redis에서 주문한 상품의 재고 사용량을 증가 (v4.1)
     public boolean increaseStockUsage(final Long orderId) {
 
+        // TODO: 리팩토링 필요
         List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
         orderItems.sort(Comparator.comparingLong(OrderItem::getProductId));
 
@@ -120,6 +129,10 @@ public class KafkaOrderListener {
 
         log.info("increased stock usage for productId: {}, orderId: {}", productIds, orderId);
         return true;
+    }
+
+    private void saveOrderCompletedStatus(Orders order) {
+        ordersRepository.save(order.completeOrder());
     }
 
 }
