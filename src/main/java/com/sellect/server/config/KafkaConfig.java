@@ -32,8 +32,10 @@ public class KafkaConfig {
     private static final String BASE_PACKAGES = "com.sellect.server.*";
     private static final String PAY_READY_GROUP = "pay-ready-group";
     private static final String PAY_APPROVE_GROUP = "pay-approve-group";
+    private static final String PAY_APPROVE_DLQ_GROUP = "pay-approve-dlq-group";
     private static final String ORDER_COMPLETE_GROUP = "order-complete-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
+    private static final String ORDER_COMPLETE_DLQ_GROUP = "order-complete-dlq-group";
     private static final Long BACK_OFF_INTERVAL = 0L;
     private static final Long MAX_ATTEMPTS = 0L;
 
@@ -71,7 +73,7 @@ public class KafkaConfig {
     }
 
     // 공통 ConsumerFactory 생성 메서드
-    private ConsumerFactory<String, Object> createConsumerFactory(String groupId) {
+    private ConsumerFactory<String, Object> consumerFactory(String groupId) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -83,7 +85,7 @@ public class KafkaConfig {
     }
 
     // 공통 ConcurrentKafkaListenerContainerFactory 생성 메서드
-    private ConcurrentKafkaListenerContainerFactory<String, Object> createListenerContainerFactory(
+    private ConcurrentKafkaListenerContainerFactory<String, Object> listenerContainerFactory(
         ConsumerFactory<String, Object> consumerFactory,
         KafkaTemplate<String, Object> replyTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -105,49 +107,79 @@ public class KafkaConfig {
     // (pay-ready-group) Consumer 설정
     @Bean
     public ConsumerFactory<String, Object> payReadyGroupConsumer() {
-        return createConsumerFactory(PAY_READY_GROUP);
+        return consumerFactory(PAY_READY_GROUP);
     }
 
     // (pay-ready-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        return createListenerContainerFactory(payReadyGroupConsumer(), null);
+        return listenerContainerFactory(payReadyGroupConsumer(), null);
     }
 
     // (pay-approve-group) Consumer 설정
     @Bean
     public ConsumerFactory<String, Object> payApproveGroupConsumer() {
-        return createConsumerFactory(PAY_APPROVE_GROUP);
+        return consumerFactory(PAY_APPROVE_GROUP);
     }
 
     // (pay-approve-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> payApproveContainerFactory() {
-        return createListenerContainerFactory(payApproveGroupConsumer(), null);
+        return listenerContainerFactory(payApproveGroupConsumer(), null);
     }
 
     // (order-complete-group) Consumer 설정
     @Bean
     public ConsumerFactory<String, Object> orderCompleteGroupConsumer() {
-        return createConsumerFactory(ORDER_COMPLETE_GROUP);
+        return consumerFactory(ORDER_COMPLETE_GROUP);
     }
 
     // (order-complete-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteContainerFactory() {
         // 응답(order-complete-reply)이 필요하므로 KafkaTemplate을 설정
-        return createListenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
+        return listenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
     }
 
     // (order-complete-reply-group) Consumer 설정
     @Bean
     public ConsumerFactory<String, Object> orderCompleteReplyGroupConsumer() {
-        return createConsumerFactory(ORDER_COMPLETE_REPLY_GROUP);
+        return consumerFactory(ORDER_COMPLETE_REPLY_GROUP);
     }
 
     // (order-complete-reply-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteReplyContainerFactory() {
-        return createListenerContainerFactory(orderCompleteReplyGroupConsumer(), null);
+        return listenerContainerFactory(orderCompleteReplyGroupConsumer(), null);
+    }
+
+    // === DLQ용 추가 설정 === //
+
+    // (order-complete-dlq-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> orderCompleteDlqGroupConsumer() {
+        return consumerFactory(ORDER_COMPLETE_DLQ_GROUP);
+    }
+
+    // (order-complete-dlq-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteDlqContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(orderCompleteDlqGroupConsumer());
+        return factory;
+    }
+
+    // (pay-approve-dlq-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> payApproveDlqContainerFactory() {
+        return consumerFactory(PAY_APPROVE_DLQ_GROUP);
+    }
+
+    // (pay-approve-dlq-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> payApproveDlqGroupConsumer() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(payApproveDlqContainerFactory());
+        return factory;
     }
 }
