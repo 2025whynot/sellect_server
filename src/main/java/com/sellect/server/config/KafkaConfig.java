@@ -34,8 +34,8 @@ public class KafkaConfig {
     private static final String PAY_APPROVE_GROUP = "pay-approve-group";
     private static final String ORDER_COMPLETE_GROUP = "order-complete-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
-    private static final Long BACK_OFF_INTERVAL = 1000L;
-    private static final Long MAX_ATTEMPTS = 3L;
+    private static final Long BACK_OFF_INTERVAL = 0L;
+    private static final Long MAX_ATTEMPTS = 0L;
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;

@@ -54,8 +54,6 @@ public class KafkaPaymentListener {
         paymentRepository.save(payment);
 
         storeRedirectUrlInRedis(message, response);
-
-        // TODO: Dead Letter Queue 처리
     }
 
     @KafkaListener(topics = "pay-approve", groupId = "pay-approve-group")
@@ -68,8 +66,6 @@ public class KafkaPaymentListener {
         paymentRepository.save(approved);
 
         requestKakaoPayApprove(message, approved);
-
-        // TODO: Dead Letter Queue 처리
     }
 
     private void storeRedirectUrlInRedis(PayReadyMessage message, KakaoPayReadyResponse response) {
