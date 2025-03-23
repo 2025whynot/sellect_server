@@ -2,6 +2,8 @@ package com.sellect.server.order.controller.v1;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.order.Infrastructure.port.FakePayClient;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.application.OrderService;
 import com.sellect.server.order.application.v1.OrderServiceV1After;
 import com.sellect.server.order.controller.request.OrderAddRequest;
@@ -53,15 +55,17 @@ public class OrderV1ScenarioTestController {
         @PathVariable Long userId,
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
 
-        log.info("[V0] ready!!");
+        log.info("[V1] ready!!");
         User user = User.builder()
             .id(userId)
             .build();
 
-//        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
-//        return ApiResponse.ok(redirectionUrl);
-        String pid = orderService.preparePayment(user, orderId);
-        return ApiResponse.ok(pid);
+        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.preparePayment(user, orderId);
+        // [TODO: 성능 테스트를 위해서 어쩔 수 없이 추가했어야 함. 배포시 삭제해야함]
+        FakePayClient.triggerInProgress(kakaoPayReadyResponse.tid(), kakaoPayReadyResponse.next_redirect_pc_url());
+        return ApiResponse.ok(kakaoPayReadyResponse.next_redirect_pc_url());
+//        String pid = orderService.preparePayment(user, orderId);
+//        return ApiResponse.ok(pid);
     }
 
 
@@ -74,9 +78,9 @@ public class OrderV1ScenarioTestController {
         @RequestParam("pg_token") String token) {
 
         long threadId = Thread.currentThread().getId();
-        log.info("{} - [V0] approve", threadId);
+        log.info("{} - [V1] approve", threadId);
         orderService.approvePayment(Long.valueOf(pid), token);
-        log.info("{} - [V0] success", threadId);
+        log.info("{} - [V1] success", threadId);
         return ApiResponse.ok(pid + "success");
     }
 }

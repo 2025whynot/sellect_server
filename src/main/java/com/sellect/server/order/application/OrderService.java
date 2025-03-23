@@ -9,6 +9,7 @@ import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.OrderDetailGetResponse;
 import com.sellect.server.order.controller.response.OrderGetResponse;
@@ -60,7 +61,7 @@ public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public KakaoPayReadyResponse payOrder(User user, Long orderId, Long userReceivedCouponId) {
         Orders order = getOrderById(orderId);
         order.validateOwner(user);
 
@@ -71,19 +72,19 @@ public class OrderService {
             order = ordersRepository.save(order.applyCoupon(coupon));
         }
 
-        CompletableFuture<String> future = new CompletableFuture<>();
+        CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order,
             future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
-        String nextRedirectPcUrl = null;
+        KakaoPayReadyResponse kakaoPayReadyResponse;
         try {
-            nextRedirectPcUrl = future.get();
+            kakaoPayReadyResponse = future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
 
         // 결제 요청
-        return nextRedirectPcUrl;
+        return kakaoPayReadyResponse;
     }
 
     //tx1

@@ -4,7 +4,7 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
-import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
+import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class PaymentServiceV0 {
 
     private final PaymentRepository paymentRepository;
-    private final KakaoPayClient kakaoPayClient;
+    private final PayClient payClient;
 
     public void readyPayment(User user, Long orderId, Long pid, Orders order, String tid) {
         Payment payment = Payment.ready(orderId,
@@ -36,21 +36,21 @@ public class PaymentServiceV0 {
         paymentRepository.save(payment);
     }
 
-    public String getKakaoPayReadyResponse(User user, Long orderId, Orders order) {
+    public KakaoPayReadyResponse getKakaoPayReadyResponse(User user, Long orderId, Orders order) {
         Long generatePid = generatePid();
         Integer quantity = 0;
-        KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequestV0(
+        KakaoPayReadyRequest request = payClient.createKakaoPayReadyRequest(
             String.valueOf(orderId),
-            user.getId(),
+            String.valueOf(user.getId()),
             "test",
             quantity,
             order.getTotalPrice().intValue(),
-            generatePid
+            String.valueOf(generatePid)
         );
 
-        KakaoPayReadyResponse kakaoPayReadyResponse = kakaoPayClient.readyPayment(request);
+        KakaoPayReadyResponse kakaoPayReadyResponse = payClient.readyPayment(request);
         readyPayment(user, orderId, generatePid, order, kakaoPayReadyResponse.tid());
-        return kakaoPayReadyResponse.next_redirect_pc_url();
+        return kakaoPayReadyResponse;
     }
 
     public Payment findReadyPaymentByPid(Long pid) {
@@ -73,7 +73,7 @@ public class PaymentServiceV0 {
             .pgToken(token)
             .build();
 
-        KakaoPayApproveResponse kakaoPayApproveResponse = kakaoPayClient.paymentApprove(approveRequest);
+        KakaoPayApproveResponse kakaoPayApproveResponse = payClient.paymentApprove(approveRequest);
         log.info("Payment approved for pid: {}", pid);
     }
 

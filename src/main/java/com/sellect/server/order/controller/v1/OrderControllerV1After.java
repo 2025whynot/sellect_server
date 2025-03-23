@@ -3,6 +3,7 @@ package com.sellect.server.order.controller.v1;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.application.v1.OrderServiceV1After;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.OrderDetailGetResponse;
@@ -34,8 +35,8 @@ public class OrderControllerV1After {
     public ApiResponse<String> readyPayment(@AuthUser User user, @PathVariable Long orderId,
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) { // 쿠폰 적용의 경우 후순위로 미뤄짐.
 
-        String redirectionUrl = orderService.preparePayment(user, orderId);
-        return ApiResponse.ok(redirectionUrl);
+        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.preparePayment(user, orderId);
+        return ApiResponse.ok(kakaoPayReadyResponse.next_redirect_pc_url());
     }
 
     // ----------------------[밑에 로직들은 핵심이 아니기에 우선순위에 배제] ---------------------------

@@ -6,6 +6,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
@@ -36,7 +37,7 @@ public class OrderServiceV0After {
 
     // 주문 결제
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public KakaoPayReadyResponse payOrder(User user, Long orderId, Long userReceivedCouponId) {
 
         // 주문 받아와서
         Orders order = ordersRepository.findById(orderId)

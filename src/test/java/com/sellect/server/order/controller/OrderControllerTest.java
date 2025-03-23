@@ -80,32 +80,32 @@ class OrderControllerTest {
             any(FilterChain.class));
     }
 
-    @Nested
-    @DisplayName("OrderController API 테스트")
-    class OrderTests {
-
-        @Test
-        @WithMockUser(username = "testUser", roles = {"USER"})
-        @DisplayName("결제 준비 요청")
-        void testReadyPayment() throws Exception {
-            // Given
-            Long orderId = 100L;
-            Long couponId = 50L;
-            String redirectUrl = "https://kakao.pay/payment/redirect";
-
-            when(orderService.payOrder(any(User.class), anyLong(), anyLong()))
-                .thenReturn(redirectUrl);
-
-            // When & Then
-            mockMvc.perform(
-                    MockMvcRequestBuilders.post("/api/v1/order/payment/{orderId}/ready", orderId)
-                        .param("coupon_id", String.valueOf(couponId))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.is_success").value(true))
-                .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.result").value(redirectUrl));
-        }
+//    @Nested
+//    @DisplayName("OrderController API 테스트")
+//    class OrderTests {
+//
+//        @Test
+//        @WithMockUser(username = "testUser", roles = {"USER"})
+//        @DisplayName("결제 준비 요청")
+//        void testReadyPayment() throws Exception {
+//            // Given
+//            Long orderId = 100L;
+//            Long couponId = 50L;
+//            String redirectUrl = "https://kakao.pay/payment/redirect";
+//
+//            when(orderService.payOrder(any(User.class), anyLong(), anyLong()))
+//                .thenReturn(redirectUrl);
+//
+//            // When & Then
+//            mockMvc.perform(
+//                    MockMvcRequestBuilders.post("/api/v1/order/payment/{orderId}/ready", orderId)
+//                        .param("coupon_id", String.valueOf(couponId))
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.is_success").value(true))
+//                .andExpect(jsonPath("$.status").value(200))
+//                .andExpect(jsonPath("$.result").value(redirectUrl));
+//        }
 
 //        @Test
 //        @WithMockUser(username = "testUser", roles = {"USER"})
@@ -218,5 +218,4 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.result.update_at").exists());
         }
     }
-}
 

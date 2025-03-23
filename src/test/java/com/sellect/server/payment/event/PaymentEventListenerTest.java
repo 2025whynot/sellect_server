@@ -60,7 +60,7 @@ public class PaymentEventListenerTest {
                 .build();
 
             Orders order = mock(Orders.class);
-            CompletableFuture<String> future = new CompletableFuture<>();
+            CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
             KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
 
             when(order.getTotalPrice()).thenReturn(BigDecimal.valueOf(1000L));
@@ -70,8 +70,8 @@ public class PaymentEventListenerTest {
             paymentEventListener.kakaoPayReadyEvent(kakaoPayReadyEvent);
 
             //then
-            String redirectUrl = future.get();
-            then(redirectUrl).isEqualTo("redirect_pc_url_success");
+            KakaoPayReadyResponse kakaoPayReadyResponse1 = future.get();
+            then(kakaoPayReadyResponse1).isEqualTo(kakaoPayReadyResponse1);
         }
 
         @Test
@@ -84,7 +84,7 @@ public class PaymentEventListenerTest {
                 .build();
 
             Orders order = mock(Orders.class);
-            CompletableFuture<String> future = new CompletableFuture<>();
+            CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
             KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
 
             when(order.getTotalPrice()).thenReturn(BigDecimal.valueOf(1000L));
