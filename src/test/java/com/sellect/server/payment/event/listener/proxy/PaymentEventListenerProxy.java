@@ -3,7 +3,7 @@ package com.sellect.server.payment.event.listener.proxy;
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
 import com.sellect.server.payment.event.KakaoPayApproveEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
-import com.sellect.server.payment.event.PaymentEventListener;
+import com.sellect.server.payment.event.listener.PaymentEventListener;
 import com.sellect.server.payment.repository.PaymentRepository;
 import org.springframework.context.ApplicationEventPublisher;
 
