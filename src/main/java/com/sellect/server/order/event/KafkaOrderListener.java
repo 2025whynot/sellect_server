@@ -42,13 +42,14 @@ public class KafkaOrderListener {
         return consumeOrderCompleteMessage(message);
     }
 
-    // TODO: consumer group을 order-complete-group으로 해도 되는지 체크
-    @KafkaListener(topics = "order-complete-failed", groupId = "order-complete-group",
+    @KafkaListener(topics = {"order-complete-failed", "pay-approve-failed"},
+        groupId = "order-complete-group",
         containerFactory = "orderCompleteContainerFactory")
-    public void payApproveFailedListener(OrderCompleteFailedMessage message) {
+    public void orderCompleteFailedListener(OrderCompleteFailedMessage message) {
         consumeOrderCompleteFailedMessage(message);
     }
 
+    // TODO: DLQ 처리 추가
     // === Dead Letter Queue 처리 === //
 
 
@@ -195,6 +196,7 @@ public class KafkaOrderListener {
                 productId, stockUsage, totalStock);
             throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage", "stock usage exceeded total stock");
         }
+        // TODO: 이 예외가 발생하면 consumeOrderCompleteFailedMessage에서 롤백 처리되므로 잘못된 코드임
         if (stockUsage + requestQuantity > totalStock) {
             log.warn("Request quantity exceeded total stock for productId: {}, totalUsed: {}, requested: {}",
                 productId, stockUsage, requestQuantity);

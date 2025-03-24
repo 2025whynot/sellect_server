@@ -3,6 +3,7 @@ package com.sellect.server.payment.event;
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
@@ -12,7 +13,6 @@ import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +30,7 @@ public class KafkaPaymentListener {
     private final KakaoPayClient kakaoPayClient;
     private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final KafkaProducer kafkaProducer;
 
     @KafkaListener(topics = "pay-ready", groupId = "pay-ready-group")
     public void payReadyListener(PayReadyMessage message) {
@@ -41,6 +42,7 @@ public class KafkaPaymentListener {
         consumePayApproveMessage(message);
     }
 
+    // TODO: DLQ 처리 추가
     // === Dead Letter Queue 처리 === //
 
 
@@ -57,14 +59,18 @@ public class KafkaPaymentListener {
     }
 
     private void consumePayApproveMessage(PayApproveMessage message) {
-        paymentRepository.findByPid(message.getPid())
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
+        try {
+            paymentRepository.findByPid(message.getPid())
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
-        Payment approved = message.getPayment().approve();
-        paymentRepository.save(approved);
+            Payment approved = message.getPayment().approve();
+            paymentRepository.save(approved);
 
-        // 결제 승인 요청
-        requestKakaoPayApprove(message, approved);
+            // 결제 승인 요청
+            requestKakaoPayApprove(message, approved);
+        } catch (Exception e) {
+            kafkaProducer.produce("pay-approve-failed", message);
+        }
     }
 
     private Long generatePid() {
