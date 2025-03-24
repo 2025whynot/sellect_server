@@ -1,7 +1,7 @@
 package com.sellect.server.order.repository;
 
 import com.sellect.server.auth.repository.entity.UserEntity;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.repository.entity.OrdersEntity;
 import jakarta.persistence.LockModeType;
 import java.util.List;

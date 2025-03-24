@@ -11,7 +11,7 @@ import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.payment.application.PaymentServiceV0;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.product.domain.Inventory;

@@ -2,7 +2,7 @@ package com.sellect.server.order.repository.fake;
 
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.repository.OrderItemRepository;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;

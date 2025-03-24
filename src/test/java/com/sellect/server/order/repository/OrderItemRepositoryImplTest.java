@@ -13,7 +13,7 @@ import com.sellect.server.config.JpaConfig;
 import com.sellect.server.config.JsonConfig;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.repository.entity.OrdersEntity;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.ProductEntity;
