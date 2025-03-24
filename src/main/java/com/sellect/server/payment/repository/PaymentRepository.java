@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface PaymentRepository {
 
-    void save(Payment payment);
+    Payment save(Payment payment);
 
     Optional<Payment> findByPid(Long pid);
 
