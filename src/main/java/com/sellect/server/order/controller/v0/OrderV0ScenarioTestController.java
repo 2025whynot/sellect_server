@@ -1,8 +1,9 @@
 package com.sellect.server.order.controller.v0;
 
 import com.sellect.server.auth.domain.User;
-import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.order.Infrastructure.port.FakePayClient;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.application.OrderService;
 import com.sellect.server.order.application.v0.OrderServiceV0After;
 import com.sellect.server.order.controller.request.OrderAddRequest;
@@ -59,12 +60,15 @@ public class OrderV0ScenarioTestController {
             .id(userId)
             .build();
 
-//        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
-//        return ApiResponse.ok(redirectionUrl);
+        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.payOrder(user, orderId,
+            userReceivedCouponId);
+        // [TODO: 성능 테스트를 위해서 어쩔 수 없이 추가했어야 함. 배포시 삭제해야함]
+        FakePayClient.triggerInProgress(kakaoPayReadyResponse.tid(), kakaoPayReadyResponse.next_redirect_pc_url());
+        return ApiResponse.ok(kakaoPayReadyResponse.next_redirect_pc_url());
 
-        String pid = orderService.payOrder(user, orderId, userReceivedCouponId);
-        // 테스트를 위해 pid 리턴
-        return ApiResponse.ok(pid);
+//        String pid = orderService.payOrder(user, orderId, userReceivedCouponId);
+//        // 테스트를 위해 pid 리턴
+//        return ApiResponse.ok(pid);
     }
 
 
@@ -77,8 +81,9 @@ public class OrderV0ScenarioTestController {
         @RequestParam("pg_token") String token) {
 
         long threadId = Thread.currentThread().getId();
+
         log.info("{} - [V0] approve", threadId);
-        orderService.approvePayment(pid, token);
+        orderService.approvePayment(Long.valueOf(pid), token);
         log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }

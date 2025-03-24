@@ -6,6 +6,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
@@ -36,7 +37,7 @@ public class OrderServiceV0After {
 
     // 주문 결제
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public KakaoPayReadyResponse payOrder(User user, Long orderId, Long userReceivedCouponId) {
 
         // 주문 받아와서
         Orders order = ordersRepository.findById(orderId)
@@ -58,7 +59,7 @@ public class OrderServiceV0After {
 
 
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(Long pid, String token) {
         // Question 1
         // todo: 사실 이 부분부터 낙관적 락을 고려하는게 맞지 않을까. <- 그렇다고 하면 밑에 주문관련 락을 걸 필요가 사라짐
         Payment payment = paymentService.findReadyPaymentByPid(pid);

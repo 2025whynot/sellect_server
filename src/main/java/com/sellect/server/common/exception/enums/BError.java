@@ -19,6 +19,9 @@ public enum BError implements Error {
     FAIL_FOR_REASON("FAIL_FOR_REASON", "%1 failed for reason (%2)"),
     NOT_SUPPORTED("NOT_SUPPORTED", "%1 not supported"),
     NOT_REGISTERED("NOT_REGISTERED", "%1 not registered"),
+    INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR", "[INTERNAL_SERVER_ERROR] - %1"),
+    TIMEOUT("TIMEOUT", "[TIMEOUT] - %1"),
+    DB_ERROR("DB_ERROR", "[DB_ERROR] - %1"),
     ACCESS_DENIED("ACCESS_DENIED", "access denied to %1"),
 
     // user
@@ -38,7 +41,6 @@ public enum BError implements Error {
 
     // lock
     LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock acquisition failed for %1"),;
-
 
     private final String errCode;
     private final String msg;

@@ -21,9 +21,15 @@ public class OrdersRepositoryImpl implements OrdersRepository {
         return ordersJpaRepository.save(OrdersEntity.from(orders)).toModel();
     }
 
+    // todo: PENDING 인지 체크
     @Override
     public Optional<Orders> findById(Long id) {
         return ordersJpaRepository.findById(id).map(OrdersEntity::toModel);
+    }
+
+    @Override
+    public Optional<Orders> findByIdAndStatus(Long id, OrderStatus status) {
+        return ordersJpaRepository.findByIdAndStatus(id, status).map(OrdersEntity::toModel);
     }
 
     @Override

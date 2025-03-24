@@ -15,6 +15,6 @@ import lombok.Setter;
 public class OrderCompleteFailedMessage {
 
     private Long orderId;
-    private String pid;
+    private Long pid;
     private boolean orderCompleted;
 }

@@ -1,13 +1,12 @@
 package com.sellect.server.order.application.v1;
 
-import com.sellect.server.auth.application.UserService;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
-import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.OrderDetailGetResponse;
 import com.sellect.server.order.controller.response.OrderGetResponse;
@@ -35,11 +34,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 @Service
 @RequiredArgsConstructor
@@ -50,86 +55,114 @@ public class OrderServiceV1After {
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
-    private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductImageRepository productImageRepository;
     private final UserRepository userRepository;
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
-
-    private final UserService userService;
+    private final PlatformTransactionManager transactionManager;
 
     // 주문 결제
-    @Transactional
-    public String preparePayment(User user, Long orderId, Long userReceivedCouponId) {
+    public KakaoPayReadyResponse preparePayment(User user, Long orderId) {
 
-        // 주문 받아와서
-        Orders order = ordersRepository.findById(orderId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "주문"));
+        // 트랜잭션 정의 및 시작
+        TransactionDefinition definition = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(definition);
+        Orders order;
 
-        // 유저의 주문인지 확인
-        order.validateOwner(user);
+        try {
+            order = ordersRepository.findByIdAndStatus(orderId, OrderStatus.PENDING)
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "PENDING ORDER"));
 
-        // 쿠폰 적용
-        if (userReceivedCouponId != null) {
-            UserReceivedCoupon coupon = userReceivedCouponRepository.findById(userReceivedCouponId)
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "쿠폰"));
-            order = ordersRepository.save(order.applyCoupon(coupon));
+            // 유저의 주문인지 확인
+            order.validateOwner(user);
+
+            transactionManager.commit(status);
+        } catch (CommonException e) {
+            transactionManager.rollback(status);
+            throw e;
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "preparePayment() - 결제 준비 중 오류 발생");
         }
 
-        // todo: 일단 결제 관련은 PASS
-        // todo: 추후 검토 예정
-        // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (1/2)] -------------------------------
-        CompletableFuture<String> future = new CompletableFuture<>();
+        // 트랜잭션 커밋 후 이벤트 발행
+        CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
-        String nextRedirectPcUrl = null;
         try {
-            nextRedirectPcUrl = future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            return future.get(3, TimeUnit.SECONDS); //여기서 톰캣 스레드가 대기 - 타임아웃 추가, 응답 : nextRedirectPcUrl [결제 요청 QR]
+        } catch (InterruptedException e) { // 3초 이전에 톰캣 스레드 interrupt()
+            Thread.currentThread().interrupt();
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "결제 준비 중 인터럽트 발생");
+        } catch (ExecutionException e) { // 비동기 작업 예외
+            Throwable cause = e.getCause();
+            if (cause instanceof CommonException) {
+                throw (CommonException) cause;
+            }
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "결제 준비 중 오류: " + cause.getMessage());
+        } catch (TimeoutException e) { // 톰캣 대기 타임 아웃 초과 (타임아웃 지정 시)
+            throw new CommonException(BError.TIMEOUT, "결제 준비 시간이 초과되었습니다");
         }
-
-        // 결제 요청
-        return nextRedirectPcUrl;
-        // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (2/2)] -------------------------------
     }
 
-    @Transactional
-    public void approvePayment(final String pid, final String token) {
+    public void approvePayment(final Long pid, final String token) {
 
-        Payment payment = paymentRepository.findByPid(pid)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
+        // 트랜잭션 정의 및 시작
+        TransactionDefinition definition = new DefaultTransactionDefinition();
+        TransactionStatus status = transactionManager.getTransaction(definition);
 
-        userRepository.findById(payment.getUserId())
-            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
+        Payment payment;
+        Orders order;
 
-        // TODO 쿠폰 동시성 해결을 위한 락 구현
+        try {
+            payment = paymentRepository.findByPid(pid)
+                .orElseThrow(() -> new CommonException(
+                    BError.NOT_EXIST, String.format("Payment %s", pid)));
 
-        Orders order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId()) // todo: 낙관 vs 비관 -> 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
-            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
+            userRepository.findById(payment.getUserId())
+                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
-        order.validateNotCompleted();
+            // todo: 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
+            order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId())
+                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
 
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
-        if (orderItems.isEmpty()) { // 서비스에 위임
-            throw new CommonException(BError.NOT_VALID, "orderId");
+            order.validateNotCompleted();
+
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
+            if (orderItems.isEmpty()) { // 서비스에 위임
+                throw new CommonException(BError.NOT_VALID, "orderId");
+            }
+
+            // todo: 일단은 기아 현상이 발생하더라도 데드락 발생을 없애고 싶음.
+            // todo: 이 부분은 튜닝이 매우 필요함!
+            List<OrderItem> sortedOrderItems = orderItems.stream()
+                .sorted(Comparator.comparing(OrderItem::getProductId)) // productId 오름차순 정렬
+                .toList();
+
+            List<Inventory> deductedInventories = sortedOrderItems.stream()
+                .map(orderItem -> {
+                    Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
+                            orderItem.getProductId())
+                        .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
+                    return inventory.deductStock(orderItem.getQuantity());
+                })
+                .toList();
+
+            inventoryRepository.saveAll(deductedInventories);
+            ordersRepository.save(order.completeOrder());
+
+            // 트랜잭션 커밋
+            transactionManager.commit(status);
+        } catch (CommonException e) {
+            // 예외 발생 시 롤백
+            transactionManager.rollback(status);
+            throw e;
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "approvePayment() - 결제 승인 중 오류 발생");
         }
-        List<OrderItem> sortedOrderItems = orderItems.stream()
-            .sorted(Comparator.comparing(OrderItem::getProductId)) // productId 오름차순 정렬
-            .toList();
 
-        List<Inventory> deductedInventories = sortedOrderItems.stream()
-            .map(orderItem -> {
-                Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                        orderItem.getProductId()) // orderItem 의 Product 연관관계가 꼭 필요한가?
-                    .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
-                return inventory.deductStock(orderItem.getQuantity());
-            })
-            .toList();
-
-        inventoryRepository.saveAll(deductedInventories);
-        ordersRepository.save(order.completeOrder());
-
+        // 트랜잭션 커밋 후 이벤트 발행
         KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
         eventPublisher.publishEvent(event);
     }

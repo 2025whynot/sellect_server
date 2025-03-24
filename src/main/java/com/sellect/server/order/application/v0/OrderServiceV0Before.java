@@ -6,6 +6,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
@@ -36,7 +37,7 @@ public class OrderServiceV0Before {
 
     // 주문 결제 전 준비 (결제 금액을 카카오 서버에 보내기 위해)
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public KakaoPayReadyResponse payOrder(User user, Long orderId, Long userReceivedCouponId) {
 
         // 주문 받아와서
         Orders order = ordersRepository.findById(orderId)
@@ -59,7 +60,7 @@ public class OrderServiceV0Before {
 
     // todo: 여기에도 궁금한데 한번 걸어보자. 지금 현재 findReadyPaymentByPid로 찾아와서 결제 완료가 되는데 이게 잘 되는건가?
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(Long pid, String token) {
         // 확인한다.
         // todo: 넘겨도 될듯
         // todo: 성능 이슈 생길 가능성 있음 (random UUID 타입 미지정) 인덱스 시 애매함..

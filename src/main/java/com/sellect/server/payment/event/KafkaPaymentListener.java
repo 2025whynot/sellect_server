@@ -1,5 +1,6 @@
 package com.sellect.server.payment.event;
 
+import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
@@ -46,7 +47,7 @@ public class KafkaPaymentListener {
     // === private method === //
 
     private void consumePayReadyMessage(PayReadyMessage message) {
-        String pid = generatePid();
+        Long pid = generatePid();
 
         KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(message, pid);
 
@@ -59,30 +60,30 @@ public class KafkaPaymentListener {
         paymentRepository.findByPid(message.getPid())
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
-        Payment approved = message.getPayment().approvePayment();
+        Payment approved = message.getPayment().approve();
         paymentRepository.save(approved);
 
         // 결제 승인 요청
         requestKakaoPayApprove(message, approved);
     }
 
-    private String generatePid() {
-        return UUID.randomUUID().toString(); // TODO: tsid로 변경
+    private Long generatePid() {
+        return TsidCreator.getTsid().toLong(); // TODO: tsid로 변경
     }
 
-    private KakaoPayReadyResponse requestKakaoPayReady(PayReadyMessage message, String pid) {
+    private KakaoPayReadyResponse requestKakaoPayReady(PayReadyMessage message, Long pid) {
         KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
             String.valueOf(message.getOrderId()),
             String.valueOf(message.getUserId()),
             "test",
             0,
             message.getTotalPrice(),
-            pid
+            String.valueOf(pid)
         );
         return kakaoPayClient.readyPayment(request);
     }
 
-    private void savePayReadyStatus(PayReadyMessage message, String pid,
+    private void savePayReadyStatus(PayReadyMessage message, Long pid,
         KakaoPayReadyResponse kakaoPayReadyResponse) {
         Payment payment = Payment.ready(
             message.getOrderId(),

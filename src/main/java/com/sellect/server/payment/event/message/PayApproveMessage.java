@@ -17,6 +17,6 @@ public class PayApproveMessage {
 
     private Payment payment;
     private String token;
-    private String pid;
+    private Long pid;
 
 }

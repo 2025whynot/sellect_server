@@ -15,7 +15,7 @@ import lombok.Getter;
 public class Payment {
 
     private final Long id;
-    private final String pid;
+    private final Long pid;
     private final Long ordersId;
     private final Long userId;
     private final Integer price;
@@ -26,7 +26,7 @@ public class Payment {
 
     // API 결제 준비 단게
     // 카카오 페이로부터 받아오는 tid 저장 및 상태 저장
-    public static Payment ready(Long ordersId, String pid, Long userId, Integer price, String tid) {
+    public static Payment ready(Long ordersId, Long pid, Long userId, Integer price, String tid) {
         if (price < 0) {
             throw new CommonException(BError.PAYMENT_FAILED, "결제 금액은 0원 보다 높어야 합니다.");
         }
@@ -38,7 +38,6 @@ public class Payment {
         return Payment.builder()
             .ordersId(ordersId)
             .price(price)
-//            .uid(uid)
             .userId(userId)
             .pid(pid)
             .tid(tid)
@@ -48,14 +47,13 @@ public class Payment {
             .build();
     }
 
-    public Payment approvePayment() {
-        if (status.equals(PaymentStatus.READY)) {
+    public Payment approve() {
+        if (status == PaymentStatus.READY) {
             return Payment.builder()
                 .id(this.id)
                 .ordersId(this.ordersId)
                 .price(this.price)
                 .pid(this.pid)
-//                .uid(this.uid)
                 .userId(this.userId)
                 .status(PaymentStatus.APPROVE)
                 .tid(this.tid)
@@ -66,10 +64,9 @@ public class Payment {
         return this;
     }
 
-    public Payment failPayment() {
-        if (!status.equals(PaymentStatus.READY)) {
-            throw new CommonException(BError.FAIL_FOR_REASON, "failPayment()",
-                "PaymentStatus is not Ready");
+    public Payment failApprove() {
+        if (status != PaymentStatus.APPROVE) {
+            throw new CommonException(BError.NOT_VALID, "결제 상태가 APPROVE 아님: ");
         }
 
         return Payment.builder()
@@ -77,28 +74,25 @@ public class Payment {
             .ordersId(this.ordersId)
             .price(this.price)
             .pid(this.pid)
-//            .uid(this.uid)
             .userId(this.userId)
-            .status(PaymentStatus.FAIL)
+            .status(PaymentStatus.FAIL_APPROVE)
             .tid(this.tid)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .build();
     }
 
-    public Payment cancelPayment() {
-        if (!status.equals(PaymentStatus.READY)) {
-            throw new CommonException(BError.FAIL_FOR_REASON, "cancelPayment()",
-                "PaymentStatus is not Ready");
+    public Payment failReady() {
+        if (status != PaymentStatus.READY) {
+            throw new CommonException(BError.NOT_VALID, "결제 상태가 READY 아님: ");
         }
         return Payment.builder()
             .id(this.id)
             .ordersId(this.ordersId)
             .price(this.price)
             .pid(this.pid)
-//            .uid(this.uid)
             .userId(this.userId)
-            .status(PaymentStatus.CANCEL)
+            .status(PaymentStatus.FAIL_READY)
             .tid(this.tid)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())

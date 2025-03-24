@@ -36,7 +36,7 @@ public class FakePaymentRepository implements PaymentRepository {
     }
 
     @Override
-    public Optional<Payment> findByPid(String pid) {
+    public Optional<Payment> findByPid(Long pid) {
         return storage.values().stream()
             .filter(payment -> payment.getPid().equals(pid))
             .findFirst();

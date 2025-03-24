@@ -7,6 +7,7 @@ import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.OrderDetailGetResponse;
 import com.sellect.server.order.controller.response.OrderGetResponse;
@@ -59,7 +60,7 @@ public class OrderServiceV1Before {
 
     // 주문 결제
     @Transactional
-    public String payOrder(User user, Long orderId, Long userReceivedCouponId) {
+    public KakaoPayReadyResponse payOrder(User user, Long orderId, Long userReceivedCouponId) {
 
         // 주문 받아와서
         Orders order = ordersRepository.findById(orderId)
@@ -78,11 +79,11 @@ public class OrderServiceV1Before {
         // todo: 일단 결제 관련은 PASS
         // todo: 추후 검토 예정
         // ------------------------------- [변경사항 - 결제 요청을 이벤트 발생 (1/2)] -------------------------------
-        CompletableFuture<String> future = new CompletableFuture<>();
+        CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order,
             future);
         eventPublisher.publishEvent(kakaoPayReadyEvent);
-        String nextRedirectPcUrl = null;
+        KakaoPayReadyResponse nextRedirectPcUrl = null;
         try {
             nextRedirectPcUrl = future.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -95,7 +96,7 @@ public class OrderServiceV1Before {
     }
 
     @Transactional
-    public void approvePayment(String pid, String token) {
+    public void approvePayment(Long pid, String token) {
         // 문제 없음
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST,

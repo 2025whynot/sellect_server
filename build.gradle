@@ -57,19 +57,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.springframework.batch:spring-batch-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testRuntimeOnly 'com.h2database:h2'
-
-    // Testcontainers 의존성 추가
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:mysql"
-    testImplementation "org.springframework.boot:spring-boot-testcontainers"
-    testImplementation "org.testcontainers:testcontainers"
-
     // QueryDSL 의존성 추가
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
@@ -95,6 +82,24 @@ dependencies {
     // Kafka 의존성 추가
     implementation 'org.springframework.kafka:spring-kafka'
 
+    // tsid
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.5.1'
+    implementation 'com.github.f4b6a3:tsid-creator:5.2.6'
+
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+    testRuntimeOnly 'com.h2database:h2'
+
+    // Testcontainers 의존성 추가
+    testImplementation "org.testcontainers:junit-jupiter"
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation "org.testcontainers:mysql"
+    testImplementation "org.springframework.boot:spring-boot-testcontainers"
+    testImplementation "org.testcontainers:testcontainers"
 //	implementation 'org.flywaydb:flyway-core'
 //	implementation 'org.flywaydb:flyway-mysql'
 }

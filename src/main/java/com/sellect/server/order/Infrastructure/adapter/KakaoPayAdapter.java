@@ -1,5 +1,7 @@
 package com.sellect.server.order.Infrastructure.adapter;
 
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.order.application.OrderService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +27,9 @@ public class KakaoPayAdapter {
     public String approvePayment(
         @PathVariable String pid,
         @RequestParam("pg_token") String token) {
-        orderService.approvePayment(pid, token);
+
+        Long longPid = convertToLong(pid);
+        orderService.approvePayment(longPid, token);
         return """
             <!DOCTYPE html>
             <html lang="ko">
@@ -72,5 +76,14 @@ public class KakaoPayAdapter {
     ) {
 //        paymentService.failPayment(pid);
         return ApiResponse.ok();
+    }
+
+    private Long convertToLong(String pid) {
+        try {
+            return Long.parseLong(pid);
+        } catch (NumberFormatException e) {
+            log.error("Invalid pid format: {}", pid);
+            throw new CommonException(BError.NOT_VALID, "Invalid pid format: " + pid);
+        }
     }
 }

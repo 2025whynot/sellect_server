@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 @RequiredArgsConstructor
-public class KakaoPayClient {
+public class KakaoPayClient implements PayClient {
     @Value("${kakao.pay.secret-key}")
     private String PAY_SECRET_KEY;
     @Value("${server.host}")
@@ -29,6 +29,7 @@ public class KakaoPayClient {
     private final RestTemplate restTemplate;
 
     // ready
+    @Override
     public KakaoPayReadyResponse readyPayment(KakaoPayReadyRequest request) {
         HttpHeaders headers = createHeaders();
         HttpEntity<KakaoPayReadyRequest> readyRequest = new HttpEntity<>(request, headers);
@@ -46,6 +47,7 @@ public class KakaoPayClient {
     }
 
     // approve
+    @Override
     public KakaoPayApproveResponse paymentApprove(ApproveRequest approveRequest) {
         HttpHeaders headers = createHeaders();
         HttpEntity<ApproveRequest> request = new HttpEntity<>(approveRequest, headers);
@@ -60,7 +62,7 @@ public class KakaoPayClient {
 //        return null;
     }
 
-
+    @Override
     public KakaoPayReadyRequest createKakaoPayReadyRequest(String partnerOrderId, String partnerUserId, String itemName, Integer quantity, Integer totalAmount, String pid) {
         return KakaoPayReadyRequest.builder()
             .cid("TC0ONETIME")
@@ -85,7 +87,9 @@ public class KakaoPayClient {
 
 
     /// 리팩터링 전 버전
-    public KakaoPayReadyRequest createKakaoPayReadyRequestV0(String partnerOrderId, Long partnerUserId, String itemName, Integer quantity, Integer totalAmount, String pid) {
+    public KakaoPayReadyRequest createKakaoPayReadyRequestV0(String partnerOrderId, Long partnerUserId, String itemName, Integer quantity, Integer totalAmount, Long pid) {
+        String pidStr = String.valueOf(pid);
+
         return KakaoPayReadyRequest.builder()
             .cid("TC0ONETIME")
             .partnerOrderId(partnerOrderId)
@@ -94,14 +98,9 @@ public class KakaoPayClient {
             .quantity(quantity)                 // TODO: 주문에서 아이템 개수  2025-02-28, 16:58
             .totalAmount(totalAmount)
             .taxFreeAmount(0)
-            .approvalUrl(String.format("%s/api/v0/kakao-pay/success/%s", SERVER_HOST, pid))
+            .approvalUrl(String.format("%s/api/v0/kakao-pay/success/%s", SERVER_HOST, pidStr))
             .cancelUrl(String.format("%s/api/v0/kakao-pay/cancel", SERVER_HOST))
             .failUrl(String.format("%s/api/v0/kakao-pay/fail", SERVER_HOST))
             .build();
     }
-
-
-
-
-
 }

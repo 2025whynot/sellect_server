@@ -12,6 +12,8 @@ public interface OrdersRepository {
 
     Optional<Orders> findById(Long id);
 
+    Optional<Orders> findByIdAndStatus(Long id, OrderStatus status);
+
     List<Orders> findCompletedOrdersByUser(User user, OrderStatus status);
 
     // todo: 일단은 DB를 수정하기 보다는 비관적인 락을 통한 테스트를 진행

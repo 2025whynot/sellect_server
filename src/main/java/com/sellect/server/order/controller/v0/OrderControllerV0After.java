@@ -1,8 +1,11 @@
 package com.sellect.server.order.controller.v0;
 
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.order.application.v0.OrderServiceV0After;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +31,9 @@ public class OrderControllerV0After {
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
 
         log.info("[V0] ready!!");
-        String redirectionUrl = orderService.payOrder(user, orderId, userReceivedCouponId);
-        return ApiResponse.ok(redirectionUrl);
+        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.payOrder(user, orderId,
+            userReceivedCouponId);
+        return ApiResponse.ok(kakaoPayReadyResponse.next_redirect_pc_url());
     }
 
     // 테스트를 위해서 approve를 위해 이곳에 api url 설정
@@ -38,9 +42,13 @@ public class OrderControllerV0After {
         @PathVariable String pid,
         @RequestParam("pg_token") String token) {
 
+        Long longPid = convertToLong(pid);
+
         long threadId = Thread.currentThread().getId();
         log.info("{} - [V0] approve", threadId);
-        orderService.approvePayment(pid, token);
+
+        orderService.approvePayment(longPid, token);
+
         log.info("{} - [V0] success", threadId);
         return ApiResponse.ok(pid + "success");
     }
@@ -61,5 +69,12 @@ public class OrderControllerV0After {
         return ApiResponse.ok();
     }
 
-
+    private Long convertToLong(String pid) {
+        try {
+            return Long.parseLong(pid);
+        } catch (NumberFormatException e) {
+            log.error("Invalid pid format: {}", pid);
+            throw new CommonException(BError.NOT_VALID, "Invalid pid format: " + pid);
+        }
+    }
 }

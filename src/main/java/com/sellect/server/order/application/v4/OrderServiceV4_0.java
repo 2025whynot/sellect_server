@@ -69,7 +69,7 @@ public class OrderServiceV4_0 {
         return getRedirectUrlFromRedis(user.getId(), orderId);
     }
 
-    public void approvePayment(final String pid, final String token) {
+    public void approvePayment(final Long pid, final String token) {
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("payment %s", pid)));
 
@@ -110,7 +110,7 @@ public class OrderServiceV4_0 {
         return redirectUrl;
     }
 
-    private void processPaymentApproval(Payment payment, String pid, String token) {
+    private void processPaymentApproval(Payment payment, Long pid, String token) {
         kafkaProducer.produceWithReply("order-complete", "order-complete-reply",
                 OrderCompleteMessage.builder().payment(payment))
             .thenAccept(reply -> {
