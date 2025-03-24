@@ -26,7 +26,7 @@ public class Coupon {
     private final LocalDateTime deleteAt;
 
 
-    public void isUsable(){
+    public void isUsable() {
         if (this.quantity <= 0) {
             throw new CommonException(BError.COUPON_QUANTITY_ZERO, String.valueOf(this.id));
         }
@@ -36,6 +36,9 @@ public class Coupon {
     }
 
     public Coupon decreaseQuantity() {
+        if (quantity <= 0) {
+            throw new CommonException(BError.COUPON_QUANTITY_ZERO);
+        }
         return Coupon.builder()
             .id(this.id)
             .seller(this.seller)

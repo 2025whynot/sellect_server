@@ -69,21 +69,9 @@ public class CouponService {
         couponRepository.save(coupon);
     }
 
-    // TODO: 애플리케이션 락 vs DB 락 vs 큐 성능측정 필요 2025-02-18, 17:7
-    /*
-     * 유저 쿠폰 등록기능
-     * 쿠폰 수량 삭감 - 동시성 이슈 발생
-     * ReentrantLock을 사용하여 해결 -> 애플리케이션에서 해결
-     * 단일 인스턴스인 경우 가능한 부분
-     * 스케일 아웃을 하면?? -> DB 락????
-     * */
-
-
-    /// 문제있는 코드
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         lock.lock();
-//        log.info("[Lock]");
         try {
             Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
@@ -101,13 +89,11 @@ public class CouponService {
             couponRepository.save(decreasedCoupon);
         } finally {
             lock.unlock();
-//            log.info("[UnLock]");
         }
     }
 
     public void downloadCouponv2(User user, Long couponId) {
         lock.lock();
-//        log.info("[Lock]");
         try {
             TransactionStatus status = transactionManager.getTransaction(
                 new DefaultTransactionDefinition());
@@ -133,7 +119,6 @@ public class CouponService {
             }
         } finally {
             lock.unlock();
-//            log.info("[UnLock]");
         }
     }
 
@@ -141,7 +126,6 @@ public class CouponService {
     // 2. DB락
     @Transactional
     public void downloadCouponWithPessimisticLock(User user, Long couponId) {
-        //        log.info("[Coupon download] 비관락");
         Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
         coupon.isUsable();
@@ -172,7 +156,8 @@ public class CouponService {
                 throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
             }
             Coupon decreasedCoupon = coupon.decreaseQuantity();
-            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user, decreasedCoupon);
+            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
+                decreasedCoupon);
             userReceivedCouponRepository.save(userReceivedCoupon);
             couponRepository.save(decreasedCoupon);
 
@@ -185,6 +170,8 @@ public class CouponService {
         }
     }
 
+
+    // 만약 쿠폰 수량이랑 DB에서 찾을때 안맞으면???
     @Transactional
     public void downloadCouponWithRedis(User user, Long couponId) {
         String counterKey = "coupon:" + couponId + ":count";
@@ -199,16 +186,15 @@ public class CouponService {
         }
 
         // Redis에서 수량 감소
-        long remaining = counter.decrementAndGet();
+        long remaining = counter.get();
+        if (remaining <= 0) {
+            throw new CommonException(BError.COUPON_QUANTITY_ZERO, couponId.toString());
+        }
+        counter.decrementAndGet();
         try {
             // 수량 체크
             Coupon coupon = couponRepository.findById(couponId).orElseThrow(() ->
                 new CommonException(BError.NOT_EXIST, couponId.toString()));
-            if (remaining < 0) {
-                counter.incrementAndGet(); // 롤백
-                throw new CommonException(BError.COUPON_QUANTITY_ZERO, couponId.toString());
-            }
-            log.info("Remaining: {}", remaining);
 
             // 중복 체크
             String userIdStr = user.getId().toString();
@@ -304,8 +290,8 @@ public class CouponService {
 
     @Transactional
     public void decreaseCouponQuantity(Long couponId) {
-//        Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId).orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
-        Coupon coupon = couponRepository.findById(couponId).orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
+        Coupon coupon = couponRepository.findById(couponId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
         Coupon decreased = coupon.decreaseQuantity();
         couponRepository.save(decreased);
 
