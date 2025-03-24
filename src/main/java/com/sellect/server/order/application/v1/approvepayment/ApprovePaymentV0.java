@@ -47,7 +47,7 @@ public class ApprovePaymentV0 implements ApprovePaymentStrategy {
         Orders order;
 
         try {
-            payment = paymentRepository.findByPid(pid)
+            payment = paymentRepository.findByReadyPid(pid)
                 .orElseThrow(() -> new CommonException(
                     BError.NOT_EXIST, String.format("Payment %s", pid)));
 

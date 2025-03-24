@@ -58,4 +58,10 @@ public class FakePaymentRepository implements PaymentRepository {
         return new PageImpl<>(subList, pageable, filteredPayments.size());
     }
 
+    // todo: 테스트 코드 작성 시 구현
+    @Override
+    public Optional<Payment> findByReadyPid(Long pid) {
+        return Optional.empty();
+    }
+
 }
