@@ -36,7 +36,7 @@ public class ApprovePaymentV1 implements ApprovePaymentStrategy {
     private final PlatformTransactionManager transactionManager;
     private final ApplicationEventPublisher eventPublisher;
 
-    // 데드락에 대한 회피 방식 (정렬) -> 기아현상 발생
+    // 방법 1. 데드락에 대한 회피 방식 (정렬) -> 기아현상 발생
     @Override
     public void approvePayment(final Long pid, final String token) {
 
