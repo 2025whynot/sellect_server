@@ -37,7 +37,7 @@ class PaymentServiceTest {
             .id(1L)
 //            .uuid(USER_UUID)
             .build();
-        payment = Payment.ready(1032L, "test-pid", 1L, 1000, "test-tid");
+        payment = Payment.ready(1032L, 123L, 1L, 1000, "test-tid");
         paymentService = new PaymentService(paymentRepository);
     }
 

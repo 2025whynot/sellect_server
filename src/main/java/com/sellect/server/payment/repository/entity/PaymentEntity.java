@@ -3,6 +3,7 @@ package com.sellect.server.payment.repository.entity;
 import com.sellect.server.common.BaseTimeEntity;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.domain.PaymentStatus;
+import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -29,7 +30,8 @@ public class PaymentEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String pid;
+    @Tsid
+    private Long pid;
 
     //    private String uid;
     private Long userId;
@@ -40,15 +42,14 @@ public class PaymentEntity extends BaseTimeEntity {
     private Integer price;
 
     private String tid;
-    @Enumerated(value = EnumType.STRING)
 
+    @Enumerated(value = EnumType.STRING)
     private PaymentStatus status;
 
     public static PaymentEntity from(Payment payment) {
         return PaymentEntity.builder()
             .id(payment.getId())
             .pid(payment.getPid())
-//            .uid(payment.getUid())
             .userId(payment.getUserId())
             .ordersId(payment.getOrdersId())
             .price(payment.getPrice())
@@ -64,7 +65,6 @@ public class PaymentEntity extends BaseTimeEntity {
         return Payment.builder()
             .id(this.id)
             .pid(this.pid)
-//            .uid(this.uid)
             .userId(this.userId)
             .ordersId(this.ordersId)
             .price(this.price)

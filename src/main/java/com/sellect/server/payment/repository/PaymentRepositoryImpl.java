@@ -21,7 +21,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public Optional<Payment> findByPid(String pid) {
+    public Optional<Payment> findByPid(Long pid) {
         Optional<PaymentEntity> paymentEntity = paymentJpaRepository.findByPid(pid);
         return paymentEntity.map(PaymentEntity::toModel);
     }
