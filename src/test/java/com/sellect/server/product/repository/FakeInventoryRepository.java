@@ -2,6 +2,7 @@ package com.sellect.server.product.repository;
 
 import com.sellect.server.product.domain.Inventory;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +43,16 @@ public class FakeInventoryRepository implements InventoryRepository {
                 inventory.getProduct().getId().equals(productId))
             .filter(inventory -> inventory.getDeleteAt() == null)
             .findFirst();
+    }
+
+    @Override
+    public List<Inventory> findByProductIdsOrderByProductId(List<Long> productIds) {
+        return data.stream()
+            .filter(inventory -> inventory.getId() != null &&
+                productIds.contains(inventory.getProduct().getId()))
+            .filter(inventory -> inventory.getDeleteAt() == null)
+            .sorted(Comparator.comparingLong(inventory -> inventory.getProduct().getId()))
+            .toList();
     }
 
     @Override

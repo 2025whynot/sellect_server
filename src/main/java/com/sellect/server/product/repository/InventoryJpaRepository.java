@@ -1,6 +1,7 @@
 package com.sellect.server.product.repository;
 
 import jakarta.persistence.LockModeType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -8,7 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface InventoryJpaRepository extends JpaRepository<InventoryEntity, Long> {
 
-    Optional<InventoryEntity> findByProductEntityId(Long productId);
+
+    Optional<InventoryEntity> findByProductEntityIdAndDeleteAtIsNull(Long productId);
+
+    @Query("SELECT I FROM InventoryEntity I WHERE I.productEntity.id IN :productIds AND I.deleteAt IS NULL ORDER BY I.productEntity.id")
+    List<InventoryEntity> findByProductEntityIdInOrderByProductId(List<Long> productIds);
 
     // 비관적 락 - 읽기 가능, 수정 불가능
     @Lock(LockModeType.PESSIMISTIC_READ)
