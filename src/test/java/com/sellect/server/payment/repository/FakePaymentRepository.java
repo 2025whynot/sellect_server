@@ -17,7 +17,7 @@ public class FakePaymentRepository implements PaymentRepository {
     private long id = 1L;
 
     @Override
-    public void save(Payment payment) {
+    public Payment save(Payment payment) {
         if (payment.getId() == null) {
             payment = Payment.builder()
                 .id(id++)
@@ -33,6 +33,7 @@ public class FakePaymentRepository implements PaymentRepository {
                 .build();
         }
         storage.put(payment.getId(), payment);
+        return payment;
     }
 
     @Override
