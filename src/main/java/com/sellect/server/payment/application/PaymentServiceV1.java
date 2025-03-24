@@ -70,12 +70,10 @@ public class PaymentServiceV1 {
         boolean success = false;
         String errorMsg = null;
 
-        Payment approvePayment = event.getPayment();
-
         while (retryCount <= 1 && !success) {
             log.info("카카오페이 승인 요청 시도: retryCount={}, pid={}", retryCount, event.getPid());
             try {
-                requestKakaoPayApporve(event, approvePayment);
+                requestKakaoPayApporve(event, event.getPayment());
                 success = true;
             } catch (ResourceAccessException | HttpServerErrorException e) {
                 retryCount++;
