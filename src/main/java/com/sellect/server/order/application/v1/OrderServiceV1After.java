@@ -150,6 +150,7 @@ public class OrderServiceV1After {
 
             inventoryRepository.saveAll(deductedInventories);
             ordersRepository.save(order.completeOrder());
+            payment = paymentRepository.save(payment.approve());
 
             // 트랜잭션 커밋
             transactionManager.commit(status);

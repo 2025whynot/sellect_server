@@ -70,7 +70,7 @@ public class PaymentServiceV1 {
         boolean success = false;
         String errorMsg = null;
 
-        Payment approvePayment = saveApprovePayment(event);
+        Payment approvePayment = event.getPayment();
 
         while (retryCount <= 1 && !success) {
             log.info("카카오페이 승인 요청 시도: retryCount={}, pid={}", retryCount, event.getPid());
@@ -96,18 +96,6 @@ public class PaymentServiceV1 {
             throw new CommonException(BError.PAYMENT_FAILED, "카카오페이 결제 승인 실패: " + errorMsg);
         }
     }
-
-
-    private Payment saveApprovePayment(final KakaoPayApproveEvent event) {
-        try {
-            Payment approvePayment = event.getPayment().approve();
-            return paymentRepository.save(approvePayment);
-        } catch (DataAccessException e) {
-            log.error("결제 승인 상태 저장 실패: pid={}", event.getPid(), e);
-            throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패");
-        }
-    }
-
 
     private void createAndSavePreparedPayment(KakaoPayReadyEvent event, Long pid,
         KakaoPayReadyResponse response) {
