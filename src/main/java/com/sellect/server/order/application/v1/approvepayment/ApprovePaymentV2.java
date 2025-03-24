@@ -41,7 +41,7 @@ public class ApprovePaymentV2 implements ApprovePaymentStrategy {
 
         DefaultTransactionDefinition definition = new DefaultTransactionDefinition();
         definition.setIsolationLevel(TransactionDefinition.ISOLATION_SERIALIZABLE);
-        log.info("Isolation Level: {}", definition.getIsolationLevel()); // 확인용 로그 - 8
+//        log.info("Isolation Level: {}", definition.getIsolationLevel()); // 확인용 로그 - 8
         TransactionStatus status = transactionManager.getTransaction(definition);
 
         Payment payment;
