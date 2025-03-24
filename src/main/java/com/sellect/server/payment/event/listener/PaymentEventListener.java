@@ -19,14 +19,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class PaymentEventListener {
 
-    private final PaymentServiceV1 paymentServiceV1;
+    private final PaymentServiceV1 paymentService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Async("preparePaymentExecutor")
     @EventListener
     public void kakaoPayReadyEvent(KakaoPayReadyEvent event) {
         try {
-            KakaoPayReadyResponse response = paymentServiceV1.preparePayment(event);
+            KakaoPayReadyResponse response = paymentService.preparePayment(event);
             event.getFuture().complete(response);
         } catch (CommonException e) {
             event.getFuture().completeExceptionally(e);
@@ -45,7 +45,7 @@ public class PaymentEventListener {
     public void kakaoPayApproveEvent(final KakaoPayApproveEvent event) {
 
         try {
-            paymentServiceV1.approvePayment(event);
+            paymentService.approvePayment(event);
         } catch (Exception e) {
             log.error("카카오페이 승인 실패: pid={}, error={}", event.getPid(), e.getMessage());
             eventPublisher.publishEvent(
