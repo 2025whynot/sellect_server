@@ -1,33 +1,29 @@
 package com.sellect.server.order.application.v1;
 
 import com.sellect.server.auth.domain.User;
-import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
+import com.sellect.server.order.application.v1.approvepayment.ApprovePaymentStrategy;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.OrderDetailGetResponse;
 import com.sellect.server.order.controller.response.OrderGetResponse;
 import com.sellect.server.order.controller.response.OrderItemGetResponse;
 import com.sellect.server.order.controller.response.PendingOrderRegisterResponse;
 import com.sellect.server.order.domain.OrderItem;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
-import com.sellect.server.order.domain.OrderStatus;
-import com.sellect.server.payment.domain.Payment;
-import com.sellect.server.payment.event.KakaoPayApproveEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
-import com.sellect.server.payment.repository.PaymentRepository;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.InventoryRepository;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -51,17 +47,16 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @Slf4j
 public class OrderServiceV1After {
 
+    private final ApprovePaymentStrategy approvePaymentStrategy;
     private final OrdersRepository ordersRepository;
     private final OrderItemRepository orderItemRepository;
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     private final ProductImageRepository productImageRepository;
-    private final UserRepository userRepository;
-    private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final PlatformTransactionManager transactionManager;
 
-    // 주문 결제
+
     public KakaoPayReadyResponse preparePayment(User user, Long orderId) {
 
         // 트랜잭션 정의 및 시작
@@ -105,70 +100,10 @@ public class OrderServiceV1After {
         }
     }
 
+
     public void approvePayment(final Long pid, final String token) {
-
-        // 트랜잭션 정의 및 시작
-        TransactionDefinition definition = new DefaultTransactionDefinition();
-        TransactionStatus status = transactionManager.getTransaction(definition);
-
-        Payment payment;
-        Orders order;
-
-        try {
-            payment = paymentRepository.findByPid(pid)
-                .orElseThrow(() -> new CommonException(
-                    BError.NOT_EXIST, String.format("Payment %s", pid)));
-
-            userRepository.findById(payment.getUserId())
-                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
-
-            // todo: 추론: 낙관 (이유는 중복 결제가 현재 자주 발생하지 않을 것이라고 예상)
-            order = ordersRepository.findByIdWithPessimisticLock(payment.getOrdersId())
-                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
-
-            order.validateNotCompleted();
-
-            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
-            if (orderItems.isEmpty()) { // 서비스에 위임
-                throw new CommonException(BError.NOT_VALID, "orderId");
-            }
-
-            // todo: 일단은 기아 현상이 발생하더라도 데드락 발생을 없애고 싶음.
-            // todo: 이 부분은 튜닝이 매우 필요함!
-            List<OrderItem> sortedOrderItems = orderItems.stream()
-                .sorted(Comparator.comparing(OrderItem::getProductId)) // productId 오름차순 정렬
-                .toList();
-
-            List<Inventory> deductedInventories = sortedOrderItems.stream()
-                .map(orderItem -> {
-                    Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                            orderItem.getProductId())
-                        .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
-                    return inventory.deductStock(orderItem.getQuantity());
-                })
-                .toList();
-
-            inventoryRepository.saveAll(deductedInventories);
-            ordersRepository.save(order.completeOrder());
-            payment = paymentRepository.save(payment.approve());
-
-            // 트랜잭션 커밋
-            transactionManager.commit(status);
-        } catch (CommonException e) {
-            // 예외 발생 시 롤백
-            transactionManager.rollback(status);
-            throw e;
-        } catch (Exception e) {
-            transactionManager.rollback(status);
-            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "approvePayment() - 결제 승인 중 오류 발생");
-        }
-
-        // 트랜잭션 커밋 후 이벤트 발행
-        KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
-        eventPublisher.publishEvent(event);
+        approvePaymentStrategy.approvePayment(pid, token);
     }
-
-    // ----------------------[밑에 로직들은 핵심이 아니기에 우선순위에 배제] ---------------------------
 
     /**
      * 주문 페이지 조회용 (결제 전)
