@@ -88,7 +88,7 @@ public class PaymentEventListenerTest {
             KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, future);
 
             when(order.getTotalPrice()).thenReturn(BigDecimal.valueOf(1000L));
-            when(kakaoPayClient.readyPayment(any())).thenThrow(new CommonException(BError.KAKKO_READY_FAIL));
+            when(kakaoPayClient.readyPayment(any())).thenThrow(new CommonException(BError.KAKAO_READY_FAIL));
 
             // when
             paymentEventListener.kakaoPayReadyEvent(kakaoPayReadyEvent);
