@@ -51,4 +51,20 @@ public class Coupon {
             .build();
     }
 
+    public Coupon decreaseQuantity(int decreaseQuantity) {
+        if (quantity <= 0) {
+            throw new CommonException(BError.COUPON_QUANTITY_ZERO);
+        }
+        return Coupon.builder()
+            .id(this.id)
+            .seller(this.seller)
+            .discountCost(this.discountCost)
+            .quantity(this.quantity - decreaseQuantity)
+            .expirationDate(this.expirationDate)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
+    }
+
 }

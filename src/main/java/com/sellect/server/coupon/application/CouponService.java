@@ -12,7 +12,11 @@ import com.sellect.server.coupon.controller.response.CouponResponse;
 import com.sellect.server.coupon.controller.response.SellerInfo;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
+import com.sellect.server.coupon.event.CouponDecreaseEvent;
 import com.sellect.server.coupon.event.CouponDownloadEvent;
+import com.sellect.server.coupon.event.MemberCouponRemoveEvent;
+import com.sellect.server.coupon.infra.CouponStockOperation;
+import com.sellect.server.coupon.infra.MemberCouponStockOperation;
 import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.domain.Product;
@@ -48,12 +52,13 @@ public class CouponService {
     private static final Sort DEFAULT_SORT = Sort.by(Direction.DESC, "createdAt");
 
     private final PlatformTransactionManager transactionManager;
-
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
     private final RedissonClient redissonClient;
     private final ApplicationEventPublisher eventPublisher;
+    private final CouponStockOperation couponStockOperation;
+    private final MemberCouponStockOperation memberCouponStockOperation;
 
     // 판매자 쿠폰 등록
     public void uploadCoupon(User user, IssueCouponRequest issueCouponRequest) {
@@ -171,6 +176,7 @@ public class CouponService {
     }
 
 
+    // 문제
     // 만약 쿠폰 수량이랑 DB에서 찾을때 안맞으면???
     @Transactional
     public void downloadCouponWithRedis(User user, Long couponId) {
@@ -206,7 +212,6 @@ public class CouponService {
             // 사용자 쿠폰 저장
             UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user, coupon);
             userReceivedCouponRepository.save(userReceivedCoupon);
-
             // 이벤트 발행
             eventPublisher.publishEvent(new CouponDownloadEvent(couponId));
         } catch (Exception e) {
@@ -217,6 +222,36 @@ public class CouponService {
         }
     }
 
+    // 방향성
+    // 쿠폰을 수량만큼 삭제가 아닌, 재고에 대한 사용량을 증가하는 형식으로 수정
+    // 시퀀스
+    // 1. 트랜잭션 시작
+    // 2. 현재 다운로드가 가능한지 유효성 검사
+    // 3. 다운이 가능한 경우 Redis에 redis에 add
+    // 4. rdb의 user recceived coupon에 추가
+    // 5. 트랜잭션 커밋
+    // https://techblog.woowahan.com/2709/
+
+    @Transactional
+    public void downloadCouponWithRedisV2(User user, Long couponId) {
+        // 쿠폰 조회
+        Coupon coupon = couponRepository.findById(couponId)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, couponId.toString()));
+
+        // 인당 제고 확인
+        memberCouponStockOperation.add(couponId, user);
+        int totalUsedCount = memberCouponStockOperation.totalUsedCount(couponId, user);
+        if (totalUsedCount > coupon.getQuantity()) {
+            throw new CommonException(BError.COUPON_QUANTITY_ZERO, couponId.toString());
+        }
+        try {
+            UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user, coupon);
+            userReceivedCouponRepository.save(userReceivedCoupon);
+        } catch (Exception e) {
+            eventPublisher.publishEvent(new MemberCouponRemoveEvent(couponId, user.getId()));
+            throw e;
+        }
+    }
 
     // [사용자] 쿠폰 확인
     @Transactional(readOnly = true)

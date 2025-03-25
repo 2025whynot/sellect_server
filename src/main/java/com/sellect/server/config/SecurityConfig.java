@@ -28,6 +28,7 @@ public class SecurityConfig {
         "/api/v1/coupon/register/**",
         "/api/v0/test/**",
         "/api/v1/test/**",
+        "/api/v1/test/kafka/**"
     };
 
 

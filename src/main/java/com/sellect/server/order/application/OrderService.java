@@ -75,6 +75,7 @@ public class OrderService {
         CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
         KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order,
             future);
+
         eventPublisher.publishEvent(kakaoPayReadyEvent);
         KakaoPayReadyResponse kakaoPayReadyResponse;
         try {
@@ -93,9 +94,8 @@ public class OrderService {
         Payment payment = paymentRepository.findByPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
-
-//        User user = userRepository.findByUuid(payment.getUid()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
-        User user = userRepository.findById(payment.getUserId()).orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+        User user = userRepository.findById(payment.getUserId())
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
 
         Orders order = getOrderById(payment.getOrdersId());
         List<OrderItem> orderItems = getOrderItemsByOrderId(order.getId());
