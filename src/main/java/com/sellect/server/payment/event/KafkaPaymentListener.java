@@ -66,6 +66,6 @@ public class KafkaPaymentListener {
     }
 
     private void consumePayApproveRollbackMessage(PayApproveRollbackMessage message) {
-
+        paymentService.rollbackPayment(message.getPid());
     }
 }

@@ -65,6 +65,12 @@ public class PaymentService {
         requestKakaoPayApprove(approved, token);
     }
 
+    @Transactional
+    public void rollbackPayment(final Long pid) {
+        Payment payment = findPayment(pid);
+        savePaymentApproveFailed(payment);
+    }
+
     // === private method === //
 
     private Long generatePid() {
@@ -111,6 +117,11 @@ public class PaymentService {
         Payment approved = payment.approve();
         paymentRepository.save(approved);
         return approved;
+    }
+
+    private void savePaymentApproveFailed(Payment payment) {
+        Payment failed = payment.failApprove();
+        paymentRepository.save(failed);
     }
 
     private KakaoPayApproveResponse requestKakaoPayApprove(Payment payment, String token) {
