@@ -125,6 +125,7 @@ public class OrderServiceV4_0 {
                         .build());
                 } else {
                     log.warn("Order complete failed for orderId: {}", replyMessage.getOrderId());
+                    // 보상 트랜잭션 처리
                     kafkaProducer.produce("order-complete-failed", OrderCompleteFailedMessage.builder()
                         .orderId(payment.getOrdersId())
                         .pid(pid)

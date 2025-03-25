@@ -59,14 +59,11 @@ public class KafkaOrderListener {
 
         Orders order = findOrderNotCompleted(message.getPayment().getOrdersId());
 
-        try {
-//            processInventories(order); // v4.0
-            boolean incremented = incrementStockUsage(order.getId());// v4.1
-            if (!incremented) {
-                log.warn("Failed to increment stock usage for orderId: {}", order.getId());
-                return OrderCompleteReplyMessage.onFail(order.getId());
-            }
+//        processInventories(order); // v4.0
+        incrementStockUsage(order.getId()); // v4.1
 
+        // 보상 트랜잭션이 필요한 로직
+        try {
             saveOrderCompletedStatus(order);
             return OrderCompleteReplyMessage.onComplete(order.getId());
         } catch (Exception e) {
@@ -123,7 +120,7 @@ public class KafkaOrderListener {
     }
 
     // Redis 에서 주문한 상품의 재고 사용량을 증가 (v4.1)
-    private boolean incrementStockUsage(final Long orderId) {
+    private void incrementStockUsage(final Long orderId) {
 
         List<OrderItem> orderItems = findOrderItemsSortedByProductId(orderId);
 
@@ -140,7 +137,6 @@ public class KafkaOrderListener {
 
         // TODO: RDB에 재고 히스토리 저장
         log.info("Incremented stock usage for orderId: {}", orderId);
-        return true;
     }
 
     private List<OrderItem> findOrderItemsSortedByProductId(Long orderId) {

@@ -134,6 +134,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
                         .build());
                 } else {
                     log.warn("Order complete failed for orderId: {}", replyMessage.getOrderId());
+                    // 보상 트랜잭션 처리
                     kafkaProducer.produce("order-complete-failed", OrderCompleteFailedMessage.builder()
                         .orderId(payment.getOrdersId())
                         .pid(pid)
