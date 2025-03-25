@@ -9,7 +9,7 @@ import com.sellect.server.auth.repository.user.UserJpaRepository;
 import com.sellect.server.config.JpaConfig;
 import com.sellect.server.config.JsonConfig;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

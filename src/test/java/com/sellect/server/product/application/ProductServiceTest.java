@@ -14,7 +14,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.repository.fake.FakeOrderItemRepository;
 import com.sellect.server.product.controller.request.ImageContextCreateRequest;
 import com.sellect.server.product.controller.request.ProductModifyRequest;

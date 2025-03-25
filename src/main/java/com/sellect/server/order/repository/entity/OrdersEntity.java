@@ -3,6 +3,7 @@ package com.sellect.server.order.repository.entity;
 import com.sellect.server.auth.repository.entity.UserEntity;
 import com.sellect.server.common.BaseTimeEntity;
 import com.sellect.server.coupon.repository.entity.UserReceivedCouponEntity;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.domain.Orders;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Column;

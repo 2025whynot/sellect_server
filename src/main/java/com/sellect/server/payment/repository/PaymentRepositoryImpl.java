@@ -1,6 +1,7 @@
 package com.sellect.server.payment.repository;
 
 import com.sellect.server.payment.domain.Payment;
+import com.sellect.server.payment.domain.PaymentStatus;
 import com.sellect.server.payment.repository.entity.PaymentEntity;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -15,9 +16,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     private final PaymentJpaRepository paymentJpaRepository;
 
     @Override
-    public void save(Payment payment) {
+    public Payment save(Payment payment) {
         PaymentEntity paymentEntity = PaymentEntity.from(payment);
-        paymentJpaRepository.save(paymentEntity);
+        return paymentJpaRepository.save(paymentEntity).toModel();
     }
 
     @Override
@@ -26,16 +27,18 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         return paymentEntity.map(PaymentEntity::toModel);
     }
 
-//    @Override
-//    public Page<Payment> findPaymentHistoryByUser(String uuid, Pageable pageable) {
-//        Page<PaymentEntity> paymentEntityPage = paymentJpaRepository.findByUid(uuid, pageable);
-//        return paymentEntityPage.map(PaymentEntity::toModel);
-//    }
 
     @Override
     public Page<Payment> findPaymentHistoryByUser(Long userId, Pageable pageable) {
         Page<PaymentEntity> paymentEntityPage = paymentJpaRepository.findByUserId(userId, pageable);
         return paymentEntityPage.map(PaymentEntity::toModel);
+    }
+
+    @Override
+    public Optional<Payment> findByReadyPid(Long pid) {
+        Optional<PaymentEntity> paymentEntity = paymentJpaRepository.findByPidAndStatus(pid,
+            PaymentStatus.READY);
+        return paymentEntity.map(PaymentEntity::toModel);
     }
 
 }

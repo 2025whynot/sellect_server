@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.sellect.server.common.exception.CommonException;
-import com.sellect.server.order.repository.entity.OrderStatus;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.domain.Product;
 import java.math.BigDecimal;

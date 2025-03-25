@@ -4,7 +4,6 @@ import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
-import com.sellect.server.order.repository.entity.OrderStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;

@@ -22,7 +22,7 @@ import com.sellect.server.order.controller.response.OrderGetResponse;
 import com.sellect.server.order.controller.response.PendingOrderRegisterResponse;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.repository.fake.FakeOrderItemRepository;
 import com.sellect.server.order.repository.fake.FakeOrdersRepository;
 import com.sellect.server.payment.domain.Payment;

@@ -122,7 +122,9 @@ public class CouponController {
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponService.downloadCouponWithDistributeLock(user, couponId);
+//        couponService.downloadCouponWithDistributeLock(user, couponId);
+//        couponService.downloadCouponWithRedis(user, couponId);
+        couponService.downloadCouponWithRedisV2(user, couponId);
         return ApiResponse.ok();
     }
 
