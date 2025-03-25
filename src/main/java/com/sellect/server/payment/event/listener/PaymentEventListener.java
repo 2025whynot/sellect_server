@@ -2,7 +2,7 @@ package com.sellect.server.payment.event.listener;
 
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
-import com.sellect.server.payment.application.PaymentServiceV1;
+import com.sellect.server.payment.application.v1.PaymentServiceV1;
 import com.sellect.server.payment.event.KakaoPayApproveEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
 import com.sellect.server.payment.event.PaymentApproveFailedEvent;
@@ -22,7 +22,6 @@ public class PaymentEventListener {
     private final PaymentServiceV1 paymentService;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Async("preparePaymentExecutor")
     @EventListener
     public void kakaoPayReadyEvent(KakaoPayReadyEvent event) {
         try {

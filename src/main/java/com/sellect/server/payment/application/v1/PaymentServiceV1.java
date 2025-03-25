@@ -1,4 +1,4 @@
-package com.sellect.server.payment.application;
+package com.sellect.server.payment.application.v1;
 
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.common.exception.CommonException;
@@ -97,7 +97,6 @@ public class PaymentServiceV1 {
         }
     }
 
-
     private Payment saveApprovePayment(final KakaoPayApproveEvent event) {
         try {
             Payment approvePayment = event.getPayment().approve();
@@ -107,7 +106,6 @@ public class PaymentServiceV1 {
             throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패");
         }
     }
-
 
     private void createAndSavePreparedPayment(KakaoPayReadyEvent event, Long pid,
         KakaoPayReadyResponse response) {

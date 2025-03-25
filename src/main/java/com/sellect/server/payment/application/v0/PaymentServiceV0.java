@@ -1,4 +1,4 @@
-package com.sellect.server.payment.application;
+package com.sellect.server.payment.application.v0;
 
 import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.auth.domain.User;

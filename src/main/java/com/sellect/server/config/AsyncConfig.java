@@ -19,16 +19,16 @@ public class AsyncConfig {
         return executor;
     }
 
-    @Bean(name = "preparePaymentExecutor")
-    public ThreadPoolTaskExecutor preparePaymentExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(50);
-        executor.setThreadNamePrefix("preparePaymentExecutor AsyncThread - ");
-        executor.initialize();
-        return executor;
-    }
+//    @Bean(name = "preparePaymentExecutor")
+//    public ThreadPoolTaskExecutor preparePaymentExecutor() {
+//        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+//        executor.setCorePoolSize(5);
+//        executor.setMaxPoolSize(10);
+//        executor.setQueueCapacity(50);
+//        executor.setThreadNamePrefix("preparePaymentExecutor AsyncThread - ");
+//        executor.initialize();
+//        return executor;
+//    }
 
     @Bean(name = "approvePaymentExecutor")
     public ThreadPoolTaskExecutor approvePaymentExecutor() {

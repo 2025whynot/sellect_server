@@ -1,4 +1,4 @@
-package com.sellect.server.payment.application;
+package com.sellect.server.payment.application.v1;
 
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
