@@ -7,7 +7,7 @@ import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.OrderCompleteMessage;
 import com.sellect.server.order.event.message.OrderCompleteReplyMessage;
-import com.sellect.server.order.event.message.OrderCompleteFailedMessage;
+import com.sellect.server.order.event.message.OrderCompleteRollbackMessage;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.product.domain.Inventory;
@@ -43,10 +43,10 @@ public class KafkaOrderListener {
     }
 
     @KafkaListener(topics = {"order-complete-failed", "pay-approve-failed"},
-        groupId = "order-complete-group",
+        groupId = "order-complete-rollback-group",
         containerFactory = "orderCompleteContainerFactory")
-    public void orderCompleteFailedListener(OrderCompleteFailedMessage message) {
-        consumeOrderCompleteFailedMessage(message);
+    public void orderCompleteFailedListener(OrderCompleteRollbackMessage message) {
+        consumeOrderCompleteRollbackMessage(message);
     }
 
     // TODO: DLQ 처리 추가
@@ -72,7 +72,7 @@ public class KafkaOrderListener {
         }
     }
 
-    private void consumeOrderCompleteFailedMessage(OrderCompleteFailedMessage message) {
+    private void consumeOrderCompleteRollbackMessage(OrderCompleteRollbackMessage message) {
 
         // TODO: v4.0에서의 롤백 추가
         log.info("Processing order-complete-failed for orderId: {}", message.getOrderId());

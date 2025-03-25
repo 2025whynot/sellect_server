@@ -1,20 +1,20 @@
-package com.sellect.server.order.event.message;
+package com.sellect.server.payment.event.message;
 
+import com.sellect.server.payment.domain.Payment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCompleteFailedMessage {
+public class PayApproveRollbackMessage {
 
-    private Long orderId;
+    private Payment payment;
     private Long pid;
-    private boolean orderCompleted;
+
 }

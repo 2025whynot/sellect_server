@@ -34,6 +34,7 @@ public class KafkaConfig {
     private static final String PAY_APPROVE_GROUP = "pay-approve-group";
     private static final String PAY_APPROVE_DLQ_GROUP = "pay-approve-dlq-group";
     private static final String ORDER_COMPLETE_GROUP = "order-complete-group";
+    private static final String ORDER_COMPLETE_ROLLBACK_GROUP = "order-complete-rollback-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
     private static final String ORDER_COMPLETE_DLQ_GROUP = "order-complete-dlq-group";
     private static final Long BACK_OFF_INTERVAL = 0L;
@@ -139,6 +140,18 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteContainerFactory() {
         // 응답(order-complete-reply)이 필요하므로 KafkaTemplate을 설정
         return listenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
+    }
+
+    // (order-complete-rollback-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> orderCompleteRollbackGroupConsumer() {
+        return consumerFactory(ORDER_COMPLETE_ROLLBACK_GROUP);
+    }
+
+    // (order-complete-rollback-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteRollbackContainerFactory() {
+        return listenerContainerFactory(orderCompleteRollbackGroupConsumer(), null);
     }
 
     // (order-complete-reply-group) Consumer 설정

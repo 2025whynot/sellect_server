@@ -10,7 +10,7 @@ import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.OrderCompleteMessage;
 import com.sellect.server.order.event.message.OrderCompleteReplyMessage;
-import com.sellect.server.order.event.message.OrderCompleteFailedMessage;
+import com.sellect.server.order.event.message.OrderCompleteRollbackMessage;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
@@ -126,7 +126,7 @@ public class OrderServiceV4_0 {
                 } else {
                     log.warn("Order complete failed for orderId: {}", replyMessage.getOrderId());
                     // 보상 트랜잭션 처리
-                    kafkaProducer.produce("order-complete-failed", OrderCompleteFailedMessage.builder()
+                    kafkaProducer.produce("order-complete-failed", OrderCompleteRollbackMessage.builder()
                         .orderId(payment.getOrdersId())
                         .pid(pid)
                         .build());

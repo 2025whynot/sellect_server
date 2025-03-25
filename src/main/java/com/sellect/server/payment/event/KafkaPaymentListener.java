@@ -11,6 +11,7 @@ import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
+import com.sellect.server.payment.event.message.PayApproveRollbackMessage;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @Slf4j
 @Component
@@ -31,6 +33,7 @@ public class KafkaPaymentListener {
     private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final KafkaProducer kafkaProducer;
+    private final PlatformTransactionManager transactionManager;
 
     @KafkaListener(topics = "pay-ready", groupId = "pay-ready-group")
     public void payReadyListener(PayReadyMessage message) {
@@ -40,6 +43,11 @@ public class KafkaPaymentListener {
     @KafkaListener(topics = "pay-approve", groupId = "pay-approve-group")
     public void payApproveListener(PayApproveMessage message) {
         consumePayApproveMessage(message);
+    }
+
+    @KafkaListener(topics = "pay-approve-failed", groupId = "pay-approve-group")
+    public void payApproveFailedListener(PayApproveRollbackMessage message) {
+        consumePayApproveRollbackMessage(message);
     }
 
     // TODO: DLQ 처리 추가
@@ -60,21 +68,38 @@ public class KafkaPaymentListener {
 
     private void consumePayApproveMessage(PayApproveMessage message) {
         try {
-            paymentRepository.findByPid(message.getPid())
-                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
+            validatePaymentExists(message);
 
-            Payment approved = message.getPayment().approve();
-            paymentRepository.save(approved);
+            Payment approved = savePaymentApproved(message);
 
             // 결제 승인 요청
             requestKakaoPayApprove(message, approved);
         } catch (Exception e) {
+            // 보상 트랜잭션
             kafkaProducer.produce("pay-approve-failed", message);
         }
     }
 
+    private void consumePayApproveRollbackMessage(PayApproveRollbackMessage message) {
+        Payment payment = paymentRepository.findByPid(message.getPid())
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
+
+        paymentRepository.delete(payment);
+    }
+
     private Long generatePid() {
-        return TsidCreator.getTsid().toLong(); // TODO: tsid로 변경
+        return TsidCreator.getTsid().toLong();
+    }
+
+    private void validatePaymentExists(PayApproveMessage message) {
+        paymentRepository.findByPid(message.getPid())
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
+    }
+
+    private Payment savePaymentApproved(PayApproveMessage message) {
+        Payment approved = message.getPayment().approve();
+        paymentRepository.save(approved);
+        return approved;
     }
 
     private KakaoPayReadyResponse requestKakaoPayReady(PayReadyMessage message, Long pid) {
