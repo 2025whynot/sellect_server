@@ -20,7 +20,7 @@ public class MemberCouponStockOperation {
         RSet<String> userSet = redissonClient.getSet(userCouponKey);
         String userIdStr = user.getId().toString();
         if (!userSet.add(userIdStr)) {
-            throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+            throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
         }
     }
 

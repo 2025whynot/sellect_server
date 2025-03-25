@@ -12,7 +12,6 @@ import com.sellect.server.coupon.controller.response.CouponResponse;
 import com.sellect.server.coupon.controller.response.SellerInfo;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
-import com.sellect.server.coupon.event.CouponDecreaseEvent;
 import com.sellect.server.coupon.event.CouponDownloadEvent;
 import com.sellect.server.coupon.event.MemberCouponRemoveEvent;
 import com.sellect.server.coupon.infra.CouponStockOperation;
@@ -206,7 +205,7 @@ public class CouponService {
             String userIdStr = user.getId().toString();
             if (!userSet.add(userIdStr)) {
                 counter.incrementAndGet(); // 롤백
-                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+                throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
             }
 
             // 사용자 쿠폰 저장
