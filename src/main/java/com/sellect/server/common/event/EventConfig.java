@@ -15,7 +15,7 @@ public class EventConfig {
         return new TransactionalEventPublisher(publishers);
     }
 
-    @Bean
+    @Bean("kafkaEventPublisher")
     public EventPublisher kafkaEventPublisher(KafkaProducer kafkaProducer) {
         return new KafkaEventPublisher(kafkaProducer);
     }

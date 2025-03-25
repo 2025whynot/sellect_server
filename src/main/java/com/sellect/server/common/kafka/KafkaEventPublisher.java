@@ -1,9 +1,7 @@
 package com.sellect.server.common.kafka;
 
 import com.sellect.server.common.event.EventPublisher;
-import org.springframework.stereotype.Component;
 
-@Component("kafkaEventPublisher")
 public class KafkaEventPublisher implements EventPublisher {
     private final KafkaProducer kafkaProducer;
 
