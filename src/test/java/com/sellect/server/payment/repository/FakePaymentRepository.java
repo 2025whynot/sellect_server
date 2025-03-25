@@ -17,7 +17,7 @@ public class FakePaymentRepository implements PaymentRepository {
     private long id = 1L;
 
     @Override
-    public void save(Payment payment) {
+    public Payment save(Payment payment) {
         if (payment.getId() == null) {
             payment = Payment.builder()
                 .id(id++)
@@ -33,6 +33,7 @@ public class FakePaymentRepository implements PaymentRepository {
                 .build();
         }
         storage.put(payment.getId(), payment);
+        return payment;
     }
 
     @Override
@@ -55,6 +56,12 @@ public class FakePaymentRepository implements PaymentRepository {
         int end = Math.min((start + pageable.getPageSize()), filteredPayments.size());
         List<Payment> subList = filteredPayments.subList(start, end);
         return new PageImpl<>(subList, pageable, filteredPayments.size());
+    }
+
+    // todo: 테스트 코드 작성 시 구현
+    @Override
+    public Optional<Payment> findByReadyPid(Long pid) {
+        return Optional.empty();
     }
 
 }

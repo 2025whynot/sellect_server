@@ -84,7 +84,7 @@ public class CouponService {
             coupon.isUsable();
 
             if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
-                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+                throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
             }
 
             Coupon decreasedCoupon = coupon.decreaseQuantity();
@@ -109,7 +109,7 @@ public class CouponService {
 
                 coupon.isUsable();
                 if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
-                    throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+                    throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
                 }
                 Coupon decreasedCoupon = coupon.decreaseQuantity();
                 UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
@@ -135,7 +135,7 @@ public class CouponService {
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
         coupon.isUsable();
         if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
-            throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+            throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
         }
         Coupon decreasedCoupon = coupon.decreaseQuantity();
         UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,
@@ -158,7 +158,7 @@ public class CouponService {
             Coupon coupon = couponRepository.findById(couponId).orElseThrow();
             coupon.isUsable();
             if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
-                throw new CommonException(BError.ALREADY_RECEIVED, couponId.toString());
+                throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
             }
             Coupon decreasedCoupon = coupon.decreaseQuantity();
             UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user,

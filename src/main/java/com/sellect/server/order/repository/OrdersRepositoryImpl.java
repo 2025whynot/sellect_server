@@ -3,7 +3,7 @@ package com.sellect.server.order.repository;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.UserEntity;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.repository.entity.OrderStatus;
+import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.repository.entity.OrdersEntity;
 import java.util.List;
 import java.util.Optional;

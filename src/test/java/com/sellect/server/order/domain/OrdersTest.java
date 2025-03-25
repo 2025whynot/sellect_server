@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
-import com.sellect.server.order.repository.entity.OrderStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +114,8 @@ public class OrdersTest {
             // when & then
             CommonException exception = assertThrows(CommonException.class,
                 () -> order.completeOrder());
-            assertEquals("이미 완료된 주문입니다. is not valid", exception.getMessage());
+            assertEquals(BError.FAIL_FOR_REASON.getMessage("complete order", "order status is already COMPLETED"),
+                exception.getMessage());
         }
     }
 
@@ -178,7 +179,7 @@ public class OrdersTest {
             // when & then
             CommonException exception = assertThrows(CommonException.class,
                 () -> order.applyCoupon(usedCoupon));
-            assertEquals("이미 사용된 쿠폰입니다. is not valid", exception.getMessage());
+            assertEquals(BError.COUPON_ALREADY_USED.getMessage(String.valueOf(usedCoupon.getId())), exception.getMessage());
         }
 
         @Test
@@ -204,7 +205,7 @@ public class OrdersTest {
             // when & then
             CommonException exception = assertThrows(CommonException.class,
                 () -> order.applyCoupon(anotherUserCoupon));
-            assertEquals("쿠폰 소유자가 아닙니다. is not valid", exception.getMessage());
+            assertEquals(BError.ACCESS_DENIED.getMessage("coupon"), exception.getMessage());
         }
     }
 
@@ -239,7 +240,8 @@ public class OrdersTest {
             // when & then
             CommonException exception = assertThrows(CommonException.class,
                 () -> order.validatePending());
-            assertEquals("결제 대기 주문이 아닙니다. is not valid", exception.getMessage());
+            assertEquals(BError.FAIL_FOR_REASON.getMessage("order validation", "order status is not PENDING"),
+                exception.getMessage());
         }
 
         @Test
@@ -269,7 +271,8 @@ public class OrdersTest {
             // when & then
             CommonException exception = assertThrows(CommonException.class,
                 () -> order.validateCompleted());
-            assertEquals("주문이 완료되지 않았습니다. is not valid", exception.getMessage());
+            assertEquals(BError.FAIL_FOR_REASON.getMessage("order validation", "order status is not COMPLETED"),
+                exception.getMessage());
         }
 
         @Test
@@ -300,7 +303,7 @@ public class OrdersTest {
             // when & then
             CommonException exception = assertThrows(CommonException.class,
                 () -> order.validateOwner(anotherUser));
-            assertEquals("해당 주문에 접근 권한이 없습니다. is not valid", exception.getMessage());
+            assertEquals(BError.ACCESS_DENIED.getMessage("order"), exception.getMessage());
         }
     }
 }

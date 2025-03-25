@@ -43,7 +43,7 @@ public class FakePayClient implements PayClient {
             FAKE_PAYMENT_HOST + "/v1/payment/ready", HttpMethod.POST, readyRequest, KakaoPayReadyResponse.class);
 
         if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_READY_FAIL);
+            throw new CommonException(BError.KAKAO_READY_FAIL);
         }
 
         KakaoPayReadyResponse readyResponse = response.getBody();
@@ -71,7 +71,7 @@ public class FakePayClient implements PayClient {
 
             if (response.getStatusCode() != HttpStatus.OK) {
                 log.error("Approve 실패: status={}, body={}", response.getStatusCode(), response.getBody());
-                throw new CommonException(BError.KAKKO_APPROVE_FAIL, "Fake approve 실패");
+                throw new CommonException(BError.KAKAO_APPROVE_FAIL, "Fake approve 실패");
             }
 
             Map<String, String> responseBody = response.getBody();

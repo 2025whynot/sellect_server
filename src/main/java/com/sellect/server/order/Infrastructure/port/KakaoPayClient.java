@@ -38,10 +38,12 @@ public class KakaoPayClient implements PayClient {
             KakaoPayReadyResponse.class);
 
         if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_READY_FAIL);
+            throw new CommonException(BError.KAKAO_READY_FAIL);
         }
 
         return response.getBody();
+
+//        return new KakaoPayReadyResponse("test-tid", false, "2025-02-28T16:58:00", "https://test.com", "https://test.com", "https://test.com", "https://test.com", "");
     }
 
     // approve
@@ -53,10 +55,11 @@ public class KakaoPayClient implements PayClient {
             HttpMethod.POST, request, KakaoPayApproveResponse.class);
 
         if (response.getStatusCode() != HttpStatus.OK) {
-            throw new CommonException(BError.KAKKO_APPROVE_FAIL);
+            throw new CommonException(BError.KAKAO_APPROVE_FAIL);
         }
 
         return response.getBody();
+//        return null;
     }
 
     @Override
