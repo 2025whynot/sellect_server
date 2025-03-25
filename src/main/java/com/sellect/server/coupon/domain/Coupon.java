@@ -26,7 +26,7 @@ public class Coupon {
     private final LocalDateTime deleteAt;
 
 
-    public void isUsable(){
+    public void isUsable() {
         if (this.quantity <= 0) {
             throw new CommonException(BError.COUPON_QUANTITY_ZERO, String.valueOf(this.id));
         }
@@ -36,11 +36,30 @@ public class Coupon {
     }
 
     public Coupon decreaseQuantity() {
+        if (quantity <= 0) {
+            throw new CommonException(BError.COUPON_QUANTITY_ZERO);
+        }
         return Coupon.builder()
             .id(this.id)
             .seller(this.seller)
             .discountCost(this.discountCost)
             .quantity(this.quantity - 1)
+            .expirationDate(this.expirationDate)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .build();
+    }
+
+    public Coupon decreaseQuantity(int decreaseQuantity) {
+        if (quantity <= 0) {
+            throw new CommonException(BError.COUPON_QUANTITY_ZERO);
+        }
+        return Coupon.builder()
+            .id(this.id)
+            .seller(this.seller)
+            .discountCost(this.discountCost)
+            .quantity(this.quantity - decreaseQuantity)
             .expirationDate(this.expirationDate)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())

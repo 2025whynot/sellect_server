@@ -56,8 +56,7 @@ class CouponServiceTest {
         couponRepository = new FakeCouponRepository();
         userReceivedCouponRepository = new FakeuserReceivedCouponRepository();
         productRepository = new FakeProductRepository();
-        couponService = new CouponService(platformTransactionManager, couponRepository,
-            userReceivedCouponRepository, productRepository, redissonClient);
+        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository, redissonClient, null, null, null);
 //        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository);
     }
 

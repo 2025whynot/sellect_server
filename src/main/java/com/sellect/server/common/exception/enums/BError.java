@@ -4,8 +4,6 @@ import com.sellect.server.common.exception.util.ErrMsgUtil;
 
 // For Business Logic
 public enum BError implements Error {
-
-    // common
     REQUIRED("REQUIRED", "%1 is required"),
     NOT_EXIST("NOT_EXIST", "%1 does not exist"),
     EXIST("EXIST", "%1 already exists"),
