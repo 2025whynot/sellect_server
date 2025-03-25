@@ -22,7 +22,6 @@ public class PaymentEventListener {
     private final PaymentServiceV1 paymentService;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Async("preparePaymentExecutor")
     @EventListener
     public void kakaoPayReadyEvent(KakaoPayReadyEvent event) {
         try {
