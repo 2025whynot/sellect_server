@@ -1,6 +1,6 @@
 package com.sellect.server.payment.event.listener;
 
-import com.sellect.server.payment.application.PaymentCompensationServiceV1;
+import com.sellect.server.payment.application.v1.PaymentCompensationServiceV1;
 import com.sellect.server.payment.event.PaymentApproveFailedEvent;
 import com.sellect.server.payment.event.PaymentPrepareFailedEvent;
 import lombok.RequiredArgsConstructor;
