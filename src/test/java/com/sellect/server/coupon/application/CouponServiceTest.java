@@ -458,7 +458,7 @@ class CouponServiceTest {
             Pageable pageable = PageRequest.of(0, 5);
 
             //when
-            Page<ActiveCouponResponse> activeCouponList = couponService.getActiveCouponList(
+            Page<ActiveCouponResponse> activeCouponList = couponService.listDownloadableCouponsForUser(
                 User.builder().id(1L).role(Role.USER).build(), pageable);
 
             //then

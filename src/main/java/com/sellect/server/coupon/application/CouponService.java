@@ -315,9 +315,9 @@ public class CouponService {
     }
 
 
-    // [사용자] 등록한 쿠폰 리스트 조회
+    // [사용자] 사용자가 다운로드 가능한 쿠폰 리스트 조회
     @Transactional(readOnly = true)
-    public Page<ActiveCouponResponse> getActiveCouponList(User user, Pageable pageable) {
+    public Page<ActiveCouponResponse> listDownloadableCouponsForUser(User user, Pageable pageable) {
         Page<Coupon> activeCoupons = couponRepository.findAllActiveCouponList(pageable);
         return activeCoupons.map(coupon -> createActiveCouponResponse(user, coupon));
     }

@@ -65,7 +65,7 @@ public class CouponController {
         @AuthUser User user,
         @PageableDefault(page = 0, size = 5) Pageable pageable
     ) {
-        Page<ActiveCouponResponse> activeCouponList = couponService.getActiveCouponList(user,
+        Page<ActiveCouponResponse> activeCouponList = couponService.listDownloadableCouponsForUser(user,
             pageable);
         return ApiResponse.ok(activeCouponList);
     }

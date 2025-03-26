@@ -167,7 +167,7 @@ class CouponControllerTest {
         // 필드 설정 필요
         Page<ActiveCouponResponse> pageResult = new PageImpl<>(activeCoupons, pageable,
             activeCoupons.size());
-        when(couponService.getActiveCouponList(mockUser, pageable))
+        when(couponService.listDownloadableCouponsForUser(mockUser, pageable))
             .thenReturn(pageResult);
 
         // When & Then
