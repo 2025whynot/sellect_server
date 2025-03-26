@@ -322,7 +322,7 @@ class CouponServiceTest {
             userReceivedCouponRepository.save(usedCoupon);
 
             // when
-            List<CouponResponse> couponList = couponService.getCouponList(user, 0, 5, false);
+            List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, 0, 5, false);
 
             // then
             assertEquals(2, couponList.size());
@@ -362,7 +362,7 @@ class CouponServiceTest {
             userReceivedCouponRepository.save(userReceivedCoupon);
             userReceivedCouponRepository.save(userReceivedCoupon2);
 
-            List<CouponResponse> couponList = couponService.getCouponList(user, 0, 5, false);
+            List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, 0, 5, false);
 
             //then
             then(couponList).isEmpty();
@@ -403,7 +403,7 @@ class CouponServiceTest {
             userReceivedCouponRepository.save(userReceivedCoupon2);
 
             //when
-            List<CouponResponse> couponList = couponService.getCouponList(user, 0, 5, false);
+            List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, 0, 5, false);
 
             //then
             then(couponList.size()).isEqualTo(1);
@@ -420,7 +420,7 @@ class CouponServiceTest {
                 .build();
 
             //when
-            List<CouponResponse> couponList = couponService.getCouponList(user, 0, 5, false);
+            List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, 0, 5, false);
 
             //then
             then(couponList).isEmpty();

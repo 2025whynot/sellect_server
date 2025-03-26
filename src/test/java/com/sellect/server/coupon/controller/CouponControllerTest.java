@@ -142,7 +142,7 @@ class CouponControllerTest {
                 new CouponInfo(1L, 100, LocalDate.now().plusDays(10), new SellerInfo(2L, "seller")))
             // 필드 설정 필요
         );
-        when(couponService.getCouponList(mockUser, 0, 5, null))
+        when(couponService.listUserReceivedCoupons(mockUser, 0, 5, null))
             .thenReturn(couponList);
 
         // When & Then

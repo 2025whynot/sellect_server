@@ -54,7 +54,7 @@ public class CouponController {
     public ApiResponse<List<CouponResponse>> getCoupon(@AuthUser User user,
         @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size,
         @RequestParam(required = false) Boolean isUsed) {
-        List<CouponResponse> couponList = couponService.getCouponList(user, page, size, isUsed);
+        List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, page, size, isUsed);
         return ApiResponse.ok(couponList);
     }
 

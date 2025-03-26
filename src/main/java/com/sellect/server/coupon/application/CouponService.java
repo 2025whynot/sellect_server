@@ -252,9 +252,9 @@ public class CouponService {
         }
     }
 
-    // [사용자] 쿠폰 확인
+    // [사용자] 사용자가 다운로드한 쿠폰 확인
     @Transactional(readOnly = true)
-    public List<CouponResponse> getCouponList(User user, int page, int size, Boolean isUsed) {
+    public List<CouponResponse> listUserReceivedCoupons(User user, int page, int size, Boolean isUsed) {
         PageRequest pageRequest = PageRequest.of(page, size, DEFAULT_SORT);
 
         List<UserReceivedCoupon> receivedCoupons = (isUsed != null)
@@ -267,7 +267,7 @@ public class CouponService {
             .toList();
     }
 
-    // [사용자] 쿠폰 사용
+    // [사용자] 쿠폰이 사용가능한 상품 조회
     // TODO: 애플리케이션 로직으로 join 실행 2025-03-4, 14:25
     /*
      * 현재 동작
