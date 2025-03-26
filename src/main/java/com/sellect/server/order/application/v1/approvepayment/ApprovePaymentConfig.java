@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ApprovePaymentConfig {
 
-    @Bean
-    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV0 v0) {
-        return v0; // 기존 코드: 데드락에 대한 아무런 조치가 없음
-    }
+//    @Bean
+//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV0 v0) {
+//        return v0; // 기존 코드: 데드락에 대한 아무런 조치가 없음
+//    }
 //
 //    @Bean
 //    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV1 v1) {
@@ -25,4 +25,9 @@ public class ApprovePaymentConfig {
 //    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV3 v3) {
 //        return v3; // 방법 3. 데드락 발생 시 재시도 로직 추가
 //    }
+
+    @Bean
+    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV4 v4) {
+        return v4; // 방법 4. 레디스를 분산락으로 제어, 재고 차감은 MySQL 그대로 이용 (다만, 비관적 락을 레디스 분산락으로 변경)
+    }
 }
