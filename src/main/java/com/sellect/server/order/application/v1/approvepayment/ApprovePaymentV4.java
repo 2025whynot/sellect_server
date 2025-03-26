@@ -48,7 +48,7 @@ public class ApprovePaymentV4 implements ApprovePaymentStrategy {
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
         // 분산 락을 pid를 기반으로 설정 (중복 결제 방지)
-        RLock lock = redissonClient.getLock("lock:approvePayment:" + pid);
+        RLock lock = redissonClient.getLock("lock:approvePayment");
 
         try {
             // 락 획득 (최대 2초 대기, 2초 TTL) -> 성능 테스트용으로는 (waitTime : 10, leaseTime : 5)로 예정
