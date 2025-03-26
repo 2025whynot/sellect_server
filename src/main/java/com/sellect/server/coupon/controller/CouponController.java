@@ -74,7 +74,7 @@ public class CouponController {
     public ApiResponse<List<CouponPossibleOrderResponse>> getPossibleOrderCouponList(
         @AuthUser User user, @RequestParam("productIds") List<Long> productIds
     ) {
-        List<CouponPossibleOrderResponse> couponList = couponService.getCouponsByMatchingSeller(
+        List<CouponPossibleOrderResponse> couponList = couponService.getUsableCouponsForProducts(
             user, productIds);
         return ApiResponse.ok(couponList);
     }

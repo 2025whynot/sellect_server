@@ -185,7 +185,7 @@ class CouponControllerTest {
         List<Long> productIds = Arrays.asList(1L, 2L);
         CouponPossibleOrderResponse r1 = new CouponPossibleOrderResponse(1L, 1000, LocalDate.now().plusDays(5));
         List<CouponPossibleOrderResponse> couponList = List.of(r1);
-        when(couponService.getCouponsByMatchingSeller(any(User.class), any(List.class)))
+        when(couponService.getUsableCouponsForProducts(any(User.class), any(List.class)))
             .thenReturn(couponList);
 
         // When & Then
@@ -201,7 +201,7 @@ class CouponControllerTest {
 
             .andDo(print());
 
-        verify(couponService, times(1)).getCouponsByMatchingSeller(any(User.class),
+        verify(couponService, times(1)).getUsableCouponsForProducts(any(User.class),
             any(List.class));
     }
 }

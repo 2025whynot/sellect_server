@@ -267,7 +267,7 @@ public class CouponService {
             .toList();
     }
 
-    // [사용자] 쿠폰이 사용가능한 상품 조회
+    // [사용자] 쿠폰이 사용가능한 상품 조회 (판매자가 일치하는 쿠폰만)
     // TODO: 애플리케이션 로직으로 join 실행 2025-03-4, 14:25
     /*
      * 현재 동작
@@ -281,7 +281,7 @@ public class CouponService {
      * 3. 조인 비효율성: sellersId.contains()는 리스트 검색(O(n))으로, 데이터가 많을수록 성능 저하.
      * */
     @Transactional(readOnly = true)
-    public List<CouponPossibleOrderResponse> getCouponsByMatchingSeller(User user,
+    public List<CouponPossibleOrderResponse> getUsableCouponsForProducts(User user,
         List<Long> productIds) {
         // 1. productIds를 통해 판매자 리스트 가져오기\
 

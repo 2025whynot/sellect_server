@@ -548,7 +548,7 @@ class CouponServiceTest {
             List<Long> productIds = List.of(1L, 2L);
 
             //when
-            List<CouponPossibleOrderResponse> couponList = couponService.getCouponsByMatchingSeller(
+            List<CouponPossibleOrderResponse> couponList = couponService.getUsableCouponsForProducts(
                 user, productIds);
 
             //then
@@ -576,7 +576,7 @@ class CouponServiceTest {
             List<Long> productIds = List.of(1L, 999L); // 999L은 존재하지 않음
 
             // when & then
-            assertThatThrownBy(() -> couponService.getCouponsByMatchingSeller(user, productIds))
+            assertThatThrownBy(() -> couponService.getUsableCouponsForProducts(user, productIds))
                 .isInstanceOf(CommonException.class)
                 .hasMessageContaining("999");
         }
