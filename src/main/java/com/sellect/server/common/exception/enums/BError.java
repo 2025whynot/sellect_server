@@ -41,7 +41,11 @@ public enum BError implements Error {
     COMPENSATION_FAILED("COMPENSATION_FAILED", "%1"),
 
     // lock
-    LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock acquisition failed for %1"),;
+    LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock acquisition failed for %1"),
+
+    // stock
+    OUT_OF_STOCK("OUT_OF_STOCK", "%1");
+
 
     private final String errCode;
     private final String msg;

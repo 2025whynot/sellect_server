@@ -1,0 +1,141 @@
+package com.sellect.server.order.application.v1.approvepayment;
+
+import com.github.f4b6a3.tsid.TsidCreator;
+import com.sellect.server.auth.repository.user.UserRepository;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.order.application.v1.approvepayment.v5.RedisStockService;
+import com.sellect.server.order.application.v1.approvepayment.v5.StockDeductionResult;
+import com.sellect.server.order.application.v1.approvepayment.v5.StockSyncService;
+import com.sellect.server.order.domain.OrderItem;
+import com.sellect.server.order.domain.Orders;
+import com.sellect.server.order.repository.OrderItemRepository;
+import com.sellect.server.order.repository.OrdersRepository;
+import com.sellect.server.payment.domain.Payment;
+import com.sellect.server.payment.event.KakaoPayApproveEvent;
+import com.sellect.server.payment.repository.PaymentRepository;
+import com.sellect.server.product.repository.StockHistoryEntity;
+import com.sellect.server.product.repository.StockHistoryJpaRepository;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ApprovePaymentV5 implements ApprovePaymentStrategy {
+
+    private final UserRepository userRepository;
+    private final OrdersRepository ordersRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final PaymentRepository paymentRepository;
+    private final StockHistoryJpaRepository stockHistoryJpaRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final ApplicationEventPublisher eventPublisher;
+    private final StockSyncService stockSyncService;
+    private final RedissonClient redissonClient;
+    private final RedisStockService redisStockService;
+
+    private static final String PID_KEY_PREFIX = "lock:approvePayment:";
+
+    // 방법 5. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용
+    @Override
+    public void approvePayment(final Long pid, final String token) {
+        Payment payment = paymentRepository.findByReadyPid(pid)
+            .orElseThrow(
+                () -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
+
+        userRepository.findById(payment.getUserId())
+            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
+
+        // pid별 락으로 중복 결제 방지
+        RLock pidLock = redissonClient.getLock(PID_KEY_PREFIX + pid);
+        try {
+            // 락 획득 (최대 2초 대기, 2초 TTL) -> 성능 테스트용으로는 (waitTime : 10, leaseTime : 5)로 예정
+            if (!pidLock.tryLock(2, 2, TimeUnit.SECONDS)) {
+                throw new CommonException(BError.TIMEOUT, "Failed to acquire lock");
+            }
+
+            Orders order = ordersRepository.findById(payment.getOrdersId())
+                .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
+            order.validateNotCompleted();
+
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
+            if (orderItems.isEmpty()) {
+                throw new CommonException(BError.NOT_VALID, "orderId");
+            }
+
+            // productId별 멀티 락 생성
+            RLock[] locks = orderItems.stream()
+                .map(item -> redissonClient.getLock("lock:stock:" + item.getProductId()))
+                .distinct() // 중복 productId 제거
+                .toArray(RLock[]::new);
+            RLock multiLock = redissonClient.getMultiLock(locks);
+
+            try {
+                if (!multiLock.tryLock(2, 2, TimeUnit.SECONDS)) {
+                    throw new CommonException(BError.TIMEOUT, "Failed to acquire multi-lock");
+                }
+
+                stockSyncService.preloadStocksIfNeeded(orderItems);
+
+                StockDeductionResult result = redisStockService.tryDeductStocks(orderItems);
+                if (!result.isSuccess()) {
+                    result.rollbackIfNeeded();
+                    throw new CommonException(BError.OUT_OF_STOCK, "Insufficient stock");
+                }
+
+                // 트랜잭션 시작
+                TransactionStatus status = transactionManager.getTransaction(
+                    new DefaultTransactionDefinition());
+                try {
+                    for (OrderItem item : orderItems) {
+                        StockHistoryEntity history = StockHistoryEntity.builder()
+                            .id(generatePid())
+                            .userId(payment.getUserId())
+                            .productId(item.getProductId())
+                            .quantity(item.getQuantity())
+                            .build();
+                        stockHistoryJpaRepository.save(history);
+                    }
+                    ordersRepository.save(order.completeOrder());
+                    transactionManager.commit(status); // 트랜잭션 커밋
+                } catch (Exception e) {
+                    transactionManager.rollback(status);
+                    result.forceRollback(); // DB 실패 시 Redis 재고 복구
+                    throw new CommonException(BError.INTERNAL_SERVER_ERROR,
+                        "approvePayment() - 결제 승인 중 오류 발생");
+                }
+            } finally {
+                if (multiLock.isHeldByCurrentThread()) {
+                    multiLock.unlock();
+                }
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // 인터럽트 상태 복원
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR,
+                "Interrupted while acquiring lock");
+        } finally {
+            if (pidLock.isHeldByCurrentThread()) {
+                pidLock.unlock();
+            }
+        }
+        // 트랜잭션 커밋 후 이벤트 발행
+        KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
+        eventPublisher.publishEvent(event);
+
+    }
+
+    private Long generatePid() {
+        return TsidCreator.getTsid().toLong();
+    }
+
+}
