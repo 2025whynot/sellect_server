@@ -25,4 +25,14 @@ public class ApprovePaymentConfig {
 //    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV3 v3) {
 //        return v3; // 방법 3. 데드락 발생 시 재시도 로직 추가
 //    }
+//
+//    @Bean
+//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV4 v4) {
+//        return v4; // 방법 4. 레디스를 분산락으로 제어, 재고 차감은 MySQL 그대로 이용 (다만, 비관적 락을 레디스 분산락으로 변경)
+//    }
+//
+//    @Bean
+//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV5 v5) {
+//        return v5; // 방법 5. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용 (Multi 락)
+//    }
 }
