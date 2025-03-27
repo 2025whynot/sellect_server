@@ -51,16 +51,16 @@ public class OrderV1ScenarioTestController {
      * 결제요청 테스트용 api
      * */
     @PostMapping("/order/payment/{orderId}/ready/{userId}")
-    public ApiResponse<String> readyPaymentTest(@PathVariable Long orderId,
-        @PathVariable Long userId,
-        @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
+    public ApiResponse<String> readyPaymentTest(@PathVariable String orderId,
+        @PathVariable Long userId) {
 
         log.info("[V1] ready!!");
         User user = User.builder()
             .id(userId)
             .build();
 
-        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.preparePayment(user, orderId);
+        KakaoPayReadyResponse kakaoPayReadyResponse = orderService.preparePayment(user,
+            Long.valueOf(orderId));
         // [TODO: 성능 테스트를 위해서 어쩔 수 없이 추가했어야 함. 배포시 삭제해야함]
         FakePayClient.triggerInProgress(kakaoPayReadyResponse.tid(), kakaoPayReadyResponse.next_redirect_pc_url());
         return ApiResponse.ok(kakaoPayReadyResponse.next_redirect_pc_url());

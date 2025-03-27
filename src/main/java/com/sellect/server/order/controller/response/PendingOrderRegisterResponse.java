@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record PendingOrderRegisterResponse(
-    Long orderId
+    String orderId
 ) {
 
 }
