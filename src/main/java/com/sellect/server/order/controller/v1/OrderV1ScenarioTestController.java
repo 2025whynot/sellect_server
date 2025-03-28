@@ -76,6 +76,7 @@ public class OrderV1ScenarioTestController {
     @PostMapping("/order/payment/in-progress/{pid}")
     public ApiResponse<Boolean> inProgressPaymentTest(@PathVariable Long pid) {
 
+        log.info("[V1] In-progress");
         FakePayClient.triggerInProgressTest(pid);
         return ApiResponse.ok(true);
     }
