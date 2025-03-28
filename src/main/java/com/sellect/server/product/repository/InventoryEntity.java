@@ -60,4 +60,15 @@ public class InventoryEntity extends BaseTimeEntity {
             .deleteAt(this.getDeleteAt())
             .build();
     }
+
+    public Inventory updateStock(Integer stock) {
+        return Inventory.builder()
+            .id(this.id)
+            .product(this.productEntity.toModel())
+            .stock(stock)
+            .createdAt(this.getCreatedAt())
+            .updatedAt(this.getUpdatedAt())
+            .deleteAt(this.getDeleteAt())
+            .build();
+    }
 }

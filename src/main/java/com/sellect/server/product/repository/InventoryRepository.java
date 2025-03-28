@@ -22,4 +22,5 @@ public interface InventoryRepository {
 
     //
     List<Inventory> saveAll(List<Inventory> inventories);
+
 }
