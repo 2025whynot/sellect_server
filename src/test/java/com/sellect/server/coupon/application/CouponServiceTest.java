@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.coupon.application.v3.CouponDownloadWithRedisSet;
 import com.sellect.server.coupon.controller.request.IssueCouponRequest;
 import com.sellect.server.coupon.controller.response.ActiveCouponResponse;
 import com.sellect.server.coupon.controller.response.CouponPossibleOrderResponse;
@@ -56,8 +57,9 @@ class CouponServiceTest {
         couponRepository = new FakeCouponRepository();
         userReceivedCouponRepository = new FakeuserReceivedCouponRepository();
         productRepository = new FakeProductRepository();
-        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository, redissonClient, null, null, null);
+//        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository, redissonClient, null, null, null);
 //        couponService = new CouponService(platformTransactionManager, couponRepository, userReceivedCouponRepository, productRepository);
+        couponService = new CouponDownloadWithRedisSet(couponRepository, userReceivedCouponRepository, productRepository, couponRepository, userReceivedCouponRepository, productRepository, redissonClient, null, null);
     }
 
 

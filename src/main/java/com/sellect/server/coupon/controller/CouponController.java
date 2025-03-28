@@ -6,12 +6,16 @@ import com.sellect.server.common.infrastructure.annotation.AuthSeller;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.coupon.application.CouponService;
+import com.sellect.server.coupon.application.v1.CouponDownloadWithDistributedLock;
+import com.sellect.server.coupon.application.v1.CouponDownloadWithPessimisticLock;
+import com.sellect.server.coupon.application.v1.CouponDownloadWithReentrantLock;
+import com.sellect.server.coupon.application.v2.CouponDownloadWithRedisAndEvent;
+import com.sellect.server.coupon.application.v3.CouponDownloadWithRedisSet;
 import com.sellect.server.coupon.controller.request.IssueCouponRequest;
 import com.sellect.server.coupon.controller.response.ActiveCouponResponse;
 import com.sellect.server.coupon.controller.response.CouponPossibleOrderResponse;
 import com.sellect.server.coupon.controller.response.CouponResponse;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,10 +32,28 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/coupon")
-@RequiredArgsConstructor
 public class CouponController {
 
     private final CouponService couponService;
+    private final CouponService couponServiceWithDb;
+    private final CouponService couponServiceV1;
+    private final CouponService couponServiceV2;
+    private final CouponService couponServiceV3;
+
+
+    public CouponController(
+        CouponDownloadWithReentrantLock couponDownloadWithReentrantLock,
+        CouponDownloadWithPessimisticLock couponDownloadWithPessimisticLock,
+        CouponDownloadWithDistributedLock couponDownloadWithDistributedLock,
+        CouponDownloadWithRedisAndEvent couponServiceWithRedisAndEvent,
+        CouponDownloadWithRedisSet couponServiceWithRedisSet) {
+
+        this.couponService = couponDownloadWithReentrantLock;
+        this.couponServiceWithDb = couponDownloadWithPessimisticLock;
+        this.couponServiceV1 = couponDownloadWithDistributedLock;
+        this.couponServiceV2 = couponServiceWithRedisAndEvent;
+        this.couponServiceV3 = couponServiceWithRedisSet;
+    }
 
     @PostMapping("/issue")
     public ApiResponse<?> issueCoupon(
@@ -54,7 +76,8 @@ public class CouponController {
     public ApiResponse<List<CouponResponse>> getCoupon(@AuthUser User user,
         @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size,
         @RequestParam(required = false) Boolean isUsed) {
-        List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, page, size, isUsed);
+        List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, page, size,
+            isUsed);
         return ApiResponse.ok(couponList);
     }
 
@@ -65,7 +88,8 @@ public class CouponController {
         @AuthUser User user,
         @PageableDefault(page = 0, size = 5) Pageable pageable
     ) {
-        Page<ActiveCouponResponse> activeCouponList = couponService.listDownloadableCouponsForUser(user,
+        Page<ActiveCouponResponse> activeCouponList = couponService.listDownloadableCouponsForUser(
+            user,
             pageable);
         return ApiResponse.ok(activeCouponList);
     }
@@ -86,12 +110,10 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
-//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponService.downloadCouponv2(user, couponId);
+        couponService.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -103,11 +125,11 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponService.downloadCouponWithPessimisticLock(user, couponId);
+
+        couponServiceWithDb.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -118,14 +140,39 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-//        couponService.downloadCouponWithDistributeLock(user, couponId);
-//        couponService.downloadCouponWithRedis(user, couponId);
-        couponService.downloadCouponWithRedisV2(user, couponId);
+        couponServiceV1.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
 
+    // Redis
+    //
+    @PutMapping("/register/{couponId}/redis/{userId}/v2")
+    public ApiResponse<?> downloadCouponWithRedisV2(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
+        User user = User.builder()
+            .id(userId)
+            .nickname("test" + userId)
+            .role(Role.USER)
+            .build();
+        couponServiceV2.downloadCoupon(user, couponId);
+        return ApiResponse.ok();
+    }
+
+
+    // Redis
+    //
+    @PutMapping("/register/{couponId}/redis/{userId}/v3")
+    public ApiResponse<?> downloadCouponWithRedisV3(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
+        User user = User.builder()
+            .id(userId)
+            .nickname("test" + userId)
+            .role(Role.USER)
+            .build();
+        couponServiceV3.downloadCoupon(user, couponId);
+        return ApiResponse.ok();
+    }
 }
