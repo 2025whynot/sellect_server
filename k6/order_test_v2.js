@@ -1,9 +1,10 @@
 import http from 'k6/http';
-import { check } from 'k6';
+import { sleep, check } from 'k6';
 
 export const options = {
-  vus: 1,
-  iterations: 1,
+  vus: 500,
+  // iterations: 1,
+  duration: '120s', // 테스트 기간
   tags: {
     name: '', // 기본 태그 비활성화
   },
@@ -47,6 +48,8 @@ export default function () {
 
   check(orderResponse, { 'order created': (r) => r.status === 200 });
 
+  sleep(0.1); // 100ms 대기 후 다음 반복
+
   const response = orderResponse.json();
   const orderId = BigInt(response.result.order_id);
 
@@ -74,4 +77,6 @@ export default function () {
   );
 
   check(approveResponse, { 'payment approve': (r) => r.status === 200 });
+
+  sleep(0.1); // 100ms 대기 후 다음 반복
 }
