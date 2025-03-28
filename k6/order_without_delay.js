@@ -6,7 +6,7 @@ export const options = {
   duration: '30s', // 테스트 기간
 };
 
-const BASE_URL = 'http://localhost:8080'; // 실제 API 베이스 URL로 변경 필요
+const BASE_URL = 'http://172.16.24.78:8080'; // 실제 API 베이스 URL로 변경 필요
 
 // 랜덤 userId 생성 함수 (2001~4000)
 function getRandomUserId() {
@@ -68,6 +68,10 @@ export default function () {
       }
   );
 
+  const response2 = paymentResponse.json();
+  const pid = BigInt(response2.result); // 수정된 부분: result.order_id로 접근
+  console.log(`Order created - Order ID: ${orderId}`);
+
   const paymentCheck = check(paymentResponse, {
     'payment ready': (r) => r.status === 200,
   });
@@ -77,4 +81,16 @@ export default function () {
   } else {
     console.log(`Payment succeeded - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
   }
+
+  const approveResponse = http.post(
+      `${BASE_URL}/api/v1/test/order/payment/in-progress/${pid}`,
+      null,
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+  );
+
+  const approveCheck = check(approveResponse, {
+    'payment approve': (r) => r.status === 200,
+  });
 }
