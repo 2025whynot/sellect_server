@@ -2,8 +2,8 @@ import http from 'k6/http';
 import { check } from 'k6';
 
 export const options = {
-  vus:10, // 가상 유저 수
-  duration: '30s', // 테스트 기간
+  vus:300, // 가상 유저 수
+  duration: '180s', // 테스트 기간
 };
 
 const BASE_URL = 'http://172.16.24.78:8080'; // 실제 API 베이스 URL로 변경 필요
@@ -50,14 +50,14 @@ export default function () {
     'order created': (r) => r.status === 200,
   });
 
-  if (!orderCheck) {
-    console.log(`Order failed - Status: ${orderResponse.status}, Body: ${orderResponse.body}`);
-    return; // 주문 실패 시 종료
-  }
+  // if (!orderCheck) {
+  //   console.log(`Order failed - Status: ${orderResponse.status}, Body: ${orderResponse.body}`);
+  //   return; // 주문 실패 시 종료
+  // }
 
   const response = orderResponse.json();
   const orderId = BigInt(response.result.order_id); // 수정된 부분: result.order_id로 접근
-  console.log(`Order created - Order ID: ${orderId}`);
+  // console.log(`Order created - Order ID: ${orderId}`);
 
   // 결제 API 호출
   const paymentResponse = http.post(
@@ -70,17 +70,16 @@ export default function () {
 
   const response2 = paymentResponse.json();
   const pid = BigInt(response2.result); // 수정된 부분: result.order_id로 접근
-  console.log(`Order created - Order ID: ${orderId}`);
 
   const paymentCheck = check(paymentResponse, {
     'payment ready': (r) => r.status === 200,
   });
 
-  if (!paymentCheck) {
-    console.log(`Payment failed - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
-  } else {
-    console.log(`Payment succeeded - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
-  }
+  // if (!paymentCheck) {
+  //   console.log(`Payment failed - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
+  // } else {
+  //   console.log(`Payment succeeded - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
+  // }
 
   const approveResponse = http.post(
       `${BASE_URL}/api/v1/test/order/payment/in-progress/${pid}`,
