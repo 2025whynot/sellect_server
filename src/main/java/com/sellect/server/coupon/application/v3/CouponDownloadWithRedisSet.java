@@ -6,6 +6,7 @@ import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.coupon.application.CouponService;
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
+import com.sellect.server.coupon.event.CouponOutOfStockEvent;
 import com.sellect.server.coupon.event.MemberCouponRemoveEvent;
 import com.sellect.server.coupon.infra.MemberCouponStockOperation;
 import com.sellect.server.coupon.repository.CouponRepository;
@@ -67,6 +68,7 @@ public class CouponDownloadWithRedisSet extends CouponService {
         try {
             int totalUsedCount = memberCouponStockOperation.totalUsedCount(couponId, user);
             if (totalUsedCount > coupon.getQuantity()) {
+                eventPublisher.publishEvent(new CouponOutOfStockEvent(coupon));
                 throw new CommonException(BError.COUPON_QUANTITY_ZERO, couponId.toString());
             }
             UserReceivedCoupon userReceivedCoupon = UserReceivedCoupon.create(user, coupon);

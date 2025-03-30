@@ -151,5 +151,10 @@ public abstract class CouponService {
             SellerInfo.from(coupon.getSeller().getId(), coupon.getSeller().getNickname())
         );
     }
+
+    public void couponOutOfStock(Coupon coupon) {
+        Coupon OutOfStockCoupon =  coupon.outOfStock();
+        couponRepository.save(OutOfStockCoupon);
+    }
 }
 

@@ -34,8 +34,13 @@ public class CouponEventListener {
     @Async
     @EventListener
     public void handleCouponQuantityDecreaseEvent(CouponDecreaseEvent event) {
-        log.info("handleCouponQuantityDecreaseEvent");
         couponStockOperation.decreaseStock(event.getCouponId());
+    }
+
+    @Async
+    @EventListener
+    public void handleCouponOutOfStockEvent(CouponOutOfStockEvent event) {
+        couponService.couponOutOfStock(event.getCoupon());
     }
 
     @Async

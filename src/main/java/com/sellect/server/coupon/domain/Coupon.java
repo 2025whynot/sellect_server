@@ -49,6 +49,7 @@ public class Coupon {
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .deleteAt(this.deleteAt)
+            .couponStatus(this.couponStatus)
             .build();
     }
 
@@ -65,6 +66,7 @@ public class Coupon {
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .deleteAt(this.deleteAt)
+            .couponStatus(this.couponStatus)
             .build();
     }
 
@@ -74,5 +76,19 @@ public class Coupon {
 
     private boolean isExpired(){
         return this.expirationDate.isBefore(LocalDate.now());
+    }
+
+    public Coupon outOfStock() {
+        return Coupon.builder()
+            .id(this.id)
+            .seller(this.seller)
+            .discountCost(this.discountCost)
+            .quantity(this.quantity)
+            .expirationDate(this.expirationDate)
+            .createdAt(this.createdAt)
+            .updatedAt(LocalDateTime.now())
+            .deleteAt(this.deleteAt)
+            .couponStatus(CouponStatus.OUT_OF_STOCK)
+            .build();
     }
 }
