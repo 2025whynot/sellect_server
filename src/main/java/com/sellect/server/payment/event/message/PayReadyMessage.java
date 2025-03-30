@@ -15,6 +15,7 @@ public class PayReadyMessage {
 
     private Long userId;
     private Long orderId;
+    private Long userReceivedCouponId;
     private int totalPrice;
 
 }

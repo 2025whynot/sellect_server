@@ -1,24 +1,12 @@
 package com.sellect.server.payment.event;
 
-import com.github.f4b6a3.tsid.TsidCreator;
-import com.sellect.server.common.exception.CommonException;
-import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.kafka.KafkaProducer;
-import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
-import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
-import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
-import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.application.PaymentService;
-import com.sellect.server.payment.controller.request.ApproveRequest;
-import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.message.PayApproveMessage;
 import com.sellect.server.payment.event.message.PayApproveRollbackMessage;
 import com.sellect.server.payment.event.message.PayReadyMessage;
-import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -53,7 +41,7 @@ public class KafkaPaymentListener {
     // === private method === //
 
     private void consumePayReadyMessage(PayReadyMessage message) {
-        paymentService.preparePayment(message.getOrderId(), message.getUserId(), message.getTotalPrice());
+        paymentService.preparePayment(message.getUserId(), message.getOrderId(), message.getTotalPrice());
     }
 
     private void consumePayApproveMessage(PayApproveMessage message) {

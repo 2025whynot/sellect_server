@@ -37,7 +37,7 @@ spring:
 server:
   host: ${HOST_URL}
   tomcat:
-    accept-count: 800
+    accept-count: 10000
 
 jwt:
   secret: ${JWT_SECRET}  # JWT 시크릿 키 설정

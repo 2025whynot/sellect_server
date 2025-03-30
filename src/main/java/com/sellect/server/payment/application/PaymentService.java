@@ -4,15 +4,14 @@ import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
-import com.sellect.server.order.Infrastructure.port.KakaoPayClient;
+import com.sellect.server.common.kafka.KafkaProducer;
+import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.controller.response.PaymentHistoryResponse;
 import com.sellect.server.payment.domain.Payment;
-import com.sellect.server.payment.event.message.PayApproveMessage;
-import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -31,9 +30,10 @@ public class PaymentService {
 
     private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
 
-    private final KakaoPayClient kakaoPayClient;
+    private final PayClient payClient;
     private final PaymentRepository paymentRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final KafkaProducer kafkaProducer;
 
     @Transactional(readOnly = true)
     public List<PaymentHistoryResponse> getPaymentHistory(User user, Pageable pageable) {
@@ -47,7 +47,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void preparePayment(final Long orderId, final Long userId, final int totalPrice) {
+    public void preparePayment(final Long userId, final Long orderId , final int totalPrice) {
         Long pid = generatePid();
         KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(pid, orderId, userId, totalPrice);
 
@@ -78,7 +78,7 @@ public class PaymentService {
     }
 
     private KakaoPayReadyResponse requestKakaoPayReady(Long pid, Long orderId, Long userId, int totalPrice) {
-        KakaoPayReadyRequest request = kakaoPayClient.createKakaoPayReadyRequest(
+        KakaoPayReadyRequest request = payClient.createKakaoPayReadyRequest(
             String.valueOf(orderId),
             String.valueOf(userId),
             "test",
@@ -86,7 +86,7 @@ public class PaymentService {
             totalPrice,
             String.valueOf(pid)
         );
-        return kakaoPayClient.readyPayment(request);
+        return payClient.readyPayment(request);
     }
 
     private void savePayReadyStatus(Long pid, Long orderId, Long userId, int totalPrice,
@@ -129,12 +129,12 @@ public class PaymentService {
             .cid("TC0ONETIME")
             .tid(payment.getTid())
             .partnerOrderId(String.valueOf(payment.getOrdersId()))
-//            .partnerUserId(approvePayment.getUid())
+            .partnerUserId(String.valueOf(payment.getUserId()))
             .partnerUserId(String.valueOf(payment.getUserId()))
             .pgToken(token)
             .build();
 
-        return kakaoPayClient.paymentApprove(approveRequest);
+        return payClient.paymentApprove(approveRequest);
     }
 
 }

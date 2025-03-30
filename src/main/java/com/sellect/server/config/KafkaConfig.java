@@ -37,8 +37,8 @@ public class KafkaConfig {
     private static final String ORDER_COMPLETE_ROLLBACK_GROUP = "order-complete-rollback-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
     private static final String ORDER_COMPLETE_DLQ_GROUP = "order-complete-dlq-group";
-    private static final Long BACK_OFF_INTERVAL = 0L;
-    private static final Long MAX_ATTEMPTS = 0L;
+    private static final Integer BACK_OFF_INTERVAL = 0;
+    private static final Integer MAX_ATTEMPTS = 0;
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String BOOTSTRAP_SERVERS;

@@ -14,6 +14,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OrderCompleteMessage {
 
+    private Long orderId;
+    private Long pid;
+    private String token;
     private Payment payment;
 
 }
