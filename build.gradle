@@ -81,6 +81,7 @@ dependencies {
 
     // Kafka 의존성 추가
     implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'software.amazon.msk:aws-msk-iam-auth:2.0.3'
 
     // tsid
     implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.5.1'

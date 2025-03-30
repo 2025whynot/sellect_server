@@ -12,7 +12,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCompleteFailedMessage {
+public class OrderCompleteRollbackMessage {
 
     private Long orderId;
     private Long pid;

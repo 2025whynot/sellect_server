@@ -8,12 +8,8 @@ import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.order.domain.Orders;
-import com.sellect.server.order.event.message.OrderCompleteMessage;
-import com.sellect.server.order.event.message.OrderCompleteReplyMessage;
-import com.sellect.server.order.event.message.OrderCompleteFailedMessage;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.domain.Payment;
-import com.sellect.server.payment.event.message.PayApproveMessage;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.payment.repository.PaymentRepository;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +72,7 @@ public class OrderServiceV4_0 {
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "user id"));
 
-        processPaymentApproval(payment, pid, token);
+//        processPaymentApproval(payment, pid, token);
     }
 
     // === private methods === //
@@ -108,32 +104,5 @@ public class OrderServiceV4_0 {
             log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey, redirectUrl);
         }
         return redirectUrl;
-    }
-
-    private void processPaymentApproval(Payment payment, Long pid, String token) {
-        kafkaProducer.produceWithReply("order-complete", "order-complete-reply",
-                OrderCompleteMessage.builder().payment(payment))
-            .thenAccept(reply -> {
-                OrderCompleteReplyMessage replyMessage = (OrderCompleteReplyMessage) reply;
-
-                if (Boolean.TRUE.equals(replyMessage.getOrderCompleted())) {
-                    log.info("Order complete processed successfully for orderId: {}", replyMessage.getOrderId());
-                    kafkaProducer.produce("pay-approve", PayApproveMessage.builder()
-                        .payment(payment)
-                        .pid(pid)
-                        .token(token)
-                        .build());
-                } else {
-                    log.warn("Order complete failed for orderId: {}", replyMessage.getOrderId());
-                    kafkaProducer.produce("order-complete-failed", OrderCompleteFailedMessage.builder()
-                        .orderId(payment.getOrdersId())
-                        .pid(pid)
-                        .build());
-                }
-            })
-            .exceptionally(throwable -> {
-                log.error("Failed to process payment approval for orderId: {}", payment.getOrdersId(), throwable);
-                return null;
-            });
     }
 }

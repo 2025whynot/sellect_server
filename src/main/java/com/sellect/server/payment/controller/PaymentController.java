@@ -12,18 +12,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/payment")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @GetMapping("/history")
+    @GetMapping("/payment/history")
     public ApiResponse<List<PaymentHistoryResponse>> getPaymentHistory(
         @AuthUser User user,
         @PageableDefault(page = 0, size = 5, sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
@@ -32,5 +34,21 @@ public class PaymentController {
         return ApiResponse.ok(paymentHistory);
     }
 
+    @GetMapping("/payment/kakao-pay/success/{pid}")
+    public ApiResponse<String> approvePayment(
+        @PathVariable String pid,
+        @RequestParam(value = "pg_token") String token) {
+        paymentService.initPaymentApproval(Long.valueOf(pid), token);
+        return ApiResponse.ok(pid + "success");
+    }
+
+    // === test 용 === //
+    @GetMapping("/test/payment/kakao-pay/success/{pid}")
+    public ApiResponse<String> approvePaymentForTest(
+        @PathVariable String pid,
+        @RequestParam(value = "pg_token", defaultValue = "test") String token) {
+        paymentService.initPaymentApproval(Long.valueOf(pid), token);
+        return ApiResponse.ok(pid + "success");
+    }
 
 }

@@ -8,21 +8,23 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Builder
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Payment {
 
-    private final Long id;
-    private final Long pid;
-    private final Long ordersId;
-    private final Long userId;
-    private final Integer price;
-    private final String tid;
-    private final PaymentStatus status;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private Long id;
+    private Long pid;
+    private Long ordersId;
+    private Long userId;
+    private Integer price;
+    private String tid;
+    private PaymentStatus status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     // API 결제 준비 단게
     // 카카오 페이로부터 받아오는 tid 저장 및 상태 저장

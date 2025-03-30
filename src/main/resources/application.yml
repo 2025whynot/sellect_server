@@ -8,15 +8,9 @@ spring:
     open-in-view: true
     hibernate:
       ddl-auto: ${DDL_AUTO}
-#    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-#        format_sql: true
-  #  flyway:
-  #    enabled: false
-  #    baseline-on-migrate: true  # 기존 DB가 있을 경우 필요한 설정
-  #    locations: classpath:db/migration  # 마이그레이션 SQL 파일 위치
   servlet:
     multipart:
       max-file-size: 10MB
@@ -25,22 +19,24 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      protocol: ${REDIS_PROTOCOL:redis://} # 기본값 추가
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
-
-#
-#redisson:
-#  address: ${REDISSON_ADDRESS}
+    properties:
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL} # 기본값 없음
+      sasl.mechanism: ${KAFKA_SASL_MECHANISM} # 기본값 없음
+      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG} # 기본값 없음
+      sasl.client.callback.handler.class: ${KAFKA_SASL_CLIENT_CALLBACK_HANDLER} # 기본값 없음
 
 server:
   host: ${HOST_URL}
   tomcat:
-    accept-count: 800
+    accept-count: 10000
 
 jwt:
-  secret: ${JWT_SECRET}  # JWT 시크릿 키 설정
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
 
 kakao:
@@ -76,7 +72,3 @@ management:
 logging:
   level:
     com.sellect.server.search.batch: DEBUG
-#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-#    org.hibernate.SQL: DEBUG
-#    org.springframework.orm.jpa: DEBUG
-#    org.springframework.jdbc.core: DEBUG

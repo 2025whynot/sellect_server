@@ -11,11 +11,8 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PayReadyMessage {
+public class PayApproveRollbackMessage {
 
-    private Long userId;
-    private Long orderId;
-    private Long userReceivedCouponId;
-    private int totalPrice;
+    private Long pid;
 
 }

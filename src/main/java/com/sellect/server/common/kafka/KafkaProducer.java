@@ -27,7 +27,7 @@ public class KafkaProducer {
                     log.error("Failed to send message to topic {}: {}", topic, message, ex);
                     sendToDlq(topic, message, ex); // 실패 시 DLQ로 전송
                 } else {
-                    log.info("Successfully sent message to topic {}: offset={}",
+                    log.debug("Successfully sent message to topic {}: offset={}",
                         topic, result.getRecordMetadata().offset());
                 }
             });
@@ -41,7 +41,7 @@ public class KafkaProducer {
                     log.error("Failed to send message with key {} to topic {}: {}", key, topic, message, ex);
                     sendToDlq(topic, message, ex); // 실패 시 DLQ로 전송
                 } else {
-                    log.info("Successfully sent message with key {} to topic {}: offset={}",
+                    log.debug("Successfully sent message with key {} to topic {}: offset={}",
                         key, topic, result.getRecordMetadata().offset());
                 }
             });
@@ -68,7 +68,7 @@ public class KafkaProducer {
                 if (dlqEx != null) {
                     log.error("Failed to send to DLQ topic {}: {}", dlqTopic, message, dlqEx);
                 } else {
-                    log.info("Successfully sent to DLQ topic {}: offset={}",
+                    log.debug("Successfully sent to DLQ topic {}: offset={}",
                         dlqTopic, result.getRecordMetadata().offset());
                 }
             });
