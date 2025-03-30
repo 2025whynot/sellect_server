@@ -37,7 +37,7 @@ public class Coupon {
     }
 
     public Coupon decreaseQuantity() {
-        if (quantity <= 0) {
+        if (isOutOfStock()) {
             throw new CommonException(BError.COUPON_QUANTITY_ZERO);
         }
         return Coupon.builder()
@@ -53,7 +53,7 @@ public class Coupon {
     }
 
     public Coupon decreaseQuantity(int decreaseQuantity) {
-        if (quantity <= 0) {
+        if (isOutOfStock()) {
             throw new CommonException(BError.COUPON_QUANTITY_ZERO);
         }
         return Coupon.builder()
