@@ -46,27 +46,35 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String AUTO_OFFSET_RESET;
 
-    // MSK IAM 인증 관련 속성 (prod 환경에서만 값이 주입됨)
-    @Value("${spring.kafka.properties.security.protocol:PLAINTEXT}")
-    private String securityProtocol;
-    @Value("${spring.kafka.properties.sasl.mechanism:}")
-    private String saslMechanism;
-    @Value("${spring.kafka.properties.sasl.jaas.config:}")
-    private String saslJaasConfig;
-    @Value("${spring.kafka.properties.sasl.client.callback.handler.class:}")
-    private String saslClientCallbackHandler;
+    // Kafka properties 환경 변수 (기본값 없음)
+    @Value("${spring.kafka.properties.security.protocol:}")
+    private String SECURITY_PROTOCOL;
 
-    // 공통 설정 메서드
+    @Value("${spring.kafka.properties.sasl.mechanism:}")
+    private String SASL_MECHANISM;
+
+    @Value("${spring.kafka.properties.sasl.jaas.config:}")
+    private String SASL_JAAS_CONFIG;
+
+    @Value("${spring.kafka.properties.sasl.client.callback.handler.class:}")
+    private String SASL_CLIENT_CALLBACK_HANDLER;
+
     private Map<String, Object> baseConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
 
-        // MSK IAM 인증이 필요한 경우에만 추가 (prod 환경)
-        if ("SASL_SSL".equals(securityProtocol)) {
-            props.put("security.protocol", securityProtocol);
-            props.put("sasl.mechanism", saslMechanism);
-            props.put("sasl.jaas.config", saslJaasConfig);
-            props.put("sasl.client.callback.handler.class", saslClientCallbackHandler);
+        // 환경 변수가 지정된 경우에만 Kafka properties 추가
+        if (!SECURITY_PROTOCOL.isEmpty()) {
+            props.put("security.protocol", SECURITY_PROTOCOL);
+        }
+        if (!SASL_MECHANISM.isEmpty()) {
+            props.put("sasl.mechanism", SASL_MECHANISM);
+        }
+        if (!SASL_JAAS_CONFIG.isEmpty()) {
+            props.put("sasl.jaas.config", SASL_JAAS_CONFIG);
+        }
+        if (!SASL_CLIENT_CALLBACK_HANDLER.isEmpty()) {
+            props.put("sasl.client.callback.handler.class", SASL_CLIENT_CALLBACK_HANDLER);
         }
         return props;
     }
