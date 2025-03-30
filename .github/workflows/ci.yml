@@ -6,8 +6,8 @@ on:
   push:
     branches: [ "develop" ]
 
-# 테스트 결과 작성을 위해 쓰기권한 추가
 permissions: write-all
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,27 +38,34 @@ jobs:
           rm -rf ~/.gradle/wrapper
           echo "Gradle cache deleted!"
 
-      - name: Set application.yml
-        uses: microsoft/variable-substitution@v1
-        with:
-          files: ./src/main/resources/application.yml
-        env:
-          spring.datasource.url: ${{ secrets.DB_URL }}
-          spring.datasource.username: ${{ secrets.DB_USERNAME }}
-          spring.datasource.password: ${{ secrets.DB_PASSWORD }}
-          spring.jpa.hibernate.ddl-auto: ${{ secrets.DDL_AUTO }}
-          jwt.secret: ${{ secrets.JWT_SECRET }}
-          jwt.expiration: ${{ secrets.JWT_EXPIRATION }}
-          kakao.pay.secret-key: ${{ secrets.KAKAO_PAY_SECRET_KEY }}
-          storage.s3.bucket-name: ${{ secrets.S3_BUCKET_NAME }}
-          storage.s3.access-key: ${{ secrets.S3_ACCESS_KEY }}
-          storage.s3.secret-key: ${{ secrets.S3_SECRET_KEY }}
-          storage.s3.region: ${{ secrets.S3_REGION }}
-          server.host: ${{ secrets.HOST_URL }}
-          spring.data.host: ${{ secrets.REDIS_HOST }}
-          spring.data.port: ${{secrets.REDIS_PORT}}
-          redisson.address: ${{secrets.REDISSON_ADDRESS}}
+      - name: Install yq
+        run: |
+          sudo snap install yq
 
+      - name: Set application.yml with yq
+        run: |
+          # 공통 설정 (첫 번째 문서, 인덱스 0) 치환
+          yq eval -i '
+            .spring.datasource.url = "${{ secrets.DB_URL }}" |
+            .spring.datasource.username = "${{ secrets.DB_USERNAME }}" |
+            .spring.datasource.password = "${{ secrets.DB_PASSWORD }}" |
+            .spring.jpa.hibernate.ddl-auto = "${{ secrets.DDL_AUTO }}" |
+            .jwt.secret = "${{ secrets.JWT_SECRET }}" |
+            .jwt.expiration = "${{ secrets.JWT_EXPIRATION }}" |
+            .kakao.pay.secret-key = "${{ secrets.KAKAO_PAY_SECRET_KEY }}" |
+            .storage.s3.bucket-name = "${{ secrets.S3_BUCKET_NAME }}" |
+            .storage.s3.access-key = "${{ secrets.S3_ACCESS_KEY }}" |
+            .storage.s3.secret-key = "${{ secrets.S3_SECRET_KEY }}" |
+            .storage.s3.region = "${{ secrets.S3_REGION }}" |
+            .server.host = "${{ secrets.HOST_URL }}"
+          ' ./src/main/resources/application.yml
+
+          # prod 프로파일 설정 (두 번째 문서, 인덱스 1) 치환
+          yq eval -i '
+            select(di == 1) | 
+            .spring.data.redis.host = "${{ secrets.REDIS_HOST }}" |
+            .spring.data.redis.port = "${{ secrets.REDIS_PORT }}"
+          ' ./src/main/resources/application.yml
 
       - name: Grant Execute Permission For Gradlew
         run: chmod +x gradlew
@@ -66,7 +73,6 @@ jobs:
       - name: Build With Gradle
         run: ./gradlew build --no-build-cache --refresh-dependencies -x test
 
-      # build Test
       - name: 테스트 코드 실행
         run: ./gradlew --info test --no-build-cache --refresh-dependencies
 
@@ -78,6 +84,6 @@ jobs:
 
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v3
-        if: success() || failure() # always run even if the previous step fails
+        if: success() || failure()
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
