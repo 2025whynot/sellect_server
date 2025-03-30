@@ -65,8 +65,8 @@ public class CouponController {
     }
 
     @PutMapping("/register/{couponId}")
-    public ApiResponse<?> registerCoupon(@AuthUser User user, @PathVariable Long couponId) {
-        couponService.downloadCoupon(user, couponId);
+    public ApiResponse<?> downloadCoupon(@AuthUser User user, @PathVariable Long couponId) {
+        couponServiceV3.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -104,9 +104,10 @@ public class CouponController {
     }
 
 
+    // -------------------- test --------------------
     // 애플리케이션 락
     @PutMapping("/register/{couponId}/app/{userId}")
-    public ApiResponse<?> registerCoupon(@PathVariable(name = "userId") Long userId,
+    public ApiResponse<?> downloadCouponWithReentrantLock(@PathVariable(name = "userId") Long userId,
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)

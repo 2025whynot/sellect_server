@@ -18,6 +18,7 @@ import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.ProductRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -116,6 +117,33 @@ public abstract class CouponService {
             .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<CouponPossibleOrderResponse> getUsableCouponsForProductsTobe(User user,
+        List<Long> productIds) {
+        // 1. productIds를 통해 판매자 리스트 가져오기\
+
+        // todo HashMap
+        // TODO: set or hashset 2025-03-4, 15:26
+
+        Set<Long> sellersId = productRepository.findSellerIdByProductIds(productIds);
+
+        // 2. 사용하지 않은 쿠폰 중 유효기간이 남아 있는 것 필터링
+        List<UserReceivedCoupon> validCoupons = userReceivedCouponRepository.findAllByUserAndIsUsed(
+                user, false).stream()
+            .filter(UserReceivedCoupon::isActive)
+            .toList();
+
+        // 3. 판매자가 일치하는 쿠폰만 선택하여 변환
+        return validCoupons.stream()
+            .filter(c -> sellersId.contains(c.getCoupon().getSeller().getId()))
+            .sorted(Comparator.comparing(c -> c.getCoupon().getExpirationDate()))
+            .map(c -> new CouponPossibleOrderResponse(
+                c.getId(),
+                c.getCoupon().getDiscountCost(),
+                c.getCoupon().getExpirationDate())
+            )
+            .toList();
+    }
 
     // [사용자] 사용자가 다운로드 가능한 쿠폰 리스트 조회
     @Transactional(readOnly = true)

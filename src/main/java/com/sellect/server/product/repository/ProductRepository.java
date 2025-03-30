@@ -3,6 +3,7 @@ package com.sellect.server.product.repository;
 import com.sellect.server.product.domain.Product;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,4 +26,6 @@ public interface ProductRepository {
     List<Long> findProductIdsBySellerId(Long sellerId);
 
     Optional<Object> findByIdWithLock(Long id);
+
+    Set<Long> findSellerIdByProductIds(List<Long> productIds);
 }

@@ -41,7 +41,7 @@ class CouponTest {
 
 
             // when & then
-            assertThatNoException().isThrownBy(coupon::isUsable);
+            assertThatNoException().isThrownBy(coupon::validateDownload);
         }
 
         @Test
@@ -64,7 +64,7 @@ class CouponTest {
                 .build();
 
             // when
-            CommonException exception = assertThrows(CommonException.class, coupon::isUsable);
+            CommonException exception = assertThrows(CommonException.class, coupon::validateDownload);
 
             // then
             assertThat(exception.getErrorType()).isEqualTo(BError.class);
@@ -92,7 +92,7 @@ class CouponTest {
                 .build();
 
             // when
-            CommonException exception = assertThrows(CommonException.class, coupon::isUsable);
+            CommonException exception = assertThrows(CommonException.class, coupon::validateDownload);
 
             // then
             assertThat(exception.getErrorType()).isEqualTo(BError.class);
