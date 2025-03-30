@@ -9,6 +9,7 @@ import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
+import com.sellect.server.order.event.message.OrderCompleteMessage;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.controller.response.PaymentHistoryResponse;
 import com.sellect.server.payment.domain.Payment;
@@ -54,6 +55,20 @@ public class PaymentService {
         savePayReadyStatus(pid, orderId, userId, totalPrice, kakaoPayReadyResponse);
 
         storePaymentUrlInRedis(orderId, kakaoPayReadyResponse);
+    }
+
+    public void initPaymentApproval(final Long pid, final String token) {
+
+        Payment payment = paymentRepository.findByPid(pid)
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
+
+        kafkaProducer.produce("order-complete",
+            OrderCompleteMessage.builder()
+                .orderId(payment.getOrdersId())
+                .pid(Long.valueOf(pid))
+                .token(token)
+                .payment(payment)
+                .build());
     }
 
     @Transactional

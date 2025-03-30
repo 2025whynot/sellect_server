@@ -99,18 +99,16 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         rollbackOrdersStatus(order);
     }
 
-    public String getPaymentUrl(final Long userId, final Long orderId) {
+    public String getPaymentUrl(User user, final Long orderId) {
 
         // 주문 조회
         Orders order = ordersRepository.findById(orderId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
 
         // 유저의 주문인지 확인
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user")); // TODO: test용 삭제
         order.validateOwner(user); // TODO: 파라미터를 User 타입으로 받아야 할 필요있는지 체크
 
-        return getRedirectUrlFromRedis(userId, orderId);
+        return getRedirectUrlFromRedis(user.getId(), orderId);
     }
 
     //== private methods ==//

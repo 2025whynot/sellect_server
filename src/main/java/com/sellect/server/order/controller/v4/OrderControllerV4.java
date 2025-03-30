@@ -1,6 +1,7 @@
 package com.sellect.server.order.controller.v4;
 
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.order.application.v4.OrderServiceV4_1;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderControllerV4 {
 
     private final OrderServiceV4_1 orderService;
+    private final UserRepository userRepository; // for test
 
     @PostMapping("/order/payment/{orderId}/ready")
     public ApiResponse<Void> readyPayment(
@@ -35,7 +37,7 @@ public class OrderControllerV4 {
     public ApiResponse<PaymentUrlRetrieveResponse> retrievePaymentUrl(
         @AuthUser User user,
         @PathVariable Long orderId) {
-        String paymentUrl = orderService.getPaymentUrl(user.getId(), orderId);
+        String paymentUrl = orderService.getPaymentUrl(user, orderId);
         return ApiResponse.ok(PaymentUrlRetrieveResponse.builder()
             .paymentUrl(paymentUrl)
             .urlRetrieved(paymentUrl == null ? Boolean.FALSE : Boolean.TRUE)
@@ -57,7 +59,10 @@ public class OrderControllerV4 {
     public ApiResponse<PaymentUrlRetrieveResponse> retrievePaymentUrl(
         @PathVariable Long userId,
         @PathVariable Long orderId) {
-        String paymentUrl = orderService.getPaymentUrl(userId, orderId);
+        // for test
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+        String paymentUrl = orderService.getPaymentUrl(user, orderId);
         return ApiResponse.ok(PaymentUrlRetrieveResponse.builder()
             .paymentUrl(paymentUrl)
             .urlRetrieved(paymentUrl == null ? Boolean.FALSE : Boolean.TRUE)

@@ -101,7 +101,7 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
                             .productId(item.getProductId())
                             .quantity(item.getQuantity())
                             .build();
-                        stockHistoryJpaRepository.save(history);
+//                        stockHistoryJpaRepository.save(history);
                     }
                     ordersRepository.save(order.completeOrder());
                     transactionManager.commit(status); // 트랜잭션 커밋
