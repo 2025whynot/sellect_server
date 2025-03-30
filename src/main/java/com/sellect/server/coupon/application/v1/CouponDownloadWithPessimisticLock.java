@@ -34,7 +34,7 @@ public class CouponDownloadWithPessimisticLock extends CouponService {
     public void downloadCoupon(User user, Long couponId) {
         Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
-        coupon.isUsable();
+        coupon.validateDownload();
         if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
             throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
         }

@@ -46,7 +46,7 @@ public class CouponDownloadWithReentrantLock extends CouponService {
                     .orElseThrow(
                         () -> new CommonException(BError.NOT_EXIST, String.valueOf(couponId)));
 
-                coupon.isUsable();
+                coupon.validateDownload();
                 if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
                     throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
                 }

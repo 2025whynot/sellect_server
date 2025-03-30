@@ -60,6 +60,7 @@ public class CouponDownloadWithRedisSet extends CouponService {
     public void downloadCoupon(User user, Long couponId) {
         Coupon coupon = couponRepository.findById(couponId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, couponId.toString()));
+        coupon.validateDownload();
 
         // 인당 재고 확인
         memberCouponStockOperation.add(couponId, user);

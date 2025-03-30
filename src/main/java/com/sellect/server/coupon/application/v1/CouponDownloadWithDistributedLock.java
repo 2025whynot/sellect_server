@@ -45,7 +45,7 @@ public class CouponDownloadWithDistributedLock extends CouponService {
                 throw new CommonException(BError.LOCK_ACQUISITION_FAILED, couponId.toString());
             }
             Coupon coupon = couponRepository.findById(couponId).orElseThrow();
-            coupon.isUsable();
+            coupon.validateDownload();
             if (userReceivedCouponRepository.existsByUserAndCoupon(user, coupon)) {
                 throw new CommonException(BError.COUPON_ALREADY_RECEIVED, couponId.toString());
             }
