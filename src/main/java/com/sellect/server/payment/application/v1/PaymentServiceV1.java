@@ -7,15 +7,24 @@ import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
+import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.event.KakaoPayApproveEvent;
+import com.sellect.server.payment.event.KakaoPayApproveRedisEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
 import com.sellect.server.payment.repository.PaymentRepository;
+import com.sellect.server.product.repository.StockHistoryEntity;
+import com.sellect.server.product.repository.StockHistoryJpaRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -25,8 +34,10 @@ import org.springframework.web.client.ResourceAccessException;
 @Service
 public class PaymentServiceV1 {
 
+    private final PlatformTransactionManager transactionManager;
     private final PayClient payClient;
     private final PaymentRepository paymentRepository;
+    private final StockHistoryJpaRepository stockHistoryJpaRepository;
 
     public KakaoPayReadyResponse preparePayment(KakaoPayReadyEvent event) {
         long pid = TsidCreator.getTsid().toLong();
@@ -97,6 +108,50 @@ public class PaymentServiceV1 {
         }
     }
 
+    public void approvePaymentRedis(final KakaoPayApproveRedisEvent event) {
+        int retryCount = 0;
+        boolean success = false;
+        String errorMsg = null;
+        Payment approvePayment;
+
+        TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
+
+        // 트랜잭션
+        try {
+            approvePayment = saveApprovePayment(event.getPayment());
+            saveStockHistories(event.getOrderItems(), approvePayment);
+            transactionManager.commit(status);
+        } catch (Exception e) {
+            transactionManager.rollback(status);
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "PayService approvePayment() - 결제 승인 중 오류 발생");
+        }
+
+        while (retryCount <= 1 && !success) {
+            log.info("카카오페이 승인 요청 시도: retryCount={}, pid={}", retryCount, event.getPid());
+            try {
+                requestKakaoPayApporveRedis(approvePayment, event.getPid(), event.getToken());
+
+                success = true;
+            } catch (ResourceAccessException | HttpServerErrorException e) {
+                retryCount++;
+                errorMsg = e.getMessage();
+                if (retryCount <= 1) {
+                    sleepForRetry();
+                }
+            } catch (HttpClientErrorException e) {
+                errorMsg = "카카오페이 승인 요청 오류: " + e.getMessage();
+                throw new CommonException(BError.PAYMENT_FAILED, errorMsg);
+            } catch (Exception e) {
+                errorMsg = e.getMessage();
+                throw new CommonException(BError.PAYMENT_FAILED, "결제 승인 중 오류: " + errorMsg);
+            }
+        }
+
+        if (!success) {
+            throw new CommonException(BError.PAYMENT_FAILED, "카카오페이 결제 승인 실패: " + errorMsg);
+        }
+    }
+
     private Payment saveApprovePayment(final KakaoPayApproveEvent event) {
         try {
             Payment approvePayment = event.getPayment().approve();
@@ -106,6 +161,8 @@ public class PaymentServiceV1 {
             throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패");
         }
     }
+
+
 
     private void createAndSavePreparedPayment(KakaoPayReadyEvent event, Long pid,
         KakaoPayReadyResponse response) {
@@ -159,5 +216,44 @@ public class PaymentServiceV1 {
             Thread.currentThread().interrupt();
             throw new CommonException(BError.INTERNAL_SERVER_ERROR, "재시도 중 인터럽트: " + ie.getMessage());
         }
+    }
+
+    // -----------------------------Redis 재고 관리용 ------------------------------------------------
+    // 레디스 V5, V6 용
+    private Payment saveApprovePayment(final Payment payment) {
+        try {
+            Payment approvePayment = payment.approve();
+            return paymentRepository.save(approvePayment);
+        } catch (DataAccessException e) {
+            log.error("결제 승인 상태 저장 실패: pid={}", payment.getPid(), e);
+            throw new CommonException(BError.DB_ERROR, "결제 승인 상태 저장 실패");
+        }
+    }
+
+    // 레디스 V5, V6 용
+    private void requestKakaoPayApporveRedis(final Payment approvePayment, final Long pid, final String pgToken) {
+        ApproveRequest approveRequest = ApproveRequest.builder()
+            .cid("TC0ONETIME")
+            .tid(approvePayment.getTid())
+            .partnerOrderId(String.valueOf(approvePayment.getOrdersId()))
+            .partnerUserId(String.valueOf(approvePayment.getUserId()))
+            .pgToken(pgToken)
+            .build();
+
+        KakaoPayApproveResponse kakaoPayApproveResponse = payClient.paymentApprove(approveRequest);
+        log.info("카카오페이 승인 완료: pid={}", pid);
+    }
+
+    private void saveStockHistories(List<OrderItem> orderItems, Payment approvePayment) {
+        List<StockHistoryEntity> histories = orderItems.stream()
+            .map(item -> StockHistoryEntity.builder()
+                .id(TsidCreator.getTsid().toLong())
+                .userId(approvePayment.getUserId())
+                .productId(item.getProductId())
+                .quantity(item.getQuantity())
+                .build())
+            .collect(Collectors.toList());
+
+        stockHistoryJpaRepository.saveAll(histories);
     }
 }

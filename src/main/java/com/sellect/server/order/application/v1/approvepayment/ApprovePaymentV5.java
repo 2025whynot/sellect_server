@@ -12,10 +12,8 @@ import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.domain.Payment;
-import com.sellect.server.payment.event.KakaoPayApproveEvent;
+import com.sellect.server.payment.event.KakaoPayApproveRedisEvent;
 import com.sellect.server.payment.repository.PaymentRepository;
-import com.sellect.server.product.repository.StockHistoryEntity;
-import com.sellect.server.product.repository.StockHistoryJpaRepository;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +35,6 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
     private final OrdersRepository ordersRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
-    private final StockHistoryJpaRepository stockHistoryJpaRepository;
     private final PlatformTransactionManager transactionManager;
     private final ApplicationEventPublisher eventPublisher;
     private final StockSyncService stockSyncService;
@@ -49,12 +46,13 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
     // 방법 5. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용
     @Override
     public void approvePayment(final Long pid, final String token) {
+        List<OrderItem> orderItems;
+
         Payment payment = paymentRepository.findByReadyPid(pid)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
 
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
-
         // pid별 락으로 중복 결제 방지
         RLock pidLock = redissonClient.getLock(PID_KEY_PREFIX + pid);
         try {
@@ -67,7 +65,7 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
                 .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
             order.validateNotCompleted();
 
-            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
+            orderItems = orderItemRepository.findAllByOrdersId(order.getId());
             if (orderItems.isEmpty()) {
                 throw new CommonException(BError.NOT_VALID, "orderId");
             }
@@ -94,15 +92,6 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
                 // 트랜잭션 시작
                 TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
                 try {
-                    for (OrderItem item : orderItems) {
-                        StockHistoryEntity history = StockHistoryEntity.builder()
-                            .id(generatePid())
-                            .userId(payment.getUserId())
-                            .productId(item.getProductId())
-                            .quantity(item.getQuantity())
-                            .build();
-                        stockHistoryJpaRepository.save(history);
-                    }
                     ordersRepository.save(order.completeOrder());
                     transactionManager.commit(status); // 트랜잭션 커밋
                 } catch (Exception e) {
@@ -126,8 +115,7 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
         }
 
         // 트랜잭션 커밋 후 이벤트 발행
-        KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
-        eventPublisher.publishEvent(event);
+        eventPublisher.publishEvent(KakaoPayApproveRedisEvent.publish(orderItems, payment, token, pid));
     }
 
     private Long generatePid() {
