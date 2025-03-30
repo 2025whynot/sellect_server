@@ -55,7 +55,7 @@ public class CouponEntity extends BaseTimeEntity {
             .createdAt(coupon.getCreatedAt())
             .updatedAt(coupon.getUpdatedAt())
             .deleteAt(coupon.getDeleteAt())
-            .couponStatus(CouponStatus.IN_STOCK)
+            .couponStatus(coupon.getCouponStatus())
             .build();
     }
 
