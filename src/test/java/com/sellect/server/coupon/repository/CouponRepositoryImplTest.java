@@ -172,6 +172,7 @@ class CouponRepositoryImplTest {
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .expirationDate(LocalDate.now().plusDays(7))
+                .couponStatus(CouponStatus.IN_STOCK)
                 .build();
             Coupon savedCoupon = couponRepositoryImpl.save(coupon); // 저장 후 반환된 객체 사용
 
