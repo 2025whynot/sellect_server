@@ -4,7 +4,11 @@ import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.order.application.v4.OrderServiceV4_1;
 import com.sellect.server.order.event.message.OrderCompleteMessage;
 import com.sellect.server.order.event.message.OrderCompleteRollbackMessage;
+import com.sellect.server.order.event.message.StockHistoryMessage;
 import com.sellect.server.payment.event.message.PayApproveMessage;
+import com.sellect.server.product.application.StockHistoryService;
+import com.sellect.server.product.repository.StockHistoryEntity;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Component;
 public class KafkaOrderListener {
 
     private final OrderServiceV4_1 orderService;
+    private final StockHistoryService stockHistoryService;
     private final KafkaProducer kafkaProducer;
 
     @KafkaListener(topics = "order-complete", groupId = "order-complete-group",
@@ -31,9 +36,14 @@ public class KafkaOrderListener {
         consumeOrderCompleteRollbackMessage(message);
     }
 
+    @KafkaListener(topics = "stock-history", groupId = "stock-history-group",
+        containerFactory = "stockHistoryContainerFactory")
+    public void stockHistoryListener(StockHistoryMessage message) {
+        consumeStockHistoryMessage(message);
+    }
+
     // TODO: DLQ 처리 추가
     // === Dead Letter Queue 처리 === //
-
 
     // === private method === //
 
@@ -60,6 +70,19 @@ public class KafkaOrderListener {
     private void consumeOrderCompleteRollbackMessage(OrderCompleteRollbackMessage message) {
         // TODO: v4.0에서의 롤백 추가
         orderService.rollbackOrder(message.getOrderId());
+    }
+
+    private void consumeStockHistoryMessage(StockHistoryMessage message) {
+
+        List<StockHistoryEntity> stockHistoryEntities = message.getHistoryItems().stream()
+            .map(item -> StockHistoryEntity.builder()
+                .userId(message.getUserId())
+                .productId(item.getProductId())
+                .quantity(item.getQuantity())
+                .type(message.getType())
+                .build())
+            .toList();
+        stockHistoryService.saveAllStockHistory(stockHistoryEntities);
     }
 
 }

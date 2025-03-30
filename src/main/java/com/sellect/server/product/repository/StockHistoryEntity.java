@@ -31,6 +31,8 @@ public class StockHistoryEntity {
 
     Integer quantity;
 
+    String type; // "IN" or "OUT"
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

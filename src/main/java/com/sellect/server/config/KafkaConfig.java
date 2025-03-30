@@ -37,6 +37,7 @@ public class KafkaConfig {
     private static final String ORDER_COMPLETE_ROLLBACK_GROUP = "order-complete-rollback-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
     private static final String ORDER_COMPLETE_DLQ_GROUP = "order-complete-dlq-group";
+    private static final String STOCK_HISTORY_GROUP = "stock-history-group";
     private static final Integer BACK_OFF_INTERVAL = 0;
     private static final Integer MAX_ATTEMPTS = 0;
 
@@ -164,6 +165,18 @@ public class KafkaConfig {
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteReplyContainerFactory() {
         return listenerContainerFactory(orderCompleteReplyGroupConsumer(), null);
+    }
+
+    // (stock-history-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> stockHistoryGroupConsumer() {
+        return consumerFactory(STOCK_HISTORY_GROUP);
+    }
+
+    // (stock-history-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> stockHistoryContainerFactory() {
+        return listenerContainerFactory(stockHistoryGroupConsumer(), null);
     }
 
     // === DLQ용 추가 설정 === //

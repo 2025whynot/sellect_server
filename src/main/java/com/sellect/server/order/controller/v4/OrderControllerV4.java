@@ -2,6 +2,8 @@ package com.sellect.server.order.controller.v4;
 
 import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.user.UserRepository;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.order.application.v4.OrderServiceV4_1;
@@ -61,7 +63,7 @@ public class OrderControllerV4 {
         @PathVariable Long orderId) {
         // for test
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
         String paymentUrl = orderService.getPaymentUrl(user, orderId);
         return ApiResponse.ok(PaymentUrlRetrieveResponse.builder()
             .paymentUrl(paymentUrl)

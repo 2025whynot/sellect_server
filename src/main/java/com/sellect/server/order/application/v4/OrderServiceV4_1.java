@@ -10,6 +10,7 @@ import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
+import com.sellect.server.order.event.message.StockHistoryMessage;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.event.message.PayReadyMessage;
@@ -127,7 +128,9 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
 
         // 재시도 횟수 체크 및 증가 (원자적 연산)
         Long retryCount = redisTemplate.opsForValue().increment(retryCountKey, 1L);
-        if (retryCount == null) retryCount = 1L; // 초기 값 처리
+        if (retryCount == null) {
+            retryCount = 1L; // 초기 값 처리
+        }
 
         if (retryCount > MAX_RETRY_COUNT) {
             log.warn("Max retry count exceeded for userId: {}, orderId: {}", userId, orderId);
@@ -145,7 +148,8 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         if (redirectUrl == null) {
             log.debug("No redirect URL found in Redis for key: {}", redirectUrlKey);
         } else {
-            log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey, redirectUrl);
+            log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey,
+                redirectUrl);
         }
         return redirectUrl;
     }
@@ -181,8 +185,19 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
             });
         });
 
-        // TODO: RDB에 재고 히스토리 저장
         log.info("Incremented stock usage for orderId: {}", orderId);
+
+        // 재고 히스토리 이벤트 전송
+        kafkaProducer.produce("stock-history", StockHistoryMessage.builder()
+            .userId(orderItems.get(0).getOrders().getUser().getId())
+            .type("OUT")
+            .historyItems(orderItems.stream()
+                .map(orderItem -> StockHistoryMessage.HistoryItem.builder()
+                    .productId(orderItem.getProductId())
+                    .quantity(orderItem.getQuantity())
+                    .build())
+                .toList())
+            .build());
     }
 
     private List<OrderItem> findOrderItemsSortedByProductId(Long orderId) {
@@ -194,7 +209,8 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
     }
 
 
-    private void validateBeforeIncrement(List<OrderItem> orderItems, Map<String, Integer> requestQuantities) {
+    private void validateBeforeIncrement(List<OrderItem> orderItems,
+        Map<String, Integer> requestQuantities) {
 
         List<Long> productIds = orderItems.stream()
             .map(OrderItem::getProductId)
@@ -211,7 +227,8 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
             String stockUsageStr = redisTemplate.opsForValue().get(stockUsageKey);
             int stockUsage = stockUsageStr == null ? 0 : Integer.parseInt(stockUsageStr);
 
-            validateStockUsageAndQuantity(inventory.getStock(), requestQuantity, stockUsage, productId);
+            validateStockUsageAndQuantity(inventory.getStock(), requestQuantity, stockUsage,
+                productId);
             requestQuantities.put(stockUsageKey, requestQuantity);
         });
     }
@@ -227,22 +244,28 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         return inventories;
     }
 
-    private void validateStockUsageAndQuantity(int totalStock, int requestQuantity, int stockUsage, Long productId) {
+    private void validateStockUsageAndQuantity(int totalStock, int requestQuantity, int stockUsage,
+        Long productId) {
 
         if (totalStock < requestQuantity) {
             log.warn("Insufficient stock for productId: {}, requested: {}, available: {}",
                 productId, requestQuantity, totalStock);
-            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage", "insufficient stock");
+            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
+                "insufficient stock");
         }
         if (stockUsage > totalStock) {
-            log.warn("Stock usage exceeded total stock for productId: {}, totalUsed: {}, available: {}",
+            log.warn(
+                "Stock usage exceeded total stock for productId: {}, totalUsed: {}, available: {}",
                 productId, stockUsage, totalStock);
-            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage", "stock usage exceeded total stock");
+            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
+                "stock usage exceeded total stock");
         }
         if (stockUsage + requestQuantity > totalStock) {
-            log.warn("Request quantity exceeded total stock for productId: {}, totalUsed: {}, requested: {}",
+            log.warn(
+                "Request quantity exceeded total stock for productId: {}, totalUsed: {}, requested: {}",
                 productId, stockUsage, requestQuantity);
-            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage", "request quantity exceeded total stock");
+            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
+                "request quantity exceeded total stock");
         }
     }
 
@@ -262,6 +285,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
             return;
         }
 
+        // 재고 사용량 복구
         redisTransactionUtil.transaction(operations -> {
             orderItems.forEach(orderItem -> {
                 Long productId = orderItem.getProductId();
@@ -272,6 +296,18 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         });
 
         log.info("Decremented stock usage for orderId: {}", orderId);
+
+        // 재고 히스토리 이벤트 전송
+        kafkaProducer.produce("stock-history", StockHistoryMessage.builder()
+            .userId(orderItems.get(0).getOrders().getUser().getId())
+            .type("IN")
+            .historyItems(orderItems.stream()
+                .map(orderItem -> StockHistoryMessage.HistoryItem.builder()
+                    .productId(orderItem.getProductId())
+                    .quantity(orderItem.getQuantity())
+                    .build())
+                .toList())
+            .build());
     }
 
     private void saveOrderCompletedStatus(Orders order) {
