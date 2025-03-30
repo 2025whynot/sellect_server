@@ -15,13 +15,21 @@ public class RedissonConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
-    private static final String REDISSON_HOST_PREFIX = "redis://";
+    @Value("${spring.data.redis.protocol:redis://}") // 기본값: 비암호화
+    private String protocol;
 
     @Bean
-    public RedissonClient redissonClient(){
+    public RedissonClient redissonClient() {
         Config config = new Config();
-        config.useSingleServer().setAddress(REDISSON_HOST_PREFIX + redisHost + ":" + redisPort);
-        RedissonClient redisson = Redisson.create(config);
-        return redisson;
+        String address = protocol + redisHost + ":" + redisPort;
+        config.useSingleServer()
+            .setAddress(address)
+            .setConnectionMinimumIdleSize(5)
+            .setConnectionPoolSize(64)
+            .setTimeout(10000)
+            .setConnectTimeout(10000)
+            .setRetryAttempts(3)
+            .setRetryInterval(1500);
+        return Redisson.create(config);
     }
 }

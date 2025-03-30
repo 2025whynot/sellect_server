@@ -46,16 +46,40 @@ public class KafkaConfig {
     @Value("${spring.kafka.consumer.auto-offset-reset}")
     private String AUTO_OFFSET_RESET;
 
+    // MSK IAM 인증 관련 속성 (prod 환경에서만 값이 주입됨)
+    @Value("${spring.kafka.properties.security.protocol:PLAINTEXT}")
+    private String securityProtocol;
+    @Value("${spring.kafka.properties.sasl.mechanism:}")
+    private String saslMechanism;
+    @Value("${spring.kafka.properties.sasl.jaas.config:}")
+    private String saslJaasConfig;
+    @Value("${spring.kafka.properties.sasl.client.callback.handler.class:}")
+    private String saslClientCallbackHandler;
+
+    // 공통 설정 메서드
+    private Map<String, Object> baseConfig() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+
+        // MSK IAM 인증이 필요한 경우에만 추가 (prod 환경)
+        if ("SASL_SSL".equals(securityProtocol)) {
+            props.put("security.protocol", securityProtocol);
+            props.put("sasl.mechanism", saslMechanism);
+            props.put("sasl.jaas.config", saslJaasConfig);
+            props.put("sasl.client.callback.handler.class", saslClientCallbackHandler);
+        }
+        return props;
+    }
+
     // Producer 설정
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        Map<String, Object> props = baseConfig();
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(ProducerConfig.LINGER_MS_CONFIG, 10);
-        props.put(ProducerConfig.RETRIES_CONFIG, MAX_ATTEMPTS); // 재시도 횟수
-        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, BACK_OFF_INTERVAL); // 재시도 간격
+        props.put(ProducerConfig.RETRIES_CONFIG, MAX_ATTEMPTS);
+        props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, BACK_OFF_INTERVAL);
         return new DefaultKafkaProducerFactory<>(props);
     }
 
@@ -76,8 +100,7 @@ public class KafkaConfig {
 
     // 공통 ConsumerFactory 생성 메서드
     private ConsumerFactory<String, Object> consumerFactory(String groupId) {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        Map<String, Object> props = baseConfig();
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
@@ -93,13 +116,11 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         if (replyTemplate != null) {
-            factory.setReplyTemplate(replyTemplate); // 응답이 필요한 경우에만 설정
+            factory.setReplyTemplate(replyTemplate);
         }
 
-        // 에러 핸들러 설정
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate(),
-            (record, ex) ->
-                new TopicPartition(record.topic() + "-dlq", record.partition()));
+            (record, ex) -> new TopicPartition(record.topic() + "-dlq", record.partition()));
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer,
             new FixedBackOff(BACK_OFF_INTERVAL, MAX_ATTEMPTS));
         factory.setCommonErrorHandler(errorHandler);
@@ -139,7 +160,6 @@ public class KafkaConfig {
     // (order-complete-group) Listener 설정
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteContainerFactory() {
-        // 응답(order-complete-reply)이 필요하므로 KafkaTemplate을 설정
         return listenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
     }
 
@@ -197,15 +217,15 @@ public class KafkaConfig {
 
     // (pay-approve-dlq-group) Consumer 설정
     @Bean
-    public ConsumerFactory<String, Object> payApproveDlqContainerFactory() {
+    public ConsumerFactory<String, Object> payApproveDlqGroupConsumer() {
         return consumerFactory(PAY_APPROVE_DLQ_GROUP);
     }
 
     // (pay-approve-dlq-group) Listener 설정
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> payApproveDlqGroupConsumer() {
+    public ConcurrentKafkaListenerContainerFactory<String, Object> payApproveDlqContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(payApproveDlqContainerFactory());
+        factory.setConsumerFactory(payApproveDlqGroupConsumer());
         return factory;
     }
 }

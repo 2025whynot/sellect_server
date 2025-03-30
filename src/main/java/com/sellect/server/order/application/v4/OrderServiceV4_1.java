@@ -107,7 +107,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
 
         // 유저의 주문인지 확인
-        order.validateOwner(user); // TODO: 파라미터를 User 타입으로 받아야 할 필요있는지 체크
+        order.validateOwner(user);
 
         return getRedirectUrlFromRedis(user.getId(), orderId);
     }
