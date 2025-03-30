@@ -75,7 +75,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
 //            processInventories(order); // v4.0
             incrementStockUsage(orderId); // v4.1
         } catch (Exception e) {
-            log.error("Failed to process stock usage for orderId: {}", orderId, e);
+            log.error("Failed to increment stock usage for orderId: {}", orderId, e);
             return;
         }
 
@@ -190,8 +190,9 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
     private List<OrderItem> findOrderItemsSortedByProductId(Long orderId) {
 
         List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
-        orderItems.sort(Comparator.comparingLong(OrderItem::getProductId));
-        return orderItems;
+        return orderItems.stream()
+            .sorted(Comparator.comparingLong(OrderItem::getProductId))
+            .toList();
     }
 
 

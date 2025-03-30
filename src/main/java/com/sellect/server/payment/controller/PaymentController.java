@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/payment")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
@@ -33,7 +33,7 @@ public class PaymentController {
     private final PaymentRepository paymentRepository; // TODO: 테스트용
     private final KafkaProducer kafkaProducer; // TODO: 테스트용
 
-    @GetMapping("/history")
+    @GetMapping("/payment/history")
     public ApiResponse<List<PaymentHistoryResponse>> getPaymentHistory(
         @AuthUser User user,
         @PageableDefault(page = 0, size = 5, sort = "createdAt", direction = Direction.DESC) Pageable pageable) {
@@ -43,11 +43,12 @@ public class PaymentController {
     }
 
     // === test 용 === //
-    @GetMapping("/test/kakao-pay/success/{pid}")
+    @GetMapping("/test/payment/kakao-pay/success/{pid}")
     public ApiResponse<String> approvePayment(
         @PathVariable String pid,
         @RequestParam(value = "pg_token", defaultValue = "test") String token) {
 
+        log.info("pid: {}, token: {}", pid, token);
         Payment payment = paymentRepository.findByPid(Long.valueOf(pid))
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "payment"));
 
