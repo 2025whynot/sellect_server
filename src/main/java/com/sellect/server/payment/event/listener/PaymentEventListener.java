@@ -4,6 +4,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
 import com.sellect.server.payment.application.v1.PaymentServiceV1;
 import com.sellect.server.payment.event.KakaoPayApproveEvent;
+import com.sellect.server.payment.event.KakaoPayApproveRedisEvent;
 import com.sellect.server.payment.event.KakaoPayReadyEvent;
 import com.sellect.server.payment.event.PaymentApproveFailedEvent;
 import com.sellect.server.payment.event.PaymentPrepareFailedEvent;
@@ -45,6 +46,25 @@ public class PaymentEventListener {
 
         try {
             paymentService.approvePayment(event);
+        } catch (Exception e) {
+            log.error("카카오페이 승인 실패: pid={}, error={}", event.getPid(), e.getMessage());
+            eventPublisher.publishEvent(
+                PaymentApproveFailedEvent.builder()
+                    .payment(event.getPayment())
+                    .pid(event.getPid())
+                    .reason(e.getMessage())
+                    .build()
+            );
+        }
+    }
+
+    // Redis를 통해 재고 관리 시에 재고 히스토리 저장을 위해 새로 만듦
+    @Async("approvePaymentRedisExecutor")
+    @EventListener
+    public void kakaoPayApproveRedisEvent(final KakaoPayApproveRedisEvent event) {
+
+        try {
+            paymentService.approvePaymentRedis(event);
         } catch (Exception e) {
             log.error("카카오페이 승인 실패: pid={}, error={}", event.getPid(), e.getMessage());
             eventPublisher.publishEvent(

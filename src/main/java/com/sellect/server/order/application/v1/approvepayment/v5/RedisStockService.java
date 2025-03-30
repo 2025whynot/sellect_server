@@ -1,7 +1,11 @@
 package com.sellect.server.order.application.v1.approvepayment.v5;
 
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.redis.IntegerRedisTransactionUtil;
 import com.sellect.server.order.domain.OrderItem;
+import com.sellect.server.product.domain.Inventory;
+import com.sellect.server.product.repository.InventoryRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RedisStockService {
 
+    private final InventoryRepository inventoryRepository;
     private final IntegerRedisTransactionUtil transactionUtil;
     private static final String STOCK_KEY_PREFIX = "inventory:stock:";
 
@@ -21,23 +26,38 @@ public class RedisStockService {
         try {
             return transactionUtil.transaction(operations -> {
                 Map<String, Integer> deducted = new HashMap<>();
-                boolean success = true;
 
+                // 1. 모든 키의 재고 확인 및 초기화
                 for (OrderItem item : items) {
                     String key = STOCK_KEY_PREFIX + item.getProductId();
                     Integer stock = (Integer) operations.opsForValue().get(key);
-                    if (stock == null || stock < item.getQuantity()) {
-                        success = false;
-                        break;
+                    log.info("Checking stock in transaction: key={}, stock={}, quantity={}", key, stock, item.getQuantity());
+
+                    // Redis에 값이 없으면 DB에서 가져오기
+                    if (stock == null) {
+                        Inventory inventory = inventoryRepository.findByProductId(item.getProductId())
+                            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "Product " + item.getProductId()));
+                        stock = inventory.getStock();
+                        operations.opsForValue().set(key, stock);
+                        log.info("Preloaded stock in transaction: key={}, stock={}", key, stock);
                     }
-                    operations.opsForValue().decrement(key, item.getQuantity());
-                    deducted.put(key, item.getQuantity());
+
+                    // 재고 부족 체크
+                    if (stock < item.getQuantity()) {
+                        log.warn("Stock insufficient: key={}, stock={}, quantity={}", key, stock, item.getQuantity());
+                        return new StockDeductionResult(false, new HashMap<>());
+                    }
                 }
 
-                if (!success) {
-                    operations.discard();
+                // 2. 모든 키의 재고 차감
+                for (OrderItem item : items) {
+                    String key = STOCK_KEY_PREFIX + item.getProductId();
+                    operations.opsForValue().decrement(key, item.getQuantity());
+                    deducted.put(key, item.getQuantity());
+                    log.info("Deducted stock: key={}, quantity={}", key, item.getQuantity());
                 }
-                return new StockDeductionResult(success, deducted);
+
+                return new StockDeductionResult(true, deducted);
             });
         } catch (Exception e) {
             log.error("Redis 트랜잭션 실패: {}", e.getMessage(), e);
