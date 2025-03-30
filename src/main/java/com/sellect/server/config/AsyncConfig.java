@@ -41,6 +41,19 @@ public class AsyncConfig {
         return executor;
     }
 
+
+    // V5, V6 레디스 재고 차감 후 이벤트 발행 처리 리스너
+    @Bean(name = "approvePaymentRedisExecutor")
+    public ThreadPoolTaskExecutor approvePaymentRedisExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(6);
+        executor.setMaxPoolSize(12);
+        executor.setQueueCapacity(200);
+        executor.setThreadNamePrefix("approvePaymentRedisExecutor AsyncThread - ");
+        executor.initialize();
+        return executor;
+    }
+
     // preparePayment 보상 트랜잭션 이벤트 큐
     @Bean(name = "preparePaymentCompensationExecutor")
     public ThreadPoolTaskExecutor preparePaymentCompensationExecutor() {

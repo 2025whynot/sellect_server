@@ -1,12 +1,10 @@
 package com.sellect.server.order.application.v1.approvepayment;
 
-import com.github.f4b6a3.tsid.TsidCreator;
 import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.order.application.v1.approvepayment.v5.RedisStockService;
 import com.sellect.server.order.application.v1.approvepayment.v5.StockDeductionResult;
-import com.sellect.server.order.application.v1.approvepayment.v5.StockSyncService;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.repository.OrderItemRepository;
@@ -37,7 +35,6 @@ public class ApprovePaymentV6 implements ApprovePaymentStrategy {
     private final PaymentRepository paymentRepository;
     private final PlatformTransactionManager transactionManager;
     private final ApplicationEventPublisher eventPublisher;
-    private final StockSyncService stockSyncService;
     private final RedissonClient redissonClient;
     private final RedisStockService redisStockService;
 
@@ -54,7 +51,7 @@ public class ApprovePaymentV6 implements ApprovePaymentStrategy {
 
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
-        // pid별 락으로 중복 결제 방지
+
         RLock pidLock = redissonClient.getLock(APPROVE_PAYMENT_LOCK_KEY);
         try {
             // 락 획득 (최대 2초 대기, 2초 TTL) -> 성능 테스트용으로는 (waitTime : 10, leaseTime : 5)로 예정
@@ -70,8 +67,6 @@ public class ApprovePaymentV6 implements ApprovePaymentStrategy {
             if (orderItems.isEmpty()) {
                 throw new CommonException(BError.NOT_VALID, "orderId");
             }
-
-            stockSyncService.preloadStocksIfNeeded(orderItems);
 
             StockDeductionResult result = redisStockService.tryDeductStocks(orderItems);
             if (!result.isSuccess()) {
@@ -106,7 +101,4 @@ public class ApprovePaymentV6 implements ApprovePaymentStrategy {
             KakaoPayApproveRedisEvent.publish(orderItems, payment, token, pid));
     }
 
-    private Long generatePid() {
-        return TsidCreator.getTsid().toLong();
-    }
 }

@@ -16,6 +16,7 @@ import com.sellect.server.payment.event.KakaoPayReadyEvent;
 import com.sellect.server.payment.repository.PaymentRepository;
 import com.sellect.server.product.repository.StockHistoryEntity;
 import com.sellect.server.product.repository.StockHistoryJpaRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -251,6 +252,7 @@ public class PaymentServiceV1 {
                 .userId(approvePayment.getUserId())
                 .productId(item.getProductId())
                 .quantity(item.getQuantity())
+                .createdAt(LocalDateTime.now())
                 .build())
             .collect(Collectors.toList());
 
