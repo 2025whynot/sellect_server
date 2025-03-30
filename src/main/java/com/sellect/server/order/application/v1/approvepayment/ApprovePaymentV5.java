@@ -50,8 +50,7 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
     @Override
     public void approvePayment(final Long pid, final String token) {
         Payment payment = paymentRepository.findByReadyPid(pid)
-            .orElseThrow(
-                () -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
 
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
@@ -89,13 +88,11 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
 
                 StockDeductionResult result = redisStockService.tryDeductStocks(orderItems);
                 if (!result.isSuccess()) {
-                    result.rollbackIfNeeded();
                     throw new CommonException(BError.OUT_OF_STOCK, "Insufficient stock");
                 }
 
                 // 트랜잭션 시작
-                TransactionStatus status = transactionManager.getTransaction(
-                    new DefaultTransactionDefinition());
+                TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
                 try {
                     for (OrderItem item : orderItems) {
                         StockHistoryEntity history = StockHistoryEntity.builder()
@@ -110,9 +107,9 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
                     transactionManager.commit(status); // 트랜잭션 커밋
                 } catch (Exception e) {
                     transactionManager.rollback(status);
-                    result.forceRollback(); // DB 실패 시 Redis 재고 복구
-                    throw new CommonException(BError.INTERNAL_SERVER_ERROR,
-                        "approvePayment() - 결제 승인 중 오류 발생");
+                    // DB 실패 시 Redis 재고 복구
+                    redisStockService.rollbackStocks(result.getDeductedStocks());
+                    throw new CommonException(BError.INTERNAL_SERVER_ERROR, "approvePayment() - 결제 승인 중 오류 발생");
                 }
             } finally {
                 if (multiLock.isHeldByCurrentThread()) {
@@ -121,21 +118,19 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 인터럽트 상태 복원
-            throw new CommonException(BError.INTERNAL_SERVER_ERROR,
-                "Interrupted while acquiring lock");
+            throw new CommonException(BError.INTERNAL_SERVER_ERROR, "Interrupted while acquiring lock");
         } finally {
             if (pidLock.isHeldByCurrentThread()) {
                 pidLock.unlock();
             }
         }
+
         // 트랜잭션 커밋 후 이벤트 발행
         KakaoPayApproveEvent event = KakaoPayApproveEvent.publish(payment, token, pid);
         eventPublisher.publishEvent(event);
-
     }
 
     private Long generatePid() {
         return TsidCreator.getTsid().toLong();
     }
-
 }

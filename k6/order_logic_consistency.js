@@ -8,7 +8,8 @@ export const options = {
   // duration: '180s', // 테스트 기간
 };
 
-const BASE_URL = 'http://172.16.24.78:8080'; // 실제 API 베이스 URL로 변경 필요
+const BASE_URL = 'http://localhost:8080'; // 실제 API 베이스 URL로 변경 필요
+const PAY_BASE_URL = 'http://localhost:8081'; // 실제 API 베이스 URL로 변경 필요
 
 // 주문 → 결제 시나리오 (정합성 테스트용)
 export default function () {
@@ -67,15 +68,15 @@ export default function () {
     'payment ready': (r) => r.status === 200,
   });
 
-  // if (!paymentCheck) {
-  //   console.log(`Payment failed - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
-  // } else {
-  //   console.log(`Payment succeeded - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
-  // }
+  if (!paymentCheck) {
+    console.log(`Payment failed - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
+  } else {
+    console.log(`Payment succeeded - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
+  }
 
 
   const approveResponse = http.post(
-      `${BASE_URL}/api/v1/test/order/payment/in-progress/${pid}`,
+      `${PAY_BASE_URL}/v1/payment/in-progress/${pid}`,
       null,
       {
         headers: { 'Content-Type': 'application/json' },
@@ -86,9 +87,9 @@ export default function () {
     'payment approve': (r) => r.status === 200,
   });
 
-  // if (!approveCheck) {
-  //   console.log(`Payment failed - Status: ${approveResponse.status}, Body: ${approveResponse.body}`);
-  // } else {
-  //   console.log(`Payment succeeded - Status: ${approveResponse.status}, Body: ${approveResponse.body}`);
-  // }
+  if (!approveCheck) {
+    console.log(`Payment failed - Status: ${approveResponse.status}, Body: ${approveResponse.body}`);
+  } else {
+    console.log(`Payment succeeded - Status: ${approveResponse.status}, Body: ${approveResponse.body}`);
+  }
 }

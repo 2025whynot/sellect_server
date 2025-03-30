@@ -137,7 +137,7 @@ public class FakePayClient implements PayClient {
     public static void triggerInProgressTest(Long pid) {
         try {
             String tid = "tid - " + pid.toString();
-            String inProgressUrl = FAKE_PAYMENT_HOST + "/v1/payment/approve";
+            String inProgressUrl = FAKE_PAYMENT_HOST + "/v1/payment/in-progress";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, String> body = new HashMap<>();
