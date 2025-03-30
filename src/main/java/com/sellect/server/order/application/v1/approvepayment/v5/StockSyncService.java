@@ -21,21 +21,21 @@ public class StockSyncService {
     private static final String STOCK_KEY_PREFIX = "inventory:stock:";
 
     public void preloadStocksIfNeeded(List<OrderItem> items) {
+        log.info("Preloading stocks for items: {}", items.size());
         boolean needsPreload = false;
-
         for (OrderItem item : items) {
             String key = STOCK_KEY_PREFIX + item.getProductId();
             Integer stock = redisTemplate.opsForValue().get(key);
+            log.info("Checking stock: key={}, stock={}", key, stock);
             if (stock == null) {
                 needsPreload = true;
                 break;
             }
         }
-
         if (needsPreload) {
             for (OrderItem item : items) {
                 String key = STOCK_KEY_PREFIX + item.getProductId();
-                if (redisTemplate.opsForValue().get(key) == null) { // 중복 체크
+                if (redisTemplate.opsForValue().get(key) == null) {
                     Inventory inventory = inventoryRepository.findByProductId(item.getProductId())
                         .orElseThrow(() -> new CommonException(BError.NOT_VALID, "Product " + item.getProductId()));
                     redisTemplate.opsForValue().set(key, inventory.getStock());

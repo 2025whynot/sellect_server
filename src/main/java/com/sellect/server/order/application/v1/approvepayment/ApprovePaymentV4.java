@@ -28,7 +28,6 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @Component
 @RequiredArgsConstructor
 public class ApprovePaymentV4 implements ApprovePaymentStrategy {
-
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
     private final OrderItemRepository orderItemRepository;
@@ -37,6 +36,8 @@ public class ApprovePaymentV4 implements ApprovePaymentStrategy {
     private final PlatformTransactionManager transactionManager;
     private final ApplicationEventPublisher eventPublisher;
     private final RedissonClient redissonClient;
+
+    private static final String APPROVE_PAYMENT_LOCK_KEY = "lock:approvePayment";
 
     // 방법 4. 레디스를 분산락으로 제어, 재고 차감은 MySQL 그대로 이용 (다만, 비관적 락을 레디스 분산락으로 변경)
     @Override
@@ -48,7 +49,7 @@ public class ApprovePaymentV4 implements ApprovePaymentStrategy {
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
         // 분산 락을 pid를 기반으로 설정 (중복 결제 방지)
-        RLock lock = redissonClient.getLock("lock:approvePayment");
+        RLock lock = redissonClient.getLock(APPROVE_PAYMENT_LOCK_KEY);
 
         try {
             // 락 획득 (최대 2초 대기, 2초 TTL) -> 성능 테스트용으로는 (waitTime : 10, leaseTime : 5)로 예정

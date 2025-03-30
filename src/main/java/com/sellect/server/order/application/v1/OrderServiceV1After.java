@@ -172,7 +172,7 @@ public class OrderServiceV1After {
         // 결국은 orderId를 반환하는 것이기에 해당 부분 수정할 예정
         // PendingOrderRegisterResponse에 다른 무언가가 있을 것처럼 보이기에 수정할 예정
         return PendingOrderRegisterResponse.builder() // Controller 에서 from()으로 처리할 것
-            .orderId(savedOrder.getId())
+            .orderId(String.valueOf(savedOrder.getId()))
             .build();
     }
 

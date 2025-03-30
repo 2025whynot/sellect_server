@@ -157,7 +157,6 @@ public class OrderService {
         Orders order = Orders.register(user, request.convertPriceAsBigDecimal(),
             OrderStatus.PENDING);
         Orders savedOrder = ordersRepository.save(order);
-
         Set<Long> productIds = new HashSet<>();
         List<OrderItem> orderItems = request.orderItems().stream()
             .map(orderItemAddRequest -> {
@@ -184,7 +183,7 @@ public class OrderService {
         orderItemRepository.saveAll(orderItems);
 
         return PendingOrderRegisterResponse.builder()
-            .orderId(savedOrder.getId())
+            .orderId(String.valueOf(savedOrder.getId()))
             .build();
     }
 

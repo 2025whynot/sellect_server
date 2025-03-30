@@ -27,7 +27,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ApprovePaymentV5 implements ApprovePaymentStrategy {
+public class ApprovePaymentV6 implements ApprovePaymentStrategy {
 
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
@@ -38,7 +38,7 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
     private final RedissonClient redissonClient;
     private final RedisStockService redisStockService;
 
-    private static final String PID_KEY_PREFIX = "lock:approvePayment:";
+    private static final String APPROVE_PAYMENT_LOCK_KEY = "lock:approvePayment";
 
     // 방법 5. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용
     @Override
@@ -51,8 +51,8 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
 
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
-        // pid별 락으로 중복 결제 방지
-        RLock pidLock = redissonClient.getLock(PID_KEY_PREFIX + pid);
+
+        RLock pidLock = redissonClient.getLock(APPROVE_PAYMENT_LOCK_KEY);
         try {
             // 락 획득 (최대 2초 대기, 2초 TTL) -> 성능 테스트용으로는 (waitTime : 10, leaseTime : 5)로 예정
             if (!pidLock.tryLock(2, 2, TimeUnit.SECONDS)) {
@@ -68,38 +68,23 @@ public class ApprovePaymentV5 implements ApprovePaymentStrategy {
                 throw new CommonException(BError.NOT_VALID, "orderId");
             }
 
-            // productId별 멀티 락 생성
-            RLock[] locks = orderItems.stream()
-                .map(item -> redissonClient.getLock("lock:stock:" + item.getProductId()))
-                .distinct() // 중복 productId 제거
-                .toArray(RLock[]::new);
-            RLock multiLock = redissonClient.getMultiLock(locks);
+            StockDeductionResult result = redisStockService.tryDeductStocks(orderItems);
+            if (!result.isSuccess()) {
+                throw new CommonException(BError.OUT_OF_STOCK, "Insufficient stock");
+            }
 
+            // 트랜잭션 시작
+            TransactionStatus status = transactionManager.getTransaction(
+                new DefaultTransactionDefinition());
             try {
-                if (!multiLock.tryLock(2, 2, TimeUnit.SECONDS)) {
-                    throw new CommonException(BError.TIMEOUT, "Failed to acquire multi-lock");
-                }
-
-                StockDeductionResult result = redisStockService.tryDeductStocks(orderItems);
-                if (!result.isSuccess()) {
-                    throw new CommonException(BError.OUT_OF_STOCK, "Insufficient stock");
-                }
-
-                // 트랜잭션 시작
-                TransactionStatus status = transactionManager.getTransaction(
-                    new DefaultTransactionDefinition());
-                try {
-                    ordersRepository.save(order.completeOrder());
-                    transactionManager.commit(status); // 트랜잭션 커밋
-                } catch (Exception e) {
-                    transactionManager.rollback(status);
-                    // DB 실패 시 Redis 재고 복구
-                    redisStockService.rollbackStocks(result.getDeductedStocks());
-                    throw new CommonException(BError.INTERNAL_SERVER_ERROR,
-                        "approvePayment() - 결제 승인 중 오류 발생");
-                }
-            } finally {
-                multiLock.unlock();
+                ordersRepository.save(order.completeOrder());
+                transactionManager.commit(status); // 트랜잭션 커밋
+            } catch (Exception e) {
+                transactionManager.rollback(status);
+                // DB 실패 시 Redis 재고 복구
+                redisStockService.rollbackStocks(result.getDeductedStocks());
+                throw new CommonException(BError.INTERNAL_SERVER_ERROR,
+                    "approvePayment() - 결제 승인 중 오류 발생");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // 인터럽트 상태 복원
