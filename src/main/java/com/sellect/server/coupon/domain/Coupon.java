@@ -24,6 +24,7 @@ public class Coupon {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
     private final LocalDateTime deleteAt;
+    private final CouponStatus couponStatus;
 
 
     public void isUsable() {

@@ -5,6 +5,8 @@ import com.sellect.server.common.BaseTimeEntity;
 import com.sellect.server.coupon.domain.Coupon;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,6 +42,9 @@ public class CouponEntity extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDate expirationDate;
 
+    @Enumerated(EnumType.STRING)
+    private CouponStatus couponStatus;
+
     public static CouponEntity from(Coupon coupon) {
         return CouponEntity.builder()
             .id(coupon.getId())
@@ -50,8 +55,8 @@ public class CouponEntity extends BaseTimeEntity {
             .createdAt(coupon.getCreatedAt())
             .updatedAt(coupon.getUpdatedAt())
             .deleteAt(coupon.getDeleteAt())
+            .couponStatus(CouponStatus.IN_STOCK)
             .build();
-
     }
 
     public Coupon toModel() {
@@ -64,6 +69,7 @@ public class CouponEntity extends BaseTimeEntity {
             .createdAt(this.getCreatedAt())
             .updatedAt(this.getUpdatedAt())
             .deleteAt(this.getDeleteAt())
+            .couponStatus(this.couponStatus)
             .build();
     }
 }
