@@ -10,30 +10,20 @@ import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import java.util.concurrent.TimeUnit;
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
 
 @Service
-public class CouponDownloadWithDistributedLock extends CouponService {
+@RequiredArgsConstructor
+public class CouponDownloadWithDistributedLock  {
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
     private final RedissonClient redissonClient;
 
-    public CouponDownloadWithDistributedLock(CouponRepository couponRepository,
-        UserReceivedCouponRepository userReceivedCouponRepository,
-        ProductRepository productRepository, RedissonClient redissonClient) {
-        super(couponRepository, userReceivedCouponRepository, productRepository);
-        this.couponRepository = couponRepository;
-        this.userReceivedCouponRepository = userReceivedCouponRepository;
-        this.productRepository = productRepository;
-        this.redissonClient = redissonClient;
-    }
-
-
-    @Override
     public void downloadCoupon(User user, Long couponId) {
         String lockKey = String.format("coupon:couponLock:%d", couponId);
         RLock lock = redissonClient.getLock(lockKey);

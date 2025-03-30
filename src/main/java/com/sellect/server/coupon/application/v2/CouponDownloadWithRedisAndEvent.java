@@ -10,6 +10,7 @@ import com.sellect.server.coupon.event.CouponDownloadEvent;
 import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CouponDownloadWithRedisAndEvent extends CouponService {
+@RequiredArgsConstructor
+public class CouponDownloadWithRedisAndEvent  {
 
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
@@ -26,24 +28,6 @@ public class CouponDownloadWithRedisAndEvent extends CouponService {
     private final RedissonClient redissonClient;
     private final ApplicationEventPublisher eventPublisher;
 
-    public CouponDownloadWithRedisAndEvent(CouponRepository couponRepository,
-        UserReceivedCouponRepository userReceivedCouponRepository,
-        ProductRepository productRepository, RedissonClient redissonClient,
-        ApplicationEventPublisher eventPublisher) {
-        super(
-            couponRepository,
-            userReceivedCouponRepository,
-            productRepository
-        );
-        this.couponRepository = couponRepository;
-        this.userReceivedCouponRepository = userReceivedCouponRepository;
-        this.productRepository = productRepository;
-        this.redissonClient = redissonClient;
-        this.eventPublisher = eventPublisher;
-    }
-
-
-    @Override
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         String counterKey = "coupon:" + couponId + ":count";

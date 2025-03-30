@@ -10,13 +10,15 @@ import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 @Service
-public class CouponDownloadWithReentrantLock extends CouponService {
+@RequiredArgsConstructor
+public class CouponDownloadWithReentrantLock {
 
     ReentrantLock lock = new ReentrantLock();
     private final CouponRepository couponRepository;
@@ -24,18 +26,7 @@ public class CouponDownloadWithReentrantLock extends CouponService {
     private final ProductRepository productRepository;
     private final PlatformTransactionManager transactionManager;
 
-    public CouponDownloadWithReentrantLock(CouponRepository couponRepository,
-        UserReceivedCouponRepository userReceivedCouponRepository,
-        ProductRepository productRepository, PlatformTransactionManager transactionManager) {
-        super(couponRepository, userReceivedCouponRepository, productRepository);
-        this.couponRepository = couponRepository;
-        this.userReceivedCouponRepository = userReceivedCouponRepository;
-        this.productRepository = productRepository;
-        this.transactionManager = transactionManager;
-    }
 
-
-    @Override
     public void downloadCoupon(User user, Long couponId) {
         lock.lock();
         try {

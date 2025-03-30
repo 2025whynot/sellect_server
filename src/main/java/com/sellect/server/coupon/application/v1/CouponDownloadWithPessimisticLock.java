@@ -9,27 +9,18 @@ import com.sellect.server.coupon.domain.UserReceivedCoupon;
 import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
-public class CouponDownloadWithPessimisticLock extends CouponService {
+@RequiredArgsConstructor
+public class CouponDownloadWithPessimisticLock {
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
 
-    public CouponDownloadWithPessimisticLock(CouponRepository couponRepository,
-        UserReceivedCouponRepository userReceivedCouponRepository,
-        ProductRepository productRepository) {
-        super(couponRepository, userReceivedCouponRepository, productRepository);
-        this.couponRepository = couponRepository;
-        this.userReceivedCouponRepository = userReceivedCouponRepository;
-        this.productRepository = productRepository;
-    }
-
-
-    @Override
     @Transactional
     public void downloadCoupon(User user, Long couponId) {
         Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)

@@ -6,16 +6,12 @@ import com.sellect.server.common.infrastructure.annotation.AuthSeller;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.coupon.application.CouponService;
-import com.sellect.server.coupon.application.v1.CouponDownloadWithDistributedLock;
-import com.sellect.server.coupon.application.v1.CouponDownloadWithPessimisticLock;
-import com.sellect.server.coupon.application.v1.CouponDownloadWithReentrantLock;
-import com.sellect.server.coupon.application.v2.CouponDownloadWithRedisAndEvent;
-import com.sellect.server.coupon.application.v3.CouponDownloadWithRedisSet;
 import com.sellect.server.coupon.controller.request.IssueCouponRequest;
 import com.sellect.server.coupon.controller.response.ActiveCouponResponse;
 import com.sellect.server.coupon.controller.response.CouponPossibleOrderResponse;
 import com.sellect.server.coupon.controller.response.CouponResponse;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,29 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/coupon")
 public class CouponController {
 
     private final CouponService couponService;
-    private final CouponService couponServiceWithDb;
-    private final CouponService couponServiceV1;
-    private final CouponService couponServiceV2;
-    private final CouponService couponServiceV3;
-
-
-    public CouponController(
-        CouponDownloadWithReentrantLock couponDownloadWithReentrantLock,
-        CouponDownloadWithPessimisticLock couponDownloadWithPessimisticLock,
-        CouponDownloadWithDistributedLock couponDownloadWithDistributedLock,
-        CouponDownloadWithRedisAndEvent couponServiceWithRedisAndEvent,
-        CouponDownloadWithRedisSet couponServiceWithRedisSet) {
-
-        this.couponService = couponDownloadWithReentrantLock;
-        this.couponServiceWithDb = couponDownloadWithPessimisticLock;
-        this.couponServiceV1 = couponDownloadWithDistributedLock;
-        this.couponServiceV2 = couponServiceWithRedisAndEvent;
-        this.couponServiceV3 = couponServiceWithRedisSet;
-    }
 
     @PostMapping("/issue")
     public ApiResponse<?> issueCoupon(
@@ -66,7 +44,7 @@ public class CouponController {
 
     @PutMapping("/register/{couponId}")
     public ApiResponse<?> downloadCoupon(@AuthUser User user, @PathVariable Long couponId) {
-        couponServiceV3.downloadCoupon(user, couponId);
+        couponService.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -114,7 +92,7 @@ public class CouponController {
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponService.downloadCoupon(user, couponId);
+        couponService.downloadCouponReentrantLock(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -130,7 +108,7 @@ public class CouponController {
             .role(Role.USER)
             .build();
 
-        couponServiceWithDb.downloadCoupon(user, couponId);
+        couponService.downloadCouponPessimisticLock(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -144,7 +122,7 @@ public class CouponController {
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponServiceV1.downloadCoupon(user, couponId);
+        couponService.downloadCouponDistributeLock(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -158,7 +136,7 @@ public class CouponController {
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponServiceV2.downloadCoupon(user, couponId);
+        couponService.downloadCouponRedisWithEvent(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -173,7 +151,7 @@ public class CouponController {
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponServiceV3.downloadCoupon(user, couponId);
+        couponService.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
 }

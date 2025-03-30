@@ -1,6 +1,7 @@
 package com.sellect.server.coupon.event;
 
 
+import com.sellect.server.coupon.application.CouponService;
 import com.sellect.server.coupon.application.v2.CouponDownloadWithRedisAndEvent;
 import com.sellect.server.coupon.infra.CouponStockOperation;
 import com.sellect.server.coupon.infra.MemberCouponStockOperation;
@@ -23,7 +24,7 @@ public class CouponEventListener {
     private final BlockingQueue<CouponDownloadEvent> eventQueue = new LinkedBlockingQueue<>();
     private final CouponStockOperation couponStockOperation;
     private final MemberCouponStockOperation memberCouponStockOperation;
-    private final CouponDownloadWithRedisAndEvent couponService;
+    private final CouponService couponService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

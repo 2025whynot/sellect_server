@@ -4,6 +4,7 @@ import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.coupon.application.downloadcoupon.DownLoadCoupon;
 import com.sellect.server.coupon.controller.request.IssueCouponRequest;
 import com.sellect.server.coupon.controller.response.ActiveCouponResponse;
 import com.sellect.server.coupon.controller.response.CouponInfo;
@@ -26,18 +27,41 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
+@Service
 @RequiredArgsConstructor
-public abstract class CouponService {
+public class CouponService {
 
     private static final Sort DEFAULT_SORT = Sort.by(Direction.DESC, "createdAt");
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final ProductRepository productRepository;
+    private final DownLoadCoupon downLoadCoupon;
 
-    public abstract void downloadCoupon(User user, Long couponId);
+    // 상속 보다는 컴포지션
+    public void downloadCoupon(User user, Long couponId) {
+        downLoadCoupon.downloadWithRedisSet(user, couponId);
+    }
+
+    public void downloadCouponReentrantLock(User user, Long couponId) {
+        downLoadCoupon.couponDownloadWithReentrantLock(user, couponId);
+    }
+
+    public void downloadCouponPessimisticLock(User user, Long couponId) {
+        downLoadCoupon.setCouponDownloadWithPessimisticLock(user, couponId);
+    }
+
+    public void downloadCouponDistributeLock(User user, Long couponId) {
+        downLoadCoupon.setCouponDownloadWithDistributedLock(user, couponId);
+    }
+
+    public void downloadCouponRedisWithEvent(User user, Long couponId) {
+        downLoadCoupon.setCouponDownloadWithRedisAndEvent(user, couponId);
+    }
+
 
     // 판매자 쿠폰 등록
     public void uploadCoupon(User user, IssueCouponRequest issueCouponRequest) {
@@ -181,7 +205,7 @@ public abstract class CouponService {
     }
 
     public void couponOutOfStock(Coupon coupon) {
-        Coupon OutOfStockCoupon =  coupon.outOfStock();
+        Coupon OutOfStockCoupon = coupon.outOfStock();
         couponRepository.save(OutOfStockCoupon);
     }
 }

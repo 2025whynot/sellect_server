@@ -12,6 +12,7 @@ import com.sellect.server.coupon.infra.MemberCouponStockOperation;
 import com.sellect.server.coupon.repository.CouponRepository;
 import com.sellect.server.coupon.repository.UserReceivedCouponRepository;
 import com.sellect.server.product.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
-public class CouponDownloadWithRedisSet extends CouponService {
+@RequiredArgsConstructor
+public class CouponDownloadWithRedisSet  {
 
     private final CouponRepository couponRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
@@ -27,22 +29,6 @@ public class CouponDownloadWithRedisSet extends CouponService {
     private final RedissonClient redissonClient;
     private final MemberCouponStockOperation memberCouponStockOperation;
     private final ApplicationEventPublisher eventPublisher;
-
-    public CouponDownloadWithRedisSet(CouponRepository couponRepository,
-        UserReceivedCouponRepository userReceivedCouponRepository,
-        ProductRepository productRepository, CouponRepository couponRepository1,
-        UserReceivedCouponRepository userReceivedCouponRepository1,
-        ProductRepository productRepository1, RedissonClient redissonClient,
-        MemberCouponStockOperation memberCouponStockOperation,
-        ApplicationEventPublisher eventPublisher) {
-        super(couponRepository, userReceivedCouponRepository, productRepository);
-        this.couponRepository = couponRepository1;
-        this.userReceivedCouponRepository = userReceivedCouponRepository1;
-        this.productRepository = productRepository1;
-        this.redissonClient = redissonClient;
-        this.memberCouponStockOperation = memberCouponStockOperation;
-        this.eventPublisher = eventPublisher;
-    }
 
     /**
       * 방향성
@@ -57,7 +43,6 @@ public class CouponDownloadWithRedisSet extends CouponService {
       * https://techblog.woowahan.com/2709/
       */
     @Transactional
-    @Override
     public void downloadCoupon(User user, Long couponId) {
         Coupon coupon = couponRepository.findById(couponId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, couponId.toString()));
