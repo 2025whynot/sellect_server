@@ -21,7 +21,6 @@ public class KafkaPaymentListener {
 
     @KafkaListener(topics = "pay-ready", groupId = "pay-ready-group")
     public void payReadyListener(PayReadyMessage message) {
-        log.info("Received pay-ready message: {}", message);
         consumePayReadyMessage(message);
     }
 
@@ -42,10 +41,7 @@ public class KafkaPaymentListener {
     // === private method === //
 
     private void consumePayReadyMessage(PayReadyMessage message) {
-        log.info("Starting to process pay-ready message: userId={}, orderId={}, totalPrice={}",
-            message.getUserId(), message.getOrderId(), message.getTotalPrice());
         paymentService.preparePayment(message.getUserId(), message.getOrderId(), message.getTotalPrice());
-        log.info("Successfully processed pay-ready message: {}", message);
     }
 
     private void consumePayApproveMessage(PayApproveMessage message) {

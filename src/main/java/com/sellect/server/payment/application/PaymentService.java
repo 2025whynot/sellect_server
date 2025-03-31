@@ -47,36 +47,14 @@ public class PaymentService {
             .toList();
     }
 
-//    @Transactional
-//    public void preparePayment(final Long userId, final Long orderId , final int totalPrice) {
-//        Long pid = generatePid();
-//        KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(pid, orderId, userId, totalPrice);
-//
-//        savePayReadyStatus(pid, orderId, userId, totalPrice, kakaoPayReadyResponse);
-//
-//        storePaymentUrlInRedis(orderId, kakaoPayReadyResponse);
-//    }
-
     @Transactional
-    public void preparePayment(final Long userId, final Long orderId, final int totalPrice) {
-        log.info("Starting preparePayment: userId={}, orderId={}, totalPrice={}", userId, orderId, totalPrice);
-        try {
-            Long pid = generatePid();
-            log.debug("Generated pid={}", pid);
+    public void preparePayment(final Long userId, final Long orderId , final int totalPrice) {
+        Long pid = generatePid();
+        KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(pid, orderId, userId, totalPrice);
 
-            KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(pid, orderId, userId, totalPrice);
-            log.debug("KakaoPay ready response: tid={}, next_redirect_pc_url={}",
-                kakaoPayReadyResponse.tid(), kakaoPayReadyResponse.next_redirect_pc_url());
+        savePayReadyStatus(pid, orderId, userId, totalPrice, kakaoPayReadyResponse);
 
-            savePayReadyStatus(pid, orderId, userId, totalPrice, kakaoPayReadyResponse);
-            log.debug("Saved payment status for pid={}", pid);
-
-            storePaymentUrlInRedis(orderId, kakaoPayReadyResponse);
-            log.info("Completed preparePayment successfully: pid={}", pid);
-        } catch (Exception e) {
-            log.error("Failed to prepare payment: userId={}, orderId={}, totalPrice={}", userId, orderId, totalPrice, e);
-            throw e; // 트랜잭션 롤백 유도
-        }
+        storePaymentUrlInRedis(orderId, kakaoPayReadyResponse);
     }
 
     public void initPaymentApproval(final Long pid, final String token) {
