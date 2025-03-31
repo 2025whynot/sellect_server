@@ -61,6 +61,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
             order = ordersRepository.save(order.applyCoupon(coupon));
         }
 
+        log.info("Preparing order for userId: {}, orderId: {}", userId, orderId);
         kafkaProducer.produce("pay-ready", PayReadyMessage.builder()
             .orderId(order.getId())
             .userId(order.getUser().getId())
@@ -72,6 +73,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
     public void completeOrder(final Long orderId) {
         Orders order = findOrderNotCompleted(orderId);
 
+        log.info("Completing order for userId: {}, orderId: {}", order.getUser().getId(), orderId);
         try {
 //            processInventories(order); // v4.0
             incrementStockUsage(orderId); // v4.1

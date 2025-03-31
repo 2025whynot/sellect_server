@@ -53,6 +53,7 @@ public class OrderControllerV4 {
         @PathVariable Long userId,
         @PathVariable Long orderId,
         @RequestParam(name = "coupon_id", required = false) Long userReceivedCouponId) {
+        log.info("test order payment ready");
         orderService.prepareOrder(userId, orderId, userReceivedCouponId);
         return ApiResponse.ok();
     }
