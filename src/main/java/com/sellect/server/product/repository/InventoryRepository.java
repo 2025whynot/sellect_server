@@ -23,4 +23,5 @@ public interface InventoryRepository {
     //
     List<Inventory> saveAll(List<Inventory> inventories);
 
+    List<Inventory> findWithWriteLockByProductIds(List<Long> productIds);
 }

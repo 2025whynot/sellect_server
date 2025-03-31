@@ -13,6 +13,9 @@ import com.sellect.server.payment.repository.PaymentRepository;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.repository.InventoryRepository;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -67,11 +70,26 @@ public class ApprovePaymentV3 implements ApprovePaymentStrategy {
                     throw new CommonException(BError.NOT_VALID, "orderId");
                 }
 
+                // IN 절로 모든 productId를 한 번에 조회
+                List<Long> productIds = orderItems.stream()
+                    .map(OrderItem::getProductId)
+                    .distinct()
+                    .toList();
+
+                List<Inventory> inventories = inventoryRepository.findWithWriteLockByProductIds(productIds);
+                Map<Long, Inventory> inventoryMap = inventories.stream()
+                    .collect(Collectors.toMap(
+                        inventory -> inventory.getProduct().getId(), // Product 객체에서 productId 추출
+                        Function.identity()
+                    ));
+
+                // 재고 차감
                 List<Inventory> deductedInventories = orderItems.stream()
                     .map(orderItem -> {
-                        Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
-                                orderItem.getProductId())
-                            .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
+                        Inventory inventory = inventoryMap.get(orderItem.getProductId());
+                        if (inventory == null) {
+                            throw new CommonException(BError.NOT_VALID, "productId: " + orderItem.getProductId());
+                        }
                         return inventory.deductStock(orderItem.getQuantity());
                     })
                     .toList();
