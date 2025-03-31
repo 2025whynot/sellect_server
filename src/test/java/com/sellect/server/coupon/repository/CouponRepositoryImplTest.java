@@ -7,6 +7,7 @@ import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.auth.repository.entity.UserEntity;
 import com.sellect.server.coupon.domain.Coupon;
+import com.sellect.server.coupon.repository.entity.CouponStatus;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -102,7 +103,7 @@ class CouponRepositoryImplTest {
     class CouponFindAll {
 
         @Test
-        @DisplayName("쿠폰 목록 조회 성공")
+        @DisplayName("[성공] 다운로드 가능한 쿠폰 조회")
         void couponFindAllSuccess() {
             //given
             Coupon coupon1 = Coupon.builder()
@@ -112,7 +113,9 @@ class CouponRepositoryImplTest {
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .expirationDate(LocalDate.now().plusDays(7))
+                .couponStatus(CouponStatus.IN_STOCK)
                 .build();
+
             Coupon coupon2 = Coupon.builder()
                 .seller(sellerEntity.toModel())
                 .discountCost(2000)
@@ -120,17 +123,33 @@ class CouponRepositoryImplTest {
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .expirationDate(LocalDate.now().plusDays(3))
+                .couponStatus(CouponStatus.IN_STOCK)
                 .build();
+
+
+            Coupon coupon3 = Coupon.builder()
+                .seller(sellerEntity.toModel())
+                .discountCost(2000)
+                .quantity(20)
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .updatedAt(LocalDateTime.now().minusDays(1))
+                .expirationDate(LocalDate.now().plusDays(3))
+                .couponStatus(CouponStatus.OUT_OF_STOCK)
+                .build();
+
             Coupon savedCoupon1 = couponRepositoryImpl.save(coupon1);
             Coupon savedCoupon2 = couponRepositoryImpl.save(coupon2);
+            Coupon savedCoupon3 = couponRepositoryImpl.save(coupon3);
 
             //when
             PageRequest request = PageRequest.of(0, 10);
             Page<Coupon> allActiveCouponList = couponRepositoryImpl.findAllActiveCouponList(
                 request);
 
+
+
             //then
-            then(allActiveCouponList.getTotalElements()).isEqualTo(2);
+            then(allActiveCouponList.getContent().size()).isEqualTo(2);
             then(allActiveCouponList.getContent().get(0).getId()).isEqualTo(savedCoupon1.getId());
             then(allActiveCouponList.getContent().get(1).getId()).isEqualTo(savedCoupon2.getId());
         }
@@ -153,6 +172,7 @@ class CouponRepositoryImplTest {
                 .createdAt(LocalDateTime.now().minusDays(1))
                 .updatedAt(LocalDateTime.now().minusDays(1))
                 .expirationDate(LocalDate.now().plusDays(7))
+                .couponStatus(CouponStatus.IN_STOCK)
                 .build();
             Coupon savedCoupon = couponRepositoryImpl.save(coupon); // 저장 후 반환된 객체 사용
 

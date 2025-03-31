@@ -3,6 +3,7 @@ package com.sellect.server.product.repository;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,7 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("SELECT p FROM ProductEntity p WHERE p.id = :id")
     Optional<ProductEntity> findWithLockById(@Param("id") Long id);
+
+    @Query("SELECT DISTINCT p.sellerEntity.id FROM ProductEntity p WHERE p.id IN ?1")
+    Set<Long> findSellerIdsByIds(List<Long> ids);
 }

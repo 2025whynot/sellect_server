@@ -1,6 +1,7 @@
 package com.sellect.server.coupon.repository;
 
 import com.sellect.server.coupon.repository.entity.CouponEntity;
+import com.sellect.server.coupon.repository.entity.CouponStatus;
 import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -18,6 +19,8 @@ public interface CouponJpaRepository extends JpaRepository<CouponEntity, Long> {
 
     Page<CouponEntity> findByDeleteAtNullAndQuantityGreaterThanAndExpirationDateAfter(
         Integer quantity, LocalDate expirationDate, Pageable pageable);
+
+    Page<CouponEntity> findByDeleteAtNullAndExpirationDateAfterAndCouponStatus(LocalDate expirationDateAfter, CouponStatus couponStatus, Pageable pageable);
 
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

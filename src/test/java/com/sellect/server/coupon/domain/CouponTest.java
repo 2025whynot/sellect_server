@@ -9,6 +9,7 @@ import com.sellect.server.auth.domain.User;
 import com.sellect.server.auth.repository.entity.Role;
 import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
+import com.sellect.server.coupon.repository.entity.CouponStatus;
 import java.time.LocalDate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +28,6 @@ class CouponTest {
             User user = User.builder()
                 .id(1L)
                 .nickname("test")
-//                .uuid("uuid")
                 .role(Role.SELLER)
                 .build();
 
@@ -37,11 +37,12 @@ class CouponTest {
                 .discountCost(3000)
                 .quantity(10)
                 .expirationDate(LocalDate.now().plusDays(10))
+                .couponStatus(CouponStatus.IN_STOCK)
                 .build();
 
 
             // when & then
-            assertThatNoException().isThrownBy(coupon::isUsable);
+            assertThatNoException().isThrownBy(coupon::validateDownload);
         }
 
         @Test
@@ -64,7 +65,7 @@ class CouponTest {
                 .build();
 
             // when
-            CommonException exception = assertThrows(CommonException.class, coupon::isUsable);
+            CommonException exception = assertThrows(CommonException.class, coupon::validateDownload);
 
             // then
             assertThat(exception.getErrorType()).isEqualTo(BError.class);
@@ -89,10 +90,11 @@ class CouponTest {
                 .discountCost(3000)
                 .quantity(100)
                 .expirationDate(LocalDate.now().minusDays(30))
+                .couponStatus(CouponStatus.IN_STOCK)
                 .build();
 
             // when
-            CommonException exception = assertThrows(CommonException.class, coupon::isUsable);
+            CommonException exception = assertThrows(CommonException.class, coupon::validateDownload);
 
             // then
             assertThat(exception.getErrorType()).isEqualTo(BError.class);

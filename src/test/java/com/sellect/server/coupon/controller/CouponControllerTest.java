@@ -142,7 +142,7 @@ class CouponControllerTest {
                 new CouponInfo(1L, 100, LocalDate.now().plusDays(10), new SellerInfo(2L, "seller")))
             // 필드 설정 필요
         );
-        when(couponService.getCouponList(mockUser, 0, 5, null))
+        when(couponService.listUserReceivedCoupons(mockUser, 0, 5, null))
             .thenReturn(couponList);
 
         // When & Then
@@ -167,7 +167,7 @@ class CouponControllerTest {
         // 필드 설정 필요
         Page<ActiveCouponResponse> pageResult = new PageImpl<>(activeCoupons, pageable,
             activeCoupons.size());
-        when(couponService.getActiveCouponList(mockUser, pageable))
+        when(couponService.listDownloadableCouponsForUser(mockUser, pageable))
             .thenReturn(pageResult);
 
         // When & Then
@@ -185,7 +185,7 @@ class CouponControllerTest {
         List<Long> productIds = Arrays.asList(1L, 2L);
         CouponPossibleOrderResponse r1 = new CouponPossibleOrderResponse(1L, 1000, LocalDate.now().plusDays(5));
         List<CouponPossibleOrderResponse> couponList = List.of(r1);
-        when(couponService.getCouponsByMatchingSeller(any(User.class), any(List.class)))
+        when(couponService.getUsableCouponsForProducts(any(User.class), any(List.class)))
             .thenReturn(couponList);
 
         // When & Then
@@ -201,7 +201,7 @@ class CouponControllerTest {
 
             .andDo(print());
 
-        verify(couponService, times(1)).getCouponsByMatchingSeller(any(User.class),
+        verify(couponService, times(1)).getUsableCouponsForProducts(any(User.class),
             any(List.class));
     }
 }

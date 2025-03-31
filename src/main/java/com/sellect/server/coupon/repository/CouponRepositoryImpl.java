@@ -2,6 +2,7 @@ package com.sellect.server.coupon.repository;
 
 import com.sellect.server.coupon.domain.Coupon;
 import com.sellect.server.coupon.repository.entity.CouponEntity;
+import com.sellect.server.coupon.repository.entity.CouponStatus;
 import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +30,7 @@ public class CouponRepositoryImpl implements CouponRepository {
 
     @Override
     public Page<Coupon> findAllActiveCouponList(Pageable pageable) {
-        Page<CouponEntity> activeCouponList = couponJpaRepository.findByDeleteAtNullAndQuantityGreaterThanAndExpirationDateAfter(
-            0,
-            LocalDate.now(), pageable);
+        Page<CouponEntity> activeCouponList = couponJpaRepository.findByDeleteAtNullAndExpirationDateAfterAndCouponStatus(LocalDate.now(), CouponStatus.IN_STOCK, pageable);
         return activeCouponList.map(CouponEntity::toModel);
     }
 

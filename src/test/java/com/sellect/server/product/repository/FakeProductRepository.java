@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -105,6 +106,11 @@ public class FakeProductRepository implements ProductRepository {
     @Override
     public Optional<Object> findByIdWithLock(Long id) {
         return Optional.empty();
+    }
+
+    @Override
+    public Set<Long> findSellerIdByProductIds(List<Long> productIds) {
+        return Set.of();
     }
 
     public void clear() {
