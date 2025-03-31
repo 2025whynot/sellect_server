@@ -16,15 +16,15 @@ public class ApprovePaymentConfig {
 //        return v1; // 방법 1. 데드락에 대한 회피 방식 (정렬) -> 기아현상 발생
 //    }
 //
-//    @Bean
-//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV2 v2) {
-//        return v2; // 방법 2. 격리 수준을 SERIALIZABLE로 변경 (어느 정도 성능상 안 좋은지 직접 확인해보고 싶음)
-//    }
-//
     @Bean
-    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV3 v3) {
-        return v3; // 방법 3. 데드락 발생 시 재시도 로직 추가
+    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV2 v2) {
+        return v2; // 방법 2. 격리 수준을 SERIALIZABLE로 변경 (어느 정도 성능상 안 좋은지 직접 확인해보고 싶음)
     }
+//
+//    @Bean
+//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV3 v3) {
+//        return v3; // 방법 3. 데드락 발생 시 재시도 로직 추가
+//    }
 
 //    @Bean
 //    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV4 v4) {
