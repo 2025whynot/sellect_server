@@ -20,6 +20,10 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       protocol: ${REDIS_PROTOCOL:redis://} # 기본값 추가
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false} # 기본값 추가
+      timeout: 10000
+      connect-timeout: 10000
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
