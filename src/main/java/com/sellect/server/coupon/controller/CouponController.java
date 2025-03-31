@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/coupon")
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/coupon")
 public class CouponController {
 
     private final CouponService couponService;
@@ -43,7 +43,7 @@ public class CouponController {
     }
 
     @PutMapping("/register/{couponId}")
-    public ApiResponse<?> registerCoupon(@AuthUser User user, @PathVariable Long couponId) {
+    public ApiResponse<?> downloadCoupon(@AuthUser User user, @PathVariable Long couponId) {
         couponService.downloadCoupon(user, couponId);
         return ApiResponse.ok();
     }
@@ -54,7 +54,8 @@ public class CouponController {
     public ApiResponse<List<CouponResponse>> getCoupon(@AuthUser User user,
         @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "5") int size,
         @RequestParam(required = false) Boolean isUsed) {
-        List<CouponResponse> couponList = couponService.getCouponList(user, page, size, isUsed);
+        List<CouponResponse> couponList = couponService.listUserReceivedCoupons(user, page, size,
+            isUsed);
         return ApiResponse.ok(couponList);
     }
 
@@ -65,7 +66,8 @@ public class CouponController {
         @AuthUser User user,
         @PageableDefault(page = 0, size = 5) Pageable pageable
     ) {
-        Page<ActiveCouponResponse> activeCouponList = couponService.getActiveCouponList(user,
+        Page<ActiveCouponResponse> activeCouponList = couponService.listDownloadableCouponsForUser(
+            user,
             pageable);
         return ApiResponse.ok(activeCouponList);
     }
@@ -74,24 +76,23 @@ public class CouponController {
     public ApiResponse<List<CouponPossibleOrderResponse>> getPossibleOrderCouponList(
         @AuthUser User user, @RequestParam("productIds") List<Long> productIds
     ) {
-        List<CouponPossibleOrderResponse> couponList = couponService.getCouponsByMatchingSeller(
+        List<CouponPossibleOrderResponse> couponList = couponService.getUsableCouponsForProducts(
             user, productIds);
         return ApiResponse.ok(couponList);
     }
 
 
+    // -------------------- test --------------------
     // 애플리케이션 락
     @PutMapping("/register/{couponId}/app/{userId}")
-    public ApiResponse<?> registerCoupon(@PathVariable(name = "userId") Long userId,
+    public ApiResponse<?> downloadCouponWithReentrantLock(@PathVariable(name = "userId") Long userId,
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
-//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponService.downloadCouponv2(user, couponId);
+        couponService.downloadCouponReentrantLock(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -103,11 +104,11 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-        couponService.downloadCouponWithPessimisticLock(user, couponId);
+
+        couponService.downloadCouponPessimisticLock(user, couponId);
         return ApiResponse.ok();
     }
 
@@ -118,14 +119,39 @@ public class CouponController {
         @PathVariable(name = "couponId") Long couponId) {
         User user = User.builder()
             .id(userId)
-//            .uuid(String.valueOf(UUID.randomUUID()))
             .nickname("test" + userId)
             .role(Role.USER)
             .build();
-//        couponService.downloadCouponWithDistributeLock(user, couponId);
-//        couponService.downloadCouponWithRedis(user, couponId);
-        couponService.downloadCouponWithRedisV2(user, couponId);
+        couponService.downloadCouponDistributeLock(user, couponId);
         return ApiResponse.ok();
     }
 
+    // Redis
+    //
+    @PutMapping("/register/{couponId}/redis/{userId}/v2")
+    public ApiResponse<?> downloadCouponWithRedisV2(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
+        User user = User.builder()
+            .id(userId)
+            .nickname("test" + userId)
+            .role(Role.USER)
+            .build();
+        couponService.downloadCouponRedisWithEvent(user, couponId);
+        return ApiResponse.ok();
+    }
+
+
+    // Redis
+    //
+    @PutMapping("/register/{couponId}/redis/{userId}/v3")
+    public ApiResponse<?> downloadCouponWithRedisV3(@PathVariable(name = "userId") Long userId,
+        @PathVariable(name = "couponId") Long couponId) {
+        User user = User.builder()
+            .id(userId)
+            .nickname("test" + userId)
+            .role(Role.USER)
+            .build();
+        couponService.downloadCoupon(user, couponId);
+        return ApiResponse.ok();
+    }
 }

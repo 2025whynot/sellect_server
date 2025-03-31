@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -325,5 +327,13 @@ public class ProductService {
     protected Inventory getInventoryByProductId(Long productId) {
         return inventoryRepository.findByProductId(productId)
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
+    }
+
+    /**
+    * 상품 ID로 판매자 ID 조회
+    */
+    @Transactional(readOnly = true)
+    public Set<Long> findSellerIdsByProductIds(List<Long> productIds) {
+        return productRepository.findSellerIdByProductIds(productIds);
     }
 }

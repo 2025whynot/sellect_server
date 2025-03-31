@@ -2,6 +2,7 @@ package com.sellect.server.coupon.event;
 
 
 import com.sellect.server.coupon.application.CouponService;
+import com.sellect.server.coupon.application.v2.CouponDownloadWithRedisAndEvent;
 import com.sellect.server.coupon.infra.CouponStockOperation;
 import com.sellect.server.coupon.infra.MemberCouponStockOperation;
 import jakarta.annotation.PostConstruct;
@@ -20,12 +21,10 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class CouponEventListener {
-
-    private final CouponService couponService;
-
     private final BlockingQueue<CouponDownloadEvent> eventQueue = new LinkedBlockingQueue<>();
     private final CouponStockOperation couponStockOperation;
     private final MemberCouponStockOperation memberCouponStockOperation;
+    private final CouponService couponService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -36,8 +35,13 @@ public class CouponEventListener {
     @Async
     @EventListener
     public void handleCouponQuantityDecreaseEvent(CouponDecreaseEvent event) {
-        log.info("handleCouponQuantityDecreaseEvent");
         couponStockOperation.decreaseStock(event.getCouponId());
+    }
+
+    @Async
+    @EventListener
+    public void handleCouponOutOfStockEvent(CouponOutOfStockEvent event) {
+        couponService.couponOutOfStock(event.getCoupon());
     }
 
     @Async
