@@ -67,7 +67,7 @@ public class ApprovePaymentV2 implements ApprovePaymentStrategy {
 
             List<Inventory> deductedInventories = orderItems.stream()
                 .map(orderItem -> {
-                    Inventory inventory = inventoryRepository.findWithWriteLockByProductId(
+                    Inventory inventory = inventoryRepository.findByProductId(
                             orderItem.getProductId())
                         .orElseThrow(() -> new CommonException(BError.NOT_VALID, "productId"));
                     return inventory.deductStock(orderItem.getQuantity());
