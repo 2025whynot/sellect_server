@@ -76,5 +76,7 @@ management:
 logging:
   level:
     com.sellect.server.search.batch: DEBUG
-    org.apache.kafka: {APACHE_KAFKA_LOGGING_LEVEL: INFO}
-    org.springframework.kafka: {SPRING_KAFKA_LOGGING_LEVEL: INFO}
+    com.sellect.server.payment.application: DEBUG  # PaymentService 로그
+    org.springframework.kafka: DEBUG  # Kafka 소비 로그
+    org.springframework.data.redis: DEBUG  # Redis 동작 로그
+    org.springframework.jdbc: DEBUG  # DB 쿼리 로그
