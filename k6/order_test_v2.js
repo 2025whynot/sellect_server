@@ -2,16 +2,16 @@ import http from 'k6/http';
 import { sleep, check } from 'k6';
 
 export const options = {
-  vus: 500,
+  vus: 50,
   // iterations: 1,
-  duration: '300s', // 테스트 기간
+  duration: '170s', // 테스트 기간
   tags: {
     name: '', // 기본 태그 비활성화
   },
 };
 
-const BASE_URL = 'http://52.79.184.29:8080'; // 실제 API 베이스 URL로 변경 필요
-const PAY_BASE_URL = 'http://43.202.235.222:8081'; // 실제 API 베이스 URL로 변경 필요
+const BASE_URL = 'http://localhost:8080'; // 실제 API 베이스 URL로 변경 필요
+const PAY_BASE_URL = 'http://localhost:8081'; // 실제 API 베이스 URL로 변경 필요
 
 function getRandomUserId() {
   return Math.floor(Math.random() * (4000 - 2001 + 1)) + 2001;
@@ -51,12 +51,13 @@ export default function () {
     'order created': (r) => r.status === 200,
   });
 
+  sleep(2); // 100ms 대기 후 다음 반복
+
   // if (!orderCheck) {
   //   console.log(`Order failed - Status: ${orderResponse.status}, Body: ${orderResponse.body}`);
   //   return; // 주문 실패 시 종료
   // }
 
-  sleep(0.2); // 100ms 대기 후 다음 반복
 
   const response1 = orderResponse.json();
   const orderId = BigInt(response1.result.order_id); // 수정된 부분: result.order_id로 접근
@@ -75,6 +76,9 @@ export default function () {
 
   const response2 = paymentResponse.json();
   const pid = BigInt(response2.result);
+
+  sleep(1); // 100ms 대기 후 다음 반복
+
 
 
   const paymentCheck = check(paymentResponse, {
