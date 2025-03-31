@@ -28,7 +28,7 @@ import org.springframework.web.client.RestTemplate;
 public class FakePayClient implements PayClient {
 
     // todo: 성능 테스트 시 변경
-    private static final String FAKE_PAYMENT_HOST = "http://localhost:8081";
+    private static final String FAKE_PAYMENT_HOST = "http://43.202.235.222:8081";
 
     @Value("${server.host}")
     private String SERVER_HOST;
