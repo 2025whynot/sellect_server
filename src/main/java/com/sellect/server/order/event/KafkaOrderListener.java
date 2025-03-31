@@ -51,7 +51,6 @@ public class KafkaOrderListener {
         try {
             orderService.completeOrder(message.getOrderId());
 
-            log.info("Order complete processed successfully for orderId: {}", message.getOrderId());
             kafkaProducer.produce("pay-approve", PayApproveMessage.builder()
                 .payment(message.getPayment())
                 .pid(message.getPid())

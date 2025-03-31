@@ -29,7 +29,8 @@ public class SecurityConfig {
         "/api/v0/test/**",
         "/api/v1/test/**",
         "/api/v1/test/kafka/**",
-        "/api/v4/test/**"
+        "/api/v4/test/**",
+        "/test/**"
     };
 
 
