@@ -11,10 +11,10 @@ public class ApprovePaymentConfig {
 //        return v0; // 기존 코드: 데드락에 대한 아무런 조치가 없음
 //    }
 //
-    @Bean
-    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV1 v1) {
-        return v1; // 방법 1. 데드락에 대한 회피 방식 (정렬) -> 기아현상 발생
-    }
+//    @Bean
+//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV1 v1) {
+//        return v1; // 방법 1. 데드락에 대한 회피 방식 (정렬) -> 기아현상 발생
+//    }
 //
 //    @Bean
 //    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV2 v2) {
@@ -36,8 +36,8 @@ public class ApprovePaymentConfig {
 //        return v5; // 방법 5. 레디스를 PID 락, 멀티락으로 재고 차감은 Redis 사용 (Multi 락)
 //    }
 
-//    @Bean
-//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV6 v6) {
-//        return v6; // 방법 6. 분산락으로 동시성 제어, 레디스로 재고 차감
-//    }
+    @Bean
+    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV6 v6) {
+        return v6; // 방법 6. 분산락으로 동시성 제어, 레디스로 재고 차감
+    }
 }
