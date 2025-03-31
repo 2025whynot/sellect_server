@@ -15,7 +15,7 @@ function getRandomUserId() {
 
 // 랜덤 order_items 생성 함수 (최소 1개, 최대 3개, product_id 중복 없음)
 function generateOrderItems() {
-  const itemCount = Math.floor(Math.random() * 3) + 1; // 1~3개
+  const itemCount = Math.floor(Math.random() * 10) + 1; // 1~3개
   const productIds = new Set();
   while (productIds.size < itemCount) {
     productIds.add(Math.floor(Math.random() * 100) + 1); // 1~100 사이
