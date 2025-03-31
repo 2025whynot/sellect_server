@@ -4,13 +4,14 @@ import { sleep, check } from 'k6';
 export const options = {
   vus: 500,
   // iterations: 1,
-  duration: '120s', // 테스트 기간
+  duration: '300s', // 테스트 기간
   tags: {
     name: '', // 기본 태그 비활성화
   },
 };
 
-const BASE_URL = 'http://172.16.24.78:8080';
+const BASE_URL = 'http://52.79.184.29:8080'; // 실제 API 베이스 URL로 변경 필요
+const PAY_BASE_URL = 'http://43.202.235.222:8081'; // 실제 API 베이스 URL로 변경 필요
 
 function getRandomUserId() {
   return Math.floor(Math.random() * (4000 - 2001 + 1)) + 2001;
@@ -46,37 +47,62 @@ export default function () {
       }
   );
 
-  check(orderResponse, { 'order created': (r) => r.status === 200 });
+  const orderCheck = check(orderResponse, {
+    'order created': (r) => r.status === 200,
+  });
 
-  sleep(0.1); // 100ms 대기 후 다음 반복
+  // if (!orderCheck) {
+  //   console.log(`Order failed - Status: ${orderResponse.status}, Body: ${orderResponse.body}`);
+  //   return; // 주문 실패 시 종료
+  // }
 
-  const response = orderResponse.json();
-  const orderId = BigInt(response.result.order_id);
+  sleep(0.2); // 100ms 대기 후 다음 반복
 
+  const response1 = orderResponse.json();
+  const orderId = BigInt(response1.result.order_id); // 수정된 부분: result.order_id로 접근
+  // console.log(`Order created - Order ID: ${orderId}`);
+
+  // 결제 API 호출 전 로그
+  // console.log(`Sending payment request for orderId: ${orderId}, userId: ${userId}`);
   const paymentResponse = http.post(
       `${BASE_URL}/api/v1/test/order/payment/${orderId}/ready/${userId}`,
       null,
       {
         headers: { 'Content-Type': 'application/json' },
-        tags: { name: 'payment_ready' },
+        tags: { name: 'pay_ready' }, // 고정 태그
       }
   );
 
   const response2 = paymentResponse.json();
   const pid = BigInt(response2.result);
 
-  check(paymentResponse, { 'payment ready': (r) => r.status === 200 });
+
+  const paymentCheck = check(paymentResponse, {
+    'payment ready': (r) => r.status === 200,
+  });
+
+  if (!paymentCheck) {
+    console.log(`Payment failed - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
+  } else {
+    console.log(`Payment succeeded - Status: ${paymentResponse.status}, Body: ${paymentResponse.body}`);
+  }
 
   const approveResponse = http.post(
-      `${BASE_URL}/api/v1/test/order/payment/in-progress/${pid}`,
+      `${PAY_BASE_URL}/v1/payment/in-progress/${pid}`,
       null,
       {
         headers: { 'Content-Type': 'application/json' },
-        tags: { name: 'payment_in_progress' },
+        tags: { name: 'order_approve' }, // 고정 태그
       }
   );
 
-  check(approveResponse, { 'payment approve': (r) => r.status === 200 });
+  const approveCheck = check(approveResponse, {
+    'payment approve': (r) => r.status === 200,
+  });
 
-  sleep(0.1); // 100ms 대기 후 다음 반복
+  if (!approveCheck) {
+    console.log(`Payment failed - Status: ${approveResponse.status}, Body: ${approveResponse.body}`);
+  } else {
+    console.log(`Payment succeeded - Status: ${approveResponse.status}, Body: ${approveResponse.body}`);
+  }
 }

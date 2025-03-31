@@ -8,8 +8,8 @@ export const options = {
   // duration: '180s', // 테스트 기간
 };
 
-const BASE_URL = 'http://localhost:8080'; // 실제 API 베이스 URL로 변경 필요
-const PAY_BASE_URL = 'http://localhost:8081'; // 실제 API 베이스 URL로 변경 필요
+const BASE_URL = 'http://52.79.184.29:8080'; // 실제 API 베이스 URL로 변경 필요
+const PAY_BASE_URL = 'http://43.202.235.222:8081'; // 실제 API 베이스 URL로 변경 필요
 
 // 주문 → 결제 시나리오 (정합성 테스트용)
 export default function () {
@@ -41,10 +41,10 @@ export default function () {
 
 
 
-  // if (!orderCheck) {
-  //   console.log(`Order failed - Status: ${orderResponse.status}, Body: ${orderResponse.body}`);
-  //   return; // 주문 실패 시 종료
-  // }
+  if (!orderCheck) {
+    console.log(`Order failed - Status: ${orderResponse.status}, Body: ${orderResponse.body}`);
+    return; // 주문 실패 시 종료
+  }
 
   const response1 = orderResponse.json();
   const orderId = BigInt(response1.result.order_id); // 수정된 부분: result.order_id로 접근

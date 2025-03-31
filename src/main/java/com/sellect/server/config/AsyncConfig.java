@@ -33,9 +33,9 @@ public class AsyncConfig {
     @Bean(name = "approvePaymentExecutor")
     public ThreadPoolTaskExecutor approvePaymentExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("approvePaymentExecutor AsyncThread - ");
         executor.initialize();
         return executor;
@@ -46,9 +46,9 @@ public class AsyncConfig {
     @Bean(name = "approvePaymentRedisExecutor")
     public ThreadPoolTaskExecutor approvePaymentRedisExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(6);
-        executor.setMaxPoolSize(12);
-        executor.setQueueCapacity(200);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("approvePaymentRedisExecutor AsyncThread - ");
         executor.initialize();
         return executor;
