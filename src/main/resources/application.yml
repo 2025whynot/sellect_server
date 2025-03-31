@@ -22,8 +22,13 @@ spring:
       protocol: ${REDIS_PROTOCOL:redis://} # 기본값 추가
       ssl:
         enabled: ${REDIS_SSL_ENABLED:false} # 기본값 추가
-      timeout: 10000
-      connect-timeout: 10000
+      timeout: 10000  # 연결 타임아웃 10초
+      lettuce:
+        pool:
+          max-active: 10  # 최대 활성 연결
+          max-idle: 5     # 최대 유휴 연결
+          min-idle: 2     # 최소 유휴 연결
+          time-between-eviction-runs: 30000  # 유휴 연결 정리 주기 (ms)
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
@@ -78,5 +83,5 @@ logging:
     com.sellect.server.search.batch: DEBUG
     com.sellect.server.payment.application: DEBUG  # PaymentService 로그
     org.springframework.kafka: DEBUG  # Kafka 소비 로그
-    org.springframework.data.redis: DEBUG  # Redis 동작 로그
+    org.springframework.data.redis: INFO  # Redis 동작 로그
     org.springframework.jdbc: DEBUG  # DB 쿼리 로그
