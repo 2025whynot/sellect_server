@@ -31,13 +31,13 @@ public class ApprovePaymentConfig {
 //        return v4; // 방법 4. 레디스를 분산락으로 제어, 재고 차감은 MySQL 그대로 이용 (다만, 비관적 락을 레디스 분산락으로 변경)
 //    }
 
-    @Bean
-    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV5 v5) {
-        return v5; // 방법 5. 레디스를 PID 락, 멀티락으로 재고 차감은 Redis 사용 (Multi 락)
-    }
-//
 //    @Bean
-//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV6 v6) {
-//        return v6; // 방법 6. 분산락으로 동시성 제어, 레디스로 재고 차감
+//    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV5 v5) {
+//        return v5; // 방법 5. 레디스를 PID 락, 멀티락으로 재고 차감은 Redis 사용 (Multi 락)
 //    }
+//
+    @Bean
+    public ApprovePaymentStrategy approvePaymentStrategy(ApprovePaymentV6 v6) {
+        return v6; // 방법 6. 분산락으로 동시성 제어, 레디스로 재고 차감
+    }
 }
