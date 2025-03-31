@@ -76,3 +76,5 @@ management:
 logging:
   level:
     com.sellect.server.search.batch: DEBUG
+    org.apache.kafka: {APACHE_KAFKA_LOGGING_LEVEL: INFO}
+    org.springframework.kafka: {SPRING_KAFKA_LOGGING_LEVEL: INFO}

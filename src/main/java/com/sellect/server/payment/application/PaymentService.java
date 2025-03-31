@@ -117,7 +117,6 @@ public class PaymentService {
     }
 
     private void storePaymentUrlInRedis(Long orderId, KakaoPayReadyResponse response) {
-        log.info("storePaymentUrlInRedis: orderId={}, redirectUrl={}", orderId, response.next_redirect_pc_url());
         String orderIdKey = REDIS_KEY_PREFIX + orderId;
         redisTemplate.opsForValue().set(orderIdKey, response.next_redirect_pc_url());
         redisTemplate.expire(orderIdKey, 10, TimeUnit.MINUTES);
