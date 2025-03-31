@@ -80,6 +80,7 @@ public class KafkaOrderListener {
                 .productId(item.getProductId())
                 .quantity(item.getQuantity())
                 .type(message.getType())
+                .createdAt(message.getCreatedAt())
                 .build())
             .toList();
         stockHistoryService.saveAllStockHistory(stockHistoryEntities);

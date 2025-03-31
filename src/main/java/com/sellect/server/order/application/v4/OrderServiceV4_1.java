@@ -16,6 +16,7 @@ import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.repository.InventoryRepository;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -191,6 +192,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         kafkaProducer.produce("stock-history", StockHistoryMessage.builder()
             .userId(orderItems.get(0).getOrders().getUser().getId())
             .type("OUT")
+            .createdAt(LocalDateTime.now())
             .historyItems(orderItems.stream()
                 .map(orderItem -> StockHistoryMessage.HistoryItem.builder()
                     .productId(orderItem.getProductId())
@@ -301,6 +303,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         kafkaProducer.produce("stock-history", StockHistoryMessage.builder()
             .userId(orderItems.get(0).getOrders().getUser().getId())
             .type("IN")
+            .createdAt(LocalDateTime.now())
             .historyItems(orderItems.stream()
                 .map(orderItem -> StockHistoryMessage.HistoryItem.builder()
                     .productId(orderItem.getProductId())

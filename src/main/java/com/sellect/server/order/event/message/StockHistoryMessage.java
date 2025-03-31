@@ -1,5 +1,6 @@
 package com.sellect.server.order.event.message;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public class StockHistoryMessage {
     private Long userId;
     private String type; // "IN" or "OUT"
     private List<HistoryItem> historyItems;
+    private LocalDateTime createdAt;
 
     @Getter
     @Setter
