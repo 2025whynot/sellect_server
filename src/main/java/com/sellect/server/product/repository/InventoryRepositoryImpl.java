@@ -55,13 +55,6 @@ public class InventoryRepositoryImpl implements InventoryRepository {
             .map(InventoryEntity::toModel);
     }
 
-    @Override
-    public List<Inventory> findWithWriteLockByProductIds(List<Long> productIds) {
-        return inventoryJpaRepository.findWithWriteLockByProductEntityIds(productIds).stream()
-            .map(InventoryEntity::toModel)
-            .toList();
-    }
-
     // AFTER[2] - 새로 만든 saveAll() vs application forEach()와 비교 - 동작 방식의 차이가 있음
     @Override
     public List<Inventory> saveAll(List<Inventory> inventories) {

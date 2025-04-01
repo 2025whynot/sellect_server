@@ -47,35 +47,22 @@ public class KafkaConfig {
     private String AUTO_OFFSET_RESET;
 
     // Kafka properties 환경 변수 (기본값 없음)
-    @Value("${spring.kafka.properties.security.protocol:}")
-    private String SECURITY_PROTOCOL;
-
-    @Value("${spring.kafka.properties.sasl.mechanism:}")
-    private String SASL_MECHANISM;
-
-    @Value("${spring.kafka.properties.sasl.jaas.config:}")
-    private String SASL_JAAS_CONFIG;
-
-    @Value("${spring.kafka.properties.sasl.client.callback.handler.class:}")
-    private String SASL_CLIENT_CALLBACK_HANDLER;
+//    @Value("${spring.kafka.properties.security.protocol}")
+//    private String SECURITY_PROTOCOL;
+//
+//    @Value("${spring.kafka.properties.sasl.mechanism}")
+//    private String SASL_MECHANISM;
+//
+//    @Value("${spring.kafka.properties.sasl.jaas.config}")
+//    private String SASL_JAAS_CONFIG;
+//
+//    @Value("${spring.kafka.properties.sasl.client.callback.handler.class}")
+//    private String SASL_CLIENT_CALLBACK_HANDLER;
 
     private Map<String, Object> baseConfig() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
 
-        // 환경 변수가 지정된 경우에만 Kafka properties 추가
-        if (!SECURITY_PROTOCOL.isEmpty()) {
-            props.put("security.protocol", SECURITY_PROTOCOL);
-        }
-        if (!SASL_MECHANISM.isEmpty()) {
-            props.put("sasl.mechanism", SASL_MECHANISM);
-        }
-        if (!SASL_JAAS_CONFIG.isEmpty()) {
-            props.put("sasl.jaas.config", SASL_JAAS_CONFIG);
-        }
-        if (!SASL_CLIENT_CALLBACK_HANDLER.isEmpty()) {
-            props.put("sasl.client.callback.handler.class", SASL_CLIENT_CALLBACK_HANDLER);
-        }
         return props;
     }
 
