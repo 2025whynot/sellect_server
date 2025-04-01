@@ -40,7 +40,7 @@ public class ApprovePaymentV6 implements ApprovePaymentStrategy {
 
     private static final String APPROVE_PAYMENT_LOCK_KEY = "lock:approvePayment";
 
-    // 방법 5. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용
+    // 방법 6. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용
     @Override
     public void approvePayment(final Long pid, final String token) {
         List<OrderItem> orderItems;

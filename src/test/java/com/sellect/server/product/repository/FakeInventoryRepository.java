@@ -79,7 +79,6 @@ public class FakeInventoryRepository implements InventoryRepository {
         nextId = 1L;
     }
 
-
     // todo : 테스트시 작성 필요
     @Override
     public Optional<Inventory> findWithWriteLockByProductId(Long productId) {
@@ -89,6 +88,12 @@ public class FakeInventoryRepository implements InventoryRepository {
     // todo : 테스트시 작성 필요
     @Override
     public List<Inventory> saveAll(List<Inventory> inventories) {
+        return List.of();
+    }
+
+    // todo : 테스트시 작성 필요
+    @Override
+    public List<Inventory> findWithWriteLockByProductIds(List<Long> productIds) {
         return List.of();
     }
 

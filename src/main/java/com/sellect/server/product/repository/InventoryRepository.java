@@ -20,10 +20,8 @@ public interface InventoryRepository {
     // AFTER - WRITE_LOCK
     Optional<Inventory> findWithWriteLockByProductId(Long productId);
 
-    List<Inventory> findWithWriteLockByProductIds(List<Long> productIds);
-
     //
     List<Inventory> saveAll(List<Inventory> inventories);
 
-
+    List<Inventory> findWithWriteLockByProductIds(List<Long> productIds);
 }

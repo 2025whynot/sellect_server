@@ -71,4 +71,12 @@ public class InventoryRepositoryImpl implements InventoryRepository {
                 .toList());
         return result.stream().map(InventoryEntity::toModel).collect(Collectors.toList());
     }
+
+    @Override
+    public List<Inventory> findWithWriteLockByProductIds(List<Long> productIds) {
+        return inventoryJpaRepository.findWithWriteLockByProductEntityIds(productIds)
+            .stream()
+            .map(InventoryEntity::toModel)
+            .toList();
+    }
 }

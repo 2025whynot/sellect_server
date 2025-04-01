@@ -19,21 +19,44 @@ export const options = {
   },
 };
 
+// export const options = {
+//   vus: 1,
+//   iterations: 1,
+//   // vus: 500,
+//   // duration: '300s', // 테스트 기간
+//   tags: {
+//     name: '', // 기본 태그 비활성화
+//   },
+// };
+
+
 // 환경 변수에서 URL 및 버전 설정 (기본값 제공)
-const TARGET_URL = __ENV.TARGET_URL || 'http://localhost:8080';
-const FAKE_PAYMENT_URL = __ENV.FAKE_PAYMENT_URL || 'http://localhost:8081';
-const TEST_VERSION = __ENV.TEST_VERSION || 'v1';
+const TARGET_URL = __ENV.TARGET_URL || 'http://52.79.184.29:8080';
+const FAKE_PAYMENT_URL = __ENV.FAKE_PAYMENT_URL || 'http://43.202.235.222:8081';
+const TEST_VERSION = __ENV.TEST_VERSION || 'v4';
+
+function getRandomUserId() {
+  return Math.floor(Math.random() * (4000 - 2001 + 1)) + 2001;
+}
+
+function generateOrderItems() {
+  const itemCount = Math.floor(Math.random() * 3) + 1;
+  const productIds = new Set();
+  while (productIds.size < itemCount) {
+    productIds.add(Math.floor(Math.random() * 100) + 1);
+  }
+  return Array.from(productIds).map(productId => ({
+    product_id: productId,
+    price: "10000",
+    quantity: 1,
+  }));
+}
+
 
 // 주문 생성 페이로드 (재사용 가능하도록 상수로 분리)
-const ORDER_PAYLOAD = {
-  total_price: "10000",
-  order_items: [
-    {
-      product_id: 1,
-      price: "10000",
-      quantity: 1,
-    },
-  ],
+const orderPayload = {
+  total_price: "199900",
+  order_items: generateOrderItems(),
 };
 
 // 공통 HTTP 헤더
@@ -62,7 +85,7 @@ export default function () {
   // 1. 주문 생성 (Pending Order)
   const pendingOrderResponse = http.post(
       `${TARGET_URL}/api/v1/test/order/pending/${userId}`,
-      JSON.stringify(ORDER_PAYLOAD),
+      JSON.stringify(orderPayload),
       { headers: JSON_HEADERS, tags: { name: 'pending_order' } }
   );
 
@@ -76,6 +99,8 @@ export default function () {
 
   // Think time 1: 사용자 대기 (2~3초)
   sleep(randomThinkTime());
+  //
+  // sleep(0.5);
 
   // 2. 결제 준비 (Payment Ready)
   console.log(`Sending pay-ready request - Order ID: ${orderId}, User ID: ${userId}`);
@@ -112,7 +137,7 @@ export default function () {
     return;
   }
 
-  // Think time 2: 사용자 대기 (2~3초)
+  // // Think time 2: 사용자 대기 (2~3초)
   sleep(randomThinkTime());
 
   // 4. 결제 승인 (Approve Payment)

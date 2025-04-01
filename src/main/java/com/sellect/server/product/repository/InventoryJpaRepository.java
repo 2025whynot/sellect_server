@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface InventoryJpaRepository extends JpaRepository<InventoryEntity, Long> {
 
@@ -25,7 +26,8 @@ public interface InventoryJpaRepository extends JpaRepository<InventoryEntity, L
     @Query("SELECT I FROM InventoryEntity I WHERE I.productEntity.id = :productId")
     Optional<InventoryEntity> findWithWriteLockByProductEntityId(Long productId);
 
+    // 새로 추가: 여러 productIds에 대해 비관적 쓰기 락 적용
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT I FROM InventoryEntity I WHERE I.productEntity.id IN :productIds")
-    List<InventoryEntity> findWithWriteLockByProductEntityIds(List<Long> productIds);
+    @Query("SELECT I FROM InventoryEntity I WHERE I.productEntity.id IN :productIds AND I.deleteAt IS NULL ORDER BY I.productEntity.id")
+    List<InventoryEntity> findWithWriteLockByProductEntityIds(@Param("productIds") List<Long> productIds);
 }

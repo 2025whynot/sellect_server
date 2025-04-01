@@ -5,7 +5,7 @@ import com.sellect.server.common.response.ApiResponse;
 import com.sellect.server.order.Infrastructure.port.FakePayClient;
 import com.sellect.server.order.application.OrderService;
 import com.sellect.server.order.application.test.OrderServiceTestPreparePayment;
-import com.sellect.server.order.application.v1.OrderServiceV1After;
+import com.sellect.server.order.application.v0.OrderServiceV0After;
 import com.sellect.server.order.controller.request.OrderAddRequest;
 import com.sellect.server.order.controller.response.PendingOrderRegisterResponse;
 import jakarta.validation.Valid;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderV1ScenarioTestController {
 
     private final OrderServiceTestPreparePayment OrderServiceTestPreparePayment;
-    private final OrderServiceV1After orderService;
+    private final OrderServiceV0After orderService;
     private final OrderService orignalOrderService;
 
     /**
