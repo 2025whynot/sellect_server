@@ -30,4 +30,9 @@ public class IntegerRedisTransactionUtil {
             }
         });
     }
+
+    // Getter 추가
+    public RedisTemplate<String, Integer> getIntegerRedisTemplate() {
+        return integerRedisTemplate;
+    }
 }
