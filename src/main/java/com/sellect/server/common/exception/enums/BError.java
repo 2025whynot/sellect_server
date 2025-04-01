@@ -37,9 +37,11 @@ public enum BError implements Error {
     KAKAO_READY_FAIL("READY_FAIL", "kakao pay ready fail"),
     KAKAO_APPROVE_FAIL("APPROVE_FAIL", "kakao pay approve fail"),
     COMPENSATION_FAILED("COMPENSATION_FAILED", "%1"),
+    DUPLICATE("DUPLICATE", "%1"),
 
     // lock
     LOCK_ACQUISITION_FAILED("LOCK_ACQUISITION_FAIL", "lock acquisition failed for %1"),
+
 
     // stock
     OUT_OF_STOCK("OUT_OF_STOCK", "%1");
