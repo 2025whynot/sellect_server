@@ -50,8 +50,10 @@ public class PaymentService {
     @Transactional
     public void preparePayment(final Long userId, final Long orderId , final int totalPrice) {
         Long pid = generatePid();
+        log.info("preparePayment pid:{}", pid);
         KakaoPayReadyResponse kakaoPayReadyResponse = requestKakaoPayReady(pid, orderId, userId, totalPrice);
 
+        log.info("preparePayment kakaoPayReadyResponse:{}", kakaoPayReadyResponse);
         savePayReadyStatus(pid, orderId, userId, totalPrice, kakaoPayReadyResponse);
 
         storePaymentUrlInRedis(orderId, kakaoPayReadyResponse);
@@ -117,6 +119,7 @@ public class PaymentService {
     }
 
     private void storePaymentUrlInRedis(Long orderId, KakaoPayReadyResponse response) {
+        log.info("storePaymentUrlInRedis orderId:{}", orderId);
         String orderIdKey = REDIS_KEY_PREFIX + orderId;
         redisTemplate.opsForValue().set(orderIdKey, response.next_redirect_pc_url());
         redisTemplate.expire(orderIdKey, 10, TimeUnit.MINUTES);

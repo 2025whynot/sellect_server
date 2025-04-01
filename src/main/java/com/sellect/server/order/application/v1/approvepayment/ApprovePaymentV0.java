@@ -74,6 +74,11 @@ public class ApprovePaymentV0 implements ApprovePaymentStrategy {
                 })
                 .toList();
 
+            List<Long> productIds = orderItems.stream().map(OrderItem::getProductId).toList();
+            List<Inventory> inventories = inventoryRepository.findWithWriteLockByProductIds(productIds);
+
+
+
             inventoryRepository.saveAll(deductedInventories);
             ordersRepository.save(order.completeOrder());
 

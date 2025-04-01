@@ -21,6 +21,7 @@ public class KafkaPaymentListener {
 
     @KafkaListener(topics = "pay-ready", groupId = "pay-ready-group")
     public void payReadyListener(PayReadyMessage message) {
+        log.info("Kafka pay-ready message: {}", message);
         consumePayReadyMessage(message);
     }
 
