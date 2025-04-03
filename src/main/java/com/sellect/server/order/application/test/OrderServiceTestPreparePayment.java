@@ -59,7 +59,7 @@ public class OrderServiceTestPreparePayment {
 //        CompletableFuture<KakaoPayReadyResponse> future = new CompletableFuture<>();
 //        KakaoPayReadyEvent kakaoPayReadyEvent = new KakaoPayReadyEvent(this, user, order, null);
 //        eventPublisher.publishEvent(kakaoPayReadyEvent);
-        return pid;
+        return payment.getPid();
     }
 
     private Payment createAndSavePreparedPayment(User user, Orders orders, Long pid) {
