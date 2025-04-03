@@ -6,10 +6,16 @@ export const options = {
   iterations: 1, // 총 요청
   // iterations: 100000, // 총 요청
   // duration: '180s', // 테스트 기간
+  tags: {
+    name: '', // 기본 태그 비활성화
+  },
 };
 
-const BASE_URL = 'http://52.79.184.29:8080'; // 실제 API 베이스 URL로 변경 필요
-const PAY_BASE_URL = 'http://43.202.235.222:8081'; // 실제 API 베이스 URL로 변경 필요
+// const BASE_URL = 'http://52.79.184.29:8080'; // 실제 API 베이스 URL로 변경 필요
+// const PAY_BASE_URL = 'http://43.202.235.222:8081'; // 실제 API 베이스 URL로 변경 필요
+const BASE_URL = 'http://localhost:8080'; // 실제 API 베이스 URL로 변경 필요
+const PAY_BASE_URL = 'http://localhost:8081'; // 실제 API 베이스 URL로 변경 필요
+
 
 // 주문 → 결제 시나리오 (정합성 테스트용)
 export default function () {
