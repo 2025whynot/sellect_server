@@ -48,7 +48,7 @@ public class ApprovePaymentV4 implements ApprovePaymentStrategy {
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
-        // 분산 락을 pid를 기반으로 설정 (중복 결제 방지)
+        // 분산 락을 기반으로 설정
         RLock lock = redissonClient.getLock(APPROVE_PAYMENT_LOCK_KEY);
 
         try {
