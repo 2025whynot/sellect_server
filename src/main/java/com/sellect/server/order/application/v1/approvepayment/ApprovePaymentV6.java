@@ -16,9 +16,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -35,70 +34,63 @@ public class ApprovePaymentV6 implements ApprovePaymentStrategy {
     private final PaymentRepository paymentRepository;
     private final PlatformTransactionManager transactionManager;
     private final ApplicationEventPublisher eventPublisher;
-    private final RedissonClient redissonClient;
     private final RedisStockService redisStockService;
+    private final RedisTemplate<String, String> redisTemplate; // RedisTemplate 추가
 
-    private static final String APPROVE_PAYMENT_LOCK_KEY = "lock:approvePayment";
+    private static final String PAYMENT_LOCK_PREFIX = "payment:lock:pid:";
 
-    // 방법 6. 레디스를 분산락으로 제어, 재고 차감은 Redis 사용
     @Override
     public void approvePayment(final Long pid, final String token) {
-        List<OrderItem> orderItems;
-
+        // Payment 조회
         Payment payment = paymentRepository.findByReadyPid(pid)
-            .orElseThrow(
-                () -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
+            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, String.format("Payment %s", pid)));
 
+        // 사용자 검증
         userRepository.findById(payment.getUserId())
             .orElseThrow(() -> new CommonException(BError.NOT_VALID, "userId"));
 
-        RLock pidLock = redissonClient.getLock(APPROVE_PAYMENT_LOCK_KEY);
-        try {
-            // 락 획득 (최대 2초 대기, 2초 TTL) -> 성능 테스트용으로는 (waitTime : 10, leaseTime : 5)로 예정
-            if (!pidLock.tryLock(2, 2, TimeUnit.SECONDS)) {
-                throw new CommonException(BError.TIMEOUT, "Failed to acquire lock");
-            }
+        // 중복 결제 방지: Redis에 pid 잠금 설정 (TTL 5초)
+        String lockKey = PAYMENT_LOCK_PREFIX + pid;
+        Boolean isLocked = redisTemplate.opsForValue().setIfAbsent(lockKey, "LOCKED");
+        if (Boolean.FALSE.equals(isLocked)) {
+            throw new CommonException(BError.DUPLICATE, "Duplicate payment attempt for pid: " + pid);
+        }
+        redisTemplate.expire(lockKey, 5, TimeUnit.SECONDS); // TTL 5초 설정
 
+        try {
+            // 주문 조회 및 검증
             Orders order = ordersRepository.findById(payment.getOrdersId())
                 .orElseThrow(() -> new CommonException(BError.NOT_VALID, "orderId"));
             order.validateNotCompleted();
 
-            orderItems = orderItemRepository.findAllByOrdersId(order.getId());
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
             if (orderItems.isEmpty()) {
                 throw new CommonException(BError.NOT_VALID, "orderId");
             }
 
+            // 재고 차감 (Lua 스크립트로 원자성 보장)
             StockDeductionResult result = redisStockService.tryDeductStocks(orderItems);
             if (!result.isSuccess()) {
                 throw new CommonException(BError.OUT_OF_STOCK, "Insufficient stock");
             }
 
-            // 트랜잭션 시작
-            TransactionStatus status = transactionManager.getTransaction(
-                new DefaultTransactionDefinition());
+            // DB 트랜잭션
+            TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
             try {
                 ordersRepository.save(order.completeOrder());
-                transactionManager.commit(status); // 트랜잭션 커밋
+                transactionManager.commit(status);
             } catch (Exception e) {
                 transactionManager.rollback(status);
-                // DB 실패 시 Redis 재고 복구
                 redisStockService.rollbackStocks(result.getDeductedStocks());
-                throw new CommonException(BError.INTERNAL_SERVER_ERROR,
-                    "approvePayment() - 결제 승인 중 오류 발생");
+                throw new CommonException(BError.INTERNAL_SERVER_ERROR, "approvePayment() - 결제 승인 중 오류 발생");
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // 인터럽트 상태 복원
-            throw new CommonException(BError.INTERNAL_SERVER_ERROR,
-                "Interrupted while acquiring lock");
+
+            // 이벤트 발행
+            eventPublisher.publishEvent(
+                KakaoPayApproveRedisEvent.publish(orderItems, payment, token, pid));
         } finally {
-            if (pidLock.isHeldByCurrentThread()) {
-                pidLock.unlock();
-            }
+            // 결제 처리 완료 후 Redis 락 해제
+            redisTemplate.delete(lockKey);
         }
-
-        // 트랜잭션 커밋 후 이벤트 발행
-        eventPublisher.publishEvent(
-            KakaoPayApproveRedisEvent.publish(orderItems, payment, token, pid));
     }
-
 }
