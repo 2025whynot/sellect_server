@@ -27,11 +27,11 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       auto-offset-reset: ${KAFKA_AUTO_OFFSET_RESET:earliest}
-    properties:
-      security.protocol: ${KAFKA_SECURITY_PROTOCOL}
-      sasl.mechanism: ${KAFKA_SASL_MECHANISM}
-      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
-      sasl.client.callback.handler.class: ${KAFKA_SASL_CLIENT_CALLBACK_HANDLER}
+#    properties:
+#      security.protocol: ${KAFKA_SECURITY_PROTOCOL}
+#      sasl.mechanism: ${KAFKA_SASL_MECHANISM}
+#      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG}
+#      sasl.client.callback.handler.class: ${KAFKA_SASL_CLIENT_CALLBACK_HANDLER}
 
 server:
   host: ${HOST_URL}
