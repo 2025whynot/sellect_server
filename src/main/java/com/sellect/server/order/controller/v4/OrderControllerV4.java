@@ -6,7 +6,7 @@ import com.sellect.server.common.exception.CommonException;
 import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
-import com.sellect.server.order.application.v4.OrderServiceV4_1;
+import com.sellect.server.order.application.v4.OrderServiceV4;
 import com.sellect.server.order.controller.response.PaymentUrlRetrieveResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v4")
 public class OrderControllerV4 {
 
-    private final OrderServiceV4_1 orderService;
+    private final OrderServiceV4 orderService;
     private final UserRepository userRepository; // for test
 
     @PostMapping("/order/payment/{orderId}/ready")

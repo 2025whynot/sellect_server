@@ -1,7 +1,7 @@
 package com.sellect.server.order.event;
 
 import com.sellect.server.common.kafka.KafkaProducer;
-import com.sellect.server.order.application.v4.OrderServiceV4_1;
+import com.sellect.server.order.application.v4.OrderServiceV4;
 import com.sellect.server.order.event.message.OrderCompleteMessage;
 import com.sellect.server.order.event.message.OrderCompleteRollbackMessage;
 import com.sellect.server.order.event.message.StockHistoryMessage;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class KafkaOrderListener {
 
-    private final OrderServiceV4_1 orderService;
+    private final OrderServiceV4 orderService;
     private final StockHistoryService stockHistoryService;
     private final KafkaProducer kafkaProducer;
 

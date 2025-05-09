@@ -16,6 +16,12 @@ import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.event.message.PayReadyMessage;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.repository.InventoryRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,16 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것만 추가
+public class OrderServiceV4 {
 
     private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
     private static final String RETRY_KEY_PREFIX = "pay-ready:retry-count:";
@@ -74,7 +75,6 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         Orders order = findOrderNotCompleted(orderId);
 
         try {
-//            processInventories(order); // v4.0
             incrementStockUsage(orderId); // v4.1
         } catch (Exception e) {
             log.error("Failed to increment stock usage for orderId: {}", orderId, e);
@@ -155,22 +155,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         return redirectUrl;
     }
 
-    // inventory 테이블에서 주문한 상품의 재고를 차감 (v4.0)
-    private void processInventories(Orders order) {
-
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
-
-        List<Inventory> processedInventories = orderItems.stream()
-            .map(orderItem -> {
-                Inventory inventory = inventoryRepository.findByProductId(orderItem.getProductId())
-                    .orElseThrow(() -> new CommonException(BError.NOT_VALID, "product id"));
-                return inventory.deductStock(orderItem.getQuantity());
-            })
-            .toList();
-        inventoryRepository.saveAll(processedInventories);
-    }
-
-    // Redis 에서 주문한 상품의 재고 사용량을 증가 (v4.1)
+    // Redis 에서 주문한 상품의 재고 사용량을 증가
     private void incrementStockUsage(final Long orderId) {
 
         List<OrderItem> orderItems = findOrderItemsSortedByProductId(orderId);
