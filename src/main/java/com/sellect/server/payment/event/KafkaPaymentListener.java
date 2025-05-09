@@ -4,7 +4,7 @@ import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.payment.application.PaymentService;
 import com.sellect.server.payment.event.message.PayApproveMessage;
 import com.sellect.server.payment.event.message.PayApproveRollbackMessage;
-import com.sellect.server.payment.event.message.PayReadyMessage;
+import com.sellect.server.payment.event.message.OrderReadyMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -19,10 +19,9 @@ public class KafkaPaymentListener {
     private final PaymentService paymentService;
 
 
-    @KafkaListener(topics = "pay-ready", groupId = "pay-ready-group")
-    public void payReadyListener(PayReadyMessage message) {
-        log.info("Kafka pay-ready message: {}", message);
-        consumePayReadyMessage(message);
+    @KafkaListener(topics = "order-ready", groupId = "pay-ready-group")
+    public void consumeOrderReadyMessage(OrderReadyMessage message) {
+        paymentService.preparePayment(message.getUserId(), message.getOrderId(), message.getTotalPrice());
     }
 
     @KafkaListener(topics = "pay-approve", groupId = "pay-approve-group")
@@ -40,10 +39,6 @@ public class KafkaPaymentListener {
 
 
     // === private method === //
-
-    private void consumePayReadyMessage(PayReadyMessage message) {
-        paymentService.preparePayment(message.getUserId(), message.getOrderId(), message.getTotalPrice());
-    }
 
     private void consumePayApproveMessage(PayApproveMessage message) {
         try {

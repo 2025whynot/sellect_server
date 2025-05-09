@@ -11,7 +11,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PayReadyMessage {
+public class OrderReadyMessage {
 
     private Long userId;
     private Long orderId;

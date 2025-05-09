@@ -13,7 +13,7 @@ import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.StockHistoryMessage;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
-import com.sellect.server.payment.event.message.PayReadyMessage;
+import com.sellect.server.payment.event.message.OrderReadyMessage;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +63,7 @@ public class OrderServiceV4 {
             order = ordersRepository.save(order.applyCoupon(coupon));
         }
 
-        kafkaProducer.produce("pay-ready", PayReadyMessage.builder()
+        kafkaProducer.produce("order-ready", OrderReadyMessage.builder()
             .orderId(order.getId())
             .userId(order.getUser().getId())
             .totalPrice(order.getTotalPrice().intValue())
@@ -75,7 +75,7 @@ public class OrderServiceV4 {
         Orders order = findOrderNotCompleted(orderId);
 
         try {
-            incrementStockUsage(orderId); // v4.1
+            incrementStockUsage(orderId);
         } catch (Exception e) {
             log.error("Failed to increment stock usage for orderId: {}", orderId, e);
             return;
