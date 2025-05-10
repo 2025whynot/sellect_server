@@ -2,8 +2,8 @@ package com.sellect.server.payment.event;
 
 import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.payment.application.PaymentService;
-import com.sellect.server.payment.event.message.PayApproveMessage;
-import com.sellect.server.payment.event.message.PayApproveRollbackMessage;
+import com.sellect.server.payment.event.message.OrderCompleteMessage;
+import com.sellect.server.payment.event.message.PayApproveFailedMessage;
 import com.sellect.server.payment.event.message.OrderReadyMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,38 +18,27 @@ public class KafkaPaymentListener {
     private final KafkaProducer kafkaProducer;
     private final PaymentService paymentService;
 
-
     @KafkaListener(topics = "order-ready", groupId = "pay-ready-group")
     public void consumeOrderReadyMessage(OrderReadyMessage message) {
         paymentService.preparePayment(message.getUserId(), message.getOrderId(), message.getTotalPrice());
     }
 
-    @KafkaListener(topics = "pay-approve", groupId = "pay-approve-group")
-    public void payApproveListener(PayApproveMessage message) {
-        consumePayApproveMessage(message);
-    }
-
-    @KafkaListener(topics = "pay-approve-failed", groupId = "pay-approve-group")
-    public void payApproveFailedListener(PayApproveRollbackMessage message) {
-        consumePayApproveRollbackMessage(message);
-    }
-
-    // TODO: DLQ 처리 추가
-    // === Dead Letter Queue 처리 === //
-
-
-    // === private method === //
-
-    private void consumePayApproveMessage(PayApproveMessage message) {
+    @KafkaListener(topics = "order-complete", groupId = "pay-approve-group")
+    public void consumeOrderCompleteMessage(OrderCompleteMessage message) {
         try {
             paymentService.approvePayment(message.getPid(), message.getToken());
         } catch (Exception e) {
-            // 보상 트랜잭션
+            log.error("Failed to process payment approval for pid: {}", message.getPid(), e);
+
             kafkaProducer.produce("pay-approve-failed", message);
         }
     }
 
-    private void consumePayApproveRollbackMessage(PayApproveRollbackMessage message) {
+    @KafkaListener(topics = "pay-approve-failed", groupId = "pay-approve-failed-group")
+    public void consumePayApproveFailedMessage(PayApproveFailedMessage message) {
         paymentService.rollbackPayment(message.getPid());
     }
+
+    // TODO: DLQ 처리 추가
+    // === Dead Letter Queue 처리 === //
 }
