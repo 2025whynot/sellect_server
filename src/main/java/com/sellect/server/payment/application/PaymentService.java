@@ -90,7 +90,7 @@ public class PaymentService {
     }
 
     @Transactional
-    public void rollbackPayment(final Long pid) {
+    public void processPaymentApprovalFailure(final Long pid) {
         Payment payment = findPayment(pid);
         savePaymentApproveFailed(payment);
     }

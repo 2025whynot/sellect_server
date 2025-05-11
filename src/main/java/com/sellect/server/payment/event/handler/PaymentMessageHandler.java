@@ -14,6 +14,6 @@ public class PaymentMessageHandler {
 
     @KafkaListener(topics = "pay-approve-failed", groupId = "pay-approve-failed-group")
     public void handlePayApproveFailedMessage(PayApproveFailedMessage message) {
-        paymentService.rollbackPayment(message.getPid());
+        paymentService.processPaymentApprovalFailure(message.getPid());
     }
 }
