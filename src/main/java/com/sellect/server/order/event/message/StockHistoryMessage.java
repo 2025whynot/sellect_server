@@ -16,7 +16,7 @@ import lombok.Setter;
 public class StockHistoryMessage {
 
     private Long userId;
-    private String type; // "IN" or "OUT"
+    private String type; // "INCREMENT" or "DECREMENT"
     private List<HistoryItem> historyItems;
     private LocalDateTime createdAt;
 
