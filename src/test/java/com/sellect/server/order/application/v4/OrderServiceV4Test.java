@@ -303,7 +303,7 @@ class OrderServiceV4Test {
             }).when(redisTransactionUtil).transaction(any());
 
             String stockUsageKey = "product:" + testProduct1.getId() + ":stock:usage";
-            when(valueOperations.get(stockUsageKey)).thenReturn("0"); // 초기 사용량 0
+            when(valueOperations.get(stockUsageKey)).thenReturn("0"); // 초기 사용량 = 0
         }
 
         @Test
@@ -404,5 +404,74 @@ class OrderServiceV4Test {
             verify(valueOperations, times(1)).increment(stockUsageKey, testOrderItem1.getQuantity());
         }
     }
+
+    @Nested
+    @DisplayName("processOrderCompletionFailure 테스트")
+    class ProcessOrderCompletionFailureTests {
+
+        @BeforeEach
+        void setUpProcessOrderCompletionFailure() {
+            // 이 그룹의 테스트는 testOrderCompleted (COMPLETED 상태)를 사용
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
+            doAnswer(invocation -> {
+                Consumer<RedisOperations<String, String>> consumer = invocation.getArgument(0);
+                consumer.accept(redisTemplate);
+                return null;
+            }).when(redisTransactionUtil).transaction(any());
+
+            String stockUsageKey = "product:" + testProduct2.getId() + ":stock:usage";
+            when(valueOperations.get(stockUsageKey)).thenReturn("3"); // 초기 사용량 = 3
+        }
+
+        @Test
+        @DisplayName("성공: 주문 실패 처리")
+        void processOrderCompletionFailure_Success() {
+            // When
+            sut.processOrderCompletionFailure(testOrderCompleted.getId());
+
+            // Then
+            // 1. 주문 상태 변경 확인
+            Orders rolledBackOrder = orderRepository.findById(testOrderCompleted.getId()).get();
+            assertThat(rolledBackOrder.getStatus()).isEqualTo(OrderStatus.FAILED_COMPLETED);
+
+            // 2. 재고 사용량 감소 (Redis) 확인
+            String stockUsageKey = "product:" + testProduct2.getId() + ":stock:usage";
+            verify(valueOperations, times(1)).decrement(stockUsageKey, testOrderItem2.getQuantity());
+
+            // 3. Kafka 메시지 (StockHistoryMessage) 발행 확인
+            ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<StockHistoryMessage> messageCaptor = ArgumentCaptor.forClass(StockHistoryMessage.class);
+            verify(kafkaProducer, times(1)).produce(topicCaptor.capture(), messageCaptor.capture());
+
+            assertThat(topicCaptor.getValue()).isEqualTo("stock-history");
+            StockHistoryMessage stockHistoryMessage = messageCaptor.getValue();
+            assertThat(stockHistoryMessage.getUserId()).isEqualTo(testUser.getId());
+            assertThat(stockHistoryMessage.getType()).isEqualTo("IN");
+            assertThat(stockHistoryMessage.getHistoryItems()).hasSize(1);
+            assertThat(stockHistoryMessage.getHistoryItems().get(0).getProductId()).isEqualTo(testProduct2.getId());
+            assertThat(stockHistoryMessage.getHistoryItems().get(0).getQuantity()).isEqualTo(testOrderItem2.getQuantity());
+        }
+
+        @Test
+        @DisplayName("실패: 존재하지 않는 주문으로 실패 처리 시도")
+        void processOrderCompletionFailure_OrderNotFound_ThrowsException() {
+            // When & Then
+            assertThatThrownBy(() -> sut.processOrderCompletionFailure(999L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(BError.NOT_EXIST.getMessage("order"));
+        }
+
+        @Test
+        @DisplayName("실패: PENDING 상태 주문을 실패 처리 시도")
+        void processOrderCompletionFailure_PendingOrder_ThrowsException() {
+            // testOrder는 PENDING 상태
+            // When & Then
+            assertThatThrownBy(() -> sut.processOrderCompletionFailure(testOrder.getId()))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(BError.FAIL_FOR_REASON.getMessage("order validation", "order status is not COMPLETED"));
+        }
+    }
+
 
 }
