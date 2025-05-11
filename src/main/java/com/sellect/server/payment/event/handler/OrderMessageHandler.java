@@ -1,9 +1,8 @@
-package com.sellect.server.payment.event;
+package com.sellect.server.payment.event.handler;
 
 import com.sellect.server.common.kafka.KafkaProducer;
 import com.sellect.server.payment.application.PaymentService;
 import com.sellect.server.payment.event.message.OrderCompleteMessage;
-import com.sellect.server.payment.event.message.PayApproveFailedMessage;
 import com.sellect.server.payment.event.message.OrderReadyMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,18 +12,18 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaPaymentListener {
+public class OrderMessageHandler {
 
     private final KafkaProducer kafkaProducer;
     private final PaymentService paymentService;
 
     @KafkaListener(topics = "order-ready", groupId = "pay-ready-group")
-    public void consumeOrderReadyMessage(OrderReadyMessage message) {
+    public void handleOrderReadyMessage(OrderReadyMessage message) {
         paymentService.preparePayment(message.getUserId(), message.getOrderId(), message.getTotalPrice());
     }
 
     @KafkaListener(topics = "order-complete", groupId = "pay-approve-group")
-    public void consumeOrderCompleteMessage(OrderCompleteMessage message) {
+    public void handleOrderCompleteMessage(OrderCompleteMessage message) {
         try {
             paymentService.approvePayment(message.getPid(), message.getToken());
         } catch (Exception e) {
@@ -32,11 +31,6 @@ public class KafkaPaymentListener {
 
             kafkaProducer.produce("pay-approve-failed", message);
         }
-    }
-
-    @KafkaListener(topics = "pay-approve-failed", groupId = "pay-approve-failed-group")
-    public void consumePayApproveFailedMessage(PayApproveFailedMessage message) {
-        paymentService.rollbackPayment(message.getPid());
     }
 
     // TODO: DLQ 처리 추가
