@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.auth.repository.user.UserRepository;
 import com.sellect.server.common.infrastructure.jwt.JwtFilter;
 import com.sellect.server.common.resolver.AuthenticationResolver;
 import com.sellect.server.common.response.ApiResponse;
@@ -67,6 +68,9 @@ class PaymentControllerTest {
 
     @MockBean
     private PaymentService paymentService;
+
+    @MockBean
+    private UserRepository userRepository;
 
     private User mockUser;
 

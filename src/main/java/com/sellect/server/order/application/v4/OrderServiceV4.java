@@ -13,30 +13,26 @@ import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.StockHistoryMessage;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
-import com.sellect.server.payment.event.message.PayReadyMessage;
+import com.sellect.server.payment.event.message.OrderReadyMessage;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.repository.InventoryRepository;
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것만 추가
-
-    private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
-    private static final String RETRY_KEY_PREFIX = "pay-ready:retry-count:";
-    private static final int MAX_RETRY_COUNT = 5;
+public class OrderServiceV4 {
 
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
@@ -62,7 +58,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
             order = ordersRepository.save(order.applyCoupon(coupon));
         }
 
-        kafkaProducer.produce("pay-ready", PayReadyMessage.builder()
+        kafkaProducer.produce("order-ready", OrderReadyMessage.builder()
             .orderId(order.getId())
             .userId(order.getUser().getId())
             .totalPrice(order.getTotalPrice().intValue())
@@ -74,8 +70,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         Orders order = findOrderNotCompleted(orderId);
 
         try {
-//            processInventories(order); // v4.0
-            incrementStockUsage(orderId); // v4.1
+            incrementStockUsage(orderId);
         } catch (Exception e) {
             log.error("Failed to increment stock usage for orderId: {}", orderId, e);
             return;
@@ -90,27 +85,15 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
     }
 
     @Transactional
-    public void rollbackOrder(Long orderId) {
+    public void processOrderCompletionFailure(Long orderId) {
         log.info("Processing order-complete-failed for orderId: {}", orderId);
 
         // 재고 사용량 롤백
         decrementStockUsage(orderId);
 
-        // 주문 상태 롤백
+        // 주문 상태: COMPLETED -> FAILED_COMPLETED
         Orders order = findOrderCompleted(orderId);
-        rollbackOrdersStatus(order);
-    }
-
-    public String getPaymentUrl(User user, final Long orderId) {
-
-        // 주문 조회
-        Orders order = ordersRepository.findById(orderId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
-
-        // 유저의 주문인지 확인
-        order.validateOwner(user);
-
-        return getRedirectUrlFromRedis(user.getId(), orderId);
+        saveOrderFailedCompletedStatus(order);
     }
 
     //== private methods ==//
@@ -123,54 +106,7 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         return order;
     }
 
-    private String getRedirectUrlFromRedis(Long userId, Long orderId) {
-        String redirectUrlKey = REDIS_KEY_PREFIX + orderId;
-        String retryCountKey = RETRY_KEY_PREFIX + userId + ":" + orderId;
-
-        // 재시도 횟수 체크 및 증가 (원자적 연산)
-        Long retryCount = redisTemplate.opsForValue().increment(retryCountKey, 1L);
-        if (retryCount == null) {
-            retryCount = 1L; // 초기 값 처리
-        }
-
-        if (retryCount > MAX_RETRY_COUNT) {
-            log.warn("Max retry count exceeded for userId: {}, orderId: {}", userId, orderId);
-            throw new CommonException(BError.FAIL_FOR_REASON, "get redirect URL from Redis",
-                "Max retry count exceeded");
-        }
-
-        // TTL 설정
-        if (retryCount == 1) {
-            redisTemplate.expire(retryCountKey, 10, TimeUnit.MINUTES);
-        }
-
-        // Redirect URL 조회
-        String redirectUrl = redisTemplate.opsForValue().get(redirectUrlKey);
-        if (redirectUrl == null) {
-            log.debug("No redirect URL found in Redis for key: {}", redirectUrlKey);
-        } else {
-            log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey,
-                redirectUrl);
-        }
-        return redirectUrl;
-    }
-
-    // inventory 테이블에서 주문한 상품의 재고를 차감 (v4.0)
-    private void processInventories(Orders order) {
-
-        List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(order.getId());
-
-        List<Inventory> processedInventories = orderItems.stream()
-            .map(orderItem -> {
-                Inventory inventory = inventoryRepository.findByProductId(orderItem.getProductId())
-                    .orElseThrow(() -> new CommonException(BError.NOT_VALID, "product id"));
-                return inventory.deductStock(orderItem.getQuantity());
-            })
-            .toList();
-        inventoryRepository.saveAll(processedInventories);
-    }
-
-    // Redis 에서 주문한 상품의 재고 사용량을 증가 (v4.1)
+    // Redis 에서 주문한 상품의 재고 사용량을 증가
     private void incrementStockUsage(final Long orderId) {
 
         List<OrderItem> orderItems = findOrderItemsSortedByProductId(orderId);
@@ -317,8 +253,8 @@ public class OrderServiceV4_1 { // v4.0에서 Redis로 재고 관리하는 것�
         ordersRepository.save(order.completeOrder());
     }
 
-    private void rollbackOrdersStatus(Orders order) {
-        ordersRepository.save(order.rollbackOrder());
-        log.info("Rolled back order status to PENDING for orderId: {}", order.getId());
+    private void saveOrderFailedCompletedStatus(Orders order) {
+        ordersRepository.save(order.setOrderStatusToFailedCompleted());
+        log.info("set order status to FAILED_COMPLETED for orderId: {}", order.getId());
     }
 }

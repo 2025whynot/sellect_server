@@ -1,5 +1,6 @@
-package com.sellect.server.payment.event.message;
+package com.sellect.server.order.event.message;
 
+import com.sellect.server.payment.domain.Payment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,8 +12,11 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PayApproveRollbackMessage {
+public class PaymentApprovalInitMessage {
 
+    private Long orderId;
     private Long pid;
+    private String token;
+    private Payment payment;
 
 }

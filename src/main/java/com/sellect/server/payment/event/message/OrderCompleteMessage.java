@@ -13,7 +13,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PayApproveMessage {
+public class OrderCompleteMessage {
 
     private Payment payment;
     private String token;

@@ -32,9 +32,10 @@ public class KafkaConfig {
     private static final String BASE_PACKAGES = "com.sellect.server.*";
     private static final String PAY_READY_GROUP = "pay-ready-group";
     private static final String PAY_APPROVE_GROUP = "pay-approve-group";
+    private static final String PAY_APPROVE_FAILED_GROUP = "pay-approve-failed-group";
     private static final String PAY_APPROVE_DLQ_GROUP = "pay-approve-dlq-group";
     private static final String ORDER_COMPLETE_GROUP = "order-complete-group";
-    private static final String ORDER_COMPLETE_ROLLBACK_GROUP = "order-complete-rollback-group";
+    private static final String ORDER_COMPLETE_FAILED_GROUP = "order-complete-failed-group";
     private static final String ORDER_COMPLETE_REPLY_GROUP = "order-complete-reply-group";
     private static final String ORDER_COMPLETE_DLQ_GROUP = "order-complete-dlq-group";
     private static final String STOCK_HISTORY_GROUP = "stock-history-group";
@@ -146,6 +147,18 @@ public class KafkaConfig {
         return listenerContainerFactory(payApproveGroupConsumer(), null);
     }
 
+    // (pay-approve-failed-group) Consumer 설정
+    @Bean
+    public ConsumerFactory<String, Object> payApproveFailedGroupConsumer() {
+        return consumerFactory(PAY_APPROVE_FAILED_GROUP);
+    }
+
+    // (pay-approve-failed-group) Listener 설정
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> payApproveFailedContainerFactory() {
+        return listenerContainerFactory(payApproveFailedGroupConsumer(), null);
+    }
+
     // (order-complete-group) Consumer 설정
     @Bean
     public ConsumerFactory<String, Object> orderCompleteGroupConsumer() {
@@ -158,16 +171,16 @@ public class KafkaConfig {
         return listenerContainerFactory(orderCompleteGroupConsumer(), kafkaTemplate());
     }
 
-    // (order-complete-rollback-group) Consumer 설정
+    // (order-complete-failed-group) Consumer 설정
     @Bean
-    public ConsumerFactory<String, Object> orderCompleteRollbackGroupConsumer() {
-        return consumerFactory(ORDER_COMPLETE_ROLLBACK_GROUP);
+    public ConsumerFactory<String, Object> orderCompleteFailedGroupConsumer() {
+        return consumerFactory(ORDER_COMPLETE_FAILED_GROUP);
     }
 
-    // (order-complete-rollback-group) Listener 설정
+    // (order-complete-failed-group) Listener 설정
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteRollbackContainerFactory() {
-        return listenerContainerFactory(orderCompleteRollbackGroupConsumer(), null);
+    public ConcurrentKafkaListenerContainerFactory<String, Object> orderCompleteFailedContainerFactory() {
+        return listenerContainerFactory(orderCompleteFailedGroupConsumer(), null);
     }
 
     // (order-complete-reply-group) Consumer 설정

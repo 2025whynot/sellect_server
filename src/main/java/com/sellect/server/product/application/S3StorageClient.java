@@ -34,6 +34,7 @@ public class S3StorageClient implements StorageClient {
     @Override
     @PostConstruct
     public void init() throws Exception {
+        // 현재 S3 사용하지 않는 관계로 주석 처리
 //        if (!s3Client.doesBucketExistV2(bucketName)) {
 //            throw new Exception("bucket does not exist");
 //        }
