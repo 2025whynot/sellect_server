@@ -1,8 +1,12 @@
 package com.sellect.server.payment.controller;
 
 import com.sellect.server.auth.domain.User;
+import com.sellect.server.auth.repository.user.UserRepository;
+import com.sellect.server.common.exception.CommonException;
+import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.common.infrastructure.annotation.AuthUser;
 import com.sellect.server.common.response.ApiResponse;
+import com.sellect.server.order.controller.response.PaymentUrlRetrieveResponse;
 import com.sellect.server.payment.application.PaymentService;
 import com.sellect.server.payment.controller.response.PaymentHistoryResponse;
 import java.util.List;
@@ -24,6 +28,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final UserRepository userRepository; // for test
+
+    @GetMapping("/payment/{orderId}/payment-url")
+    public ApiResponse<PaymentUrlRetrieveResponse> retrievePaymentUrl(
+            @AuthUser User user,
+            @PathVariable Long orderId) {
+        String paymentUrl = paymentService.getPaymentUrl(user, orderId);
+        return ApiResponse.ok(PaymentUrlRetrieveResponse.builder()
+                .paymentUrl(paymentUrl)
+                .urlRetrieved(paymentUrl == null ? Boolean.FALSE : Boolean.TRUE)
+                .build());
+    }
 
     @GetMapping("/payment/history")
     public ApiResponse<List<PaymentHistoryResponse>> getPaymentHistory(
@@ -49,6 +65,20 @@ public class PaymentController {
         @RequestParam(value = "pg_token", defaultValue = "test") String token) {
         paymentService.initPaymentApproval(Long.valueOf(pid), token);
         return ApiResponse.ok(pid + "success");
+    }
+
+    @GetMapping("/test/payment/{orderId}/payment-url/{userId}")
+    public ApiResponse<PaymentUrlRetrieveResponse> retrievePaymentUrl(
+            @PathVariable Long userId,
+            @PathVariable Long orderId) {
+        // for test
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "user"));
+        String paymentUrl = paymentService.getPaymentUrl(user, orderId);
+        return ApiResponse.ok(PaymentUrlRetrieveResponse.builder()
+                .paymentUrl(paymentUrl)
+                .urlRetrieved(paymentUrl == null ? Boolean.FALSE : Boolean.TRUE)
+                .build());
     }
 
 }

@@ -27,17 +27,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceV4 {
-
-    private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
-    private static final String RETRY_KEY_PREFIX = "pay-ready:retry-count:";
-    private static final int MAX_RETRY_COUNT = 5;
 
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
@@ -96,21 +91,9 @@ public class OrderServiceV4 {
         // 재고 사용량 롤백
         decrementStockUsage(orderId);
 
-        // 주문 상태 -> FAILED_COMPLETED
+        // 주문 상태: COMPLETED -> FAILED_COMPLETED
         Orders order = findOrderCompleted(orderId);
         saveOrderFailedCompletedStatus(order);
-    }
-
-    public String getPaymentUrl(User user, final Long orderId) {
-
-        // 주문 조회
-        Orders order = ordersRepository.findById(orderId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
-
-        // 유저의 주문인지 확인
-        order.validateOwner(user);
-
-        return getRedirectUrlFromRedis(user.getId(), orderId);
     }
 
     //== private methods ==//
@@ -121,38 +104,6 @@ public class OrderServiceV4 {
             .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "order"));
         order.validateNotCompleted();
         return order;
-    }
-
-    private String getRedirectUrlFromRedis(Long userId, Long orderId) {
-        String redirectUrlKey = REDIS_KEY_PREFIX + orderId;
-        String retryCountKey = RETRY_KEY_PREFIX + userId + ":" + orderId;
-
-        // 재시도 횟수 체크 및 증가 (원자적 연산)
-        Long retryCount = redisTemplate.opsForValue().increment(retryCountKey, 1L);
-        if (retryCount == null) {
-            retryCount = 1L; // 초기 값 처리
-        }
-
-        if (retryCount > MAX_RETRY_COUNT) {
-            log.warn("Max retry count exceeded for userId: {}, orderId: {}", userId, orderId);
-            throw new CommonException(BError.FAIL_FOR_REASON, "get redirect URL from Redis",
-                "Max retry count exceeded");
-        }
-
-        // TTL 설정
-        if (retryCount == 1) {
-            redisTemplate.expire(retryCountKey, 10, TimeUnit.MINUTES);
-        }
-
-        // Redirect URL 조회
-        String redirectUrl = redisTemplate.opsForValue().get(redirectUrlKey);
-        if (redirectUrl == null) {
-            log.debug("No redirect URL found in Redis for key: {}", redirectUrlKey);
-        } else {
-            log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey,
-                redirectUrl);
-        }
-        return redirectUrl;
     }
 
     // Redis 에서 주문한 상품의 재고 사용량을 증가

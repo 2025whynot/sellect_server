@@ -9,6 +9,7 @@ import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
+import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.PaymentApprovalInitMessage;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.controller.response.PaymentHistoryResponse;
@@ -30,6 +31,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private static final String REDIS_KEY_PREFIX = "pay-ready:redirect:";
+    private static final String RETRY_KEY_PREFIX = "pay-ready:retry-count:";
+    private static final int MAX_RETRY_COUNT = 5;
 
     private final PayClient payClient;
     private final PaymentRepository paymentRepository;
@@ -57,6 +60,10 @@ public class PaymentService {
         savePayReadyStatus(pid, orderId, userId, totalPrice, kakaoPayReadyResponse);
 
         storePaymentUrlInRedis(orderId, kakaoPayReadyResponse);
+    }
+
+    public String getPaymentUrl(User user, final Long orderId) {
+        return getRedirectUrlFromRedis(user.getId(), orderId);
     }
 
     public void initPaymentApproval(final Long pid, final String token) {
@@ -123,6 +130,38 @@ public class PaymentService {
         String orderIdKey = REDIS_KEY_PREFIX + orderId;
         redisTemplate.opsForValue().set(orderIdKey, response.next_redirect_pc_url());
         redisTemplate.expire(orderIdKey, 10, TimeUnit.MINUTES);
+    }
+
+    private String getRedirectUrlFromRedis(Long userId, Long orderId) {
+        String redirectUrlKey = REDIS_KEY_PREFIX + orderId;
+        String retryCountKey = RETRY_KEY_PREFIX + userId + ":" + orderId;
+
+        // 재시도 횟수 체크 및 증가 (원자적 연산)
+        Long retryCount = redisTemplate.opsForValue().increment(retryCountKey, 1L);
+        if (retryCount == null) {
+            retryCount = 1L; // 초기 값 처리
+        }
+
+        if (retryCount > MAX_RETRY_COUNT) {
+            log.warn("Max retry count exceeded for userId: {}, orderId: {}", userId, orderId);
+            throw new CommonException(BError.FAIL_FOR_REASON, "get redirect URL from Redis",
+                    "Max retry count exceeded");
+        }
+
+        // TTL 설정
+        if (retryCount == 1) {
+            redisTemplate.expire(retryCountKey, 10, TimeUnit.MINUTES);
+        }
+
+        // Redirect URL 조회
+        String redirectUrl = redisTemplate.opsForValue().get(redirectUrlKey);
+        if (redirectUrl == null) {
+            log.debug("No redirect URL found in Redis for key: {}", redirectUrlKey);
+        } else {
+            log.debug("Retrieved redirect URL from Redis: key={}, value={}", redirectUrlKey,
+                    redirectUrl);
+        }
+        return redirectUrl;
     }
 
     private Payment findPayment(Long pid) {
