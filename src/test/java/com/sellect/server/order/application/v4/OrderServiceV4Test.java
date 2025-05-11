@@ -13,20 +13,19 @@ import com.sellect.server.coupon.repository.entity.CouponStatus;
 import com.sellect.server.order.domain.OrderItem;
 import com.sellect.server.order.domain.OrderStatus;
 import com.sellect.server.order.domain.Orders;
+import com.sellect.server.order.event.message.StockHistoryMessage;
 import com.sellect.server.order.repository.fake.FakeOrderItemRepository;
 import com.sellect.server.order.repository.fake.FakeOrdersRepository;
 import com.sellect.server.payment.event.message.OrderReadyMessage;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.repository.FakeInventoryRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -34,12 +33,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceV4Test {
@@ -92,16 +91,8 @@ class OrderServiceV4Test {
                 redisTemplate, redisTransactionUtil, kafkaProducer
         );
 
-//        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        //== 기본 테스트 데이터 생성 ==//
 
-        // RedisTransactionUtil Mocking: transaction 메서드가 Consumer를 실행하도록 설정
-//        doAnswer(invocation -> {
-//            Consumer<RedisOperations<String, String>> consumer = invocation.getArgument(0);
-//            consumer.accept(redisTemplate); // 실제로는 redisTemplate의 mock을 전달해야함. 여기서는 redisTemplate 자체가 mock
-//            return null;
-//        }).when(redisTransactionUtil).transaction(any());
-
-        // 기본 테스트 데이터 생성
         testUser = User.builder().id(1L).nickname("testUser").build();
         userRepository.save(testUser);
 
@@ -157,7 +148,7 @@ class OrderServiceV4Test {
         // product2 3개 주문 -> 100.00 * 3 = 300.00
         testOrderItem2 = OrderItem.builder()
                 .id(302L)
-                .orders(testOrder) // 주문2 (completed)
+                .orders(testOrderCompleted) // 주문2 (completed)
                 .productId(testProduct2.getId())
                 .quantity(3)
                 .price(new BigDecimal("300.00"))
@@ -186,6 +177,13 @@ class OrderServiceV4Test {
                 .deleteAt(null)
                 .build();
         userReceivedCouponRepository.save(testUserReceivedCoupon);
+    }
+
+
+    @AfterEach
+    void tearDown() {
+        // Mockito interaction 초기화 (선택적, 다음 테스트에 영향 주지 않기 위해)
+        reset(redisTemplate, valueOperations, redisTransactionUtil, kafkaProducer);
     }
 
     @Nested
@@ -281,6 +279,129 @@ class OrderServiceV4Test {
             assertThatThrownBy(() -> sut.prepareOrder(testUser.getId(), testOrder.getId(), testUserReceivedCoupon.getId()))
                     .isInstanceOf(CommonException.class)
                     .hasMessage(BError.COUPON_ALREADY_USED.getMessage(String.valueOf(testUserReceivedCoupon.getId())));
+        }
+    }
+
+    @Nested
+    @DisplayName("completeOrder 테스트")
+    class CompleteOrderTests {
+
+        @BeforeEach
+        void setUpCompleteOrder() {
+            // 이 그룹의 테스트는 주문 완료에 대한 테스트
+            // 아래 주문 정보를 바탕으로 테스트 시작
+            // testProduct1: productId=101
+            // testOrderItem1: testProduct1 -> quantity=2
+            // testOrder: testOrderItem1, PENDING 상태
+
+            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
+            doAnswer(invocation -> {
+                Consumer<RedisOperations<String, String>> consumer = invocation.getArgument(0);
+                consumer.accept(redisTemplate);
+                return null;
+            }).when(redisTransactionUtil).transaction(any());
+
+            String stockUsageKey = "product:" + testProduct1.getId() + ":stock:usage";
+            when(valueOperations.get(stockUsageKey)).thenReturn("0"); // 초기 사용량 0
+        }
+
+        @Test
+        @DisplayName("성공: 주문 완료 처리")
+        void completeOrder_Success() {
+            // When
+            sut.completeOrder(testOrder.getId());
+
+            // Then
+            // 1. 주문 상태 변경 확인
+            Orders completedOrder = orderRepository.findById(testOrder.getId()).get();
+            assertThat(completedOrder.getStatus()).isEqualTo(OrderStatus.COMPLETED);
+
+            // 2. 재고 사용량 증가 (Redis) 확인
+            String stockUsageKey = "product:" + testProduct1.getId() + ":stock:usage";
+            verify(valueOperations, times(1)).get(stockUsageKey);
+            verify(valueOperations, times(1)).increment(stockUsageKey, testOrderItem1.getQuantity());
+
+            // 3. Kafka 메시지 (StockHistoryMessage) 발행 확인
+            ArgumentCaptor<String> topicCaptor = ArgumentCaptor.forClass(String.class);
+            ArgumentCaptor<StockHistoryMessage> messageCaptor = ArgumentCaptor.forClass(StockHistoryMessage.class);
+            verify(kafkaProducer, times(1)).produce(topicCaptor.capture(), messageCaptor.capture());
+
+            assertThat(topicCaptor.getValue()).isEqualTo("stock-history");
+            StockHistoryMessage stockMessage = messageCaptor.getValue();
+            assertThat(stockMessage.getUserId()).isEqualTo(testUser.getId());
+            assertThat(stockMessage.getType()).isEqualTo("OUT");
+            assertThat(stockMessage.getHistoryItems()).hasSize(1);
+            assertThat(stockMessage.getHistoryItems().get(0).getProductId()).isEqualTo(testProduct1.getId());
+            assertThat(stockMessage.getHistoryItems().get(0).getQuantity()).isEqualTo(testOrderItem1.getQuantity());
+        }
+
+        @Test
+        @DisplayName("실패: 존재하지 않는 주문으로 완료 시도")
+        void completeOrder_OrderNotFound_ThrowsException() {
+            // When & Then
+            assertThatThrownBy(() -> sut.completeOrder(999L))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(BError.NOT_EXIST.getMessage("order"));
+        }
+
+        @Test
+        @DisplayName("실패: 이미 완료된 주문을 다시 완료 시도")
+        void completeOrder_AlreadyCompletedOrder_ThrowsException() {
+            // testOrderCompleted는 이미 COMPLETED 상태
+            // When & Then
+            assertThatThrownBy(() -> sut.completeOrder(testOrderCompleted.getId()))
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(BError.FAIL_FOR_REASON.getMessage("order validation", "order status is COMPLETED"));
+        }
+
+        @Test
+        @DisplayName("실패: 재고 부족으로 incrementStockUsage 실패 시 (예외 발생 후 return)")
+        void completeOrder_IncrementStockUsageFails_InsufficientStock() {
+            // Given: 재고를 0으로 만듦
+            Inventory zeroStockInventory = Inventory.builder()
+                    .id(testInventory1.getId())
+                    .product(testProduct1)
+                    .stock(0)
+                    .build();
+            inventoryRepository.save(zeroStockInventory);
+
+            // When
+            sut.completeOrder(testOrder.getId()); // 예외는 던져지지 않고 내부에서 Redis 롤백 처리 후 return
+
+            // Then: 주문 상태는 PENDING 유지, Kafka 메시지 발행 안됨
+            Orders order = orderRepository.findById(testOrder.getId()).get();
+            assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+            verify(kafkaProducer, never()).produce(anyString(), any(StockHistoryMessage.class));
+        }
+
+        @Test
+        @DisplayName("실패: DB 저장 실패로 주문 완료 상태 저장 실패 시")
+        void completeOrder_SaveCompletedStatusFails_ThrowsException() {
+            // Given
+            orderRepository.setNextSaveToFail(
+                    testOrder.getId(),
+                    OrderStatus.COMPLETED,
+                    new RuntimeException("DB save failed!")
+            );
+
+            // When & Then
+            assertThatThrownBy(() -> {
+                sut.completeOrder(testOrder.getId());
+            })
+                    .isInstanceOf(CommonException.class)
+                    .hasMessage(BError.FAIL_FOR_REASON.getMessage("complete order", "unexpected error"));
+
+            // 1. incrementStockUsage 관련 동작은 성공했어야 함
+            ArgumentCaptor<StockHistoryMessage> stockMessageCaptor = ArgumentCaptor.forClass(StockHistoryMessage.class);
+            verify(kafkaProducer, times(1)).produce(eq("stock-history"), stockMessageCaptor.capture());
+            StockHistoryMessage sentStockMessage = stockMessageCaptor.getValue();
+            assertThat(sentStockMessage.getType()).isEqualTo("OUT"); // 재고 차감 시도
+            assertThat(sentStockMessage.getHistoryItems().get(0).getProductId()).isEqualTo(testProduct1.getId());
+
+            // 2. Redis 재고 사용량은 증가되었어야 함
+            String stockUsageKey = "product:" + testProduct1.getId() + ":stock:usage";
+            verify(valueOperations, times(1)).increment(stockUsageKey, testOrderItem1.getQuantity());
         }
     }
 
