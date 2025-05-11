@@ -9,14 +9,11 @@ import com.sellect.server.order.Infrastructure.port.PayClient;
 import com.sellect.server.order.Infrastructure.request.KakaoPayReadyRequest;
 import com.sellect.server.order.Infrastructure.response.KakaoPayApproveResponse;
 import com.sellect.server.order.Infrastructure.response.KakaoPayReadyResponse;
-import com.sellect.server.order.domain.Orders;
 import com.sellect.server.order.event.message.PaymentApprovalInitMessage;
 import com.sellect.server.payment.controller.request.ApproveRequest;
 import com.sellect.server.payment.controller.response.PaymentHistoryResponse;
 import com.sellect.server.payment.domain.Payment;
 import com.sellect.server.payment.repository.PaymentRepository;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -24,6 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
