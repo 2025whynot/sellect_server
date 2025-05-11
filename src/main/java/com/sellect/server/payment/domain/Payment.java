@@ -68,7 +68,7 @@ public class Payment {
 
     public Payment failApprove() {
         if (status != PaymentStatus.APPROVE) {
-            throw new CommonException(BError.NOT_VALID, "결제 상태가 APPROVE 아님: ");
+            throw new CommonException(BError.FAIL_FOR_REASON, "Payment.failApprove()", "payment status is not APPROVE");
         }
 
         return Payment.builder()
@@ -86,7 +86,7 @@ public class Payment {
 
     public Payment failReady() {
         if (status != PaymentStatus.READY) {
-            throw new CommonException(BError.NOT_VALID, "결제 상태가 READY 아님: ");
+            throw new CommonException(BError.FAIL_FOR_REASON, "Payment.failReady()", "payment status is not READY");
         }
         return Payment.builder()
             .id(this.id)

@@ -14,8 +14,6 @@ import com.sellect.server.order.event.message.StockHistoryMessage;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.order.repository.OrdersRepository;
 import com.sellect.server.payment.event.message.OrderReadyMessage;
-import com.sellect.server.product.domain.Inventory;
-import com.sellect.server.product.repository.InventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,7 +25,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -37,7 +34,6 @@ public class OrderServiceV4 {
     private final UserRepository userRepository;
     private final OrdersRepository ordersRepository;
     private final OrderItemRepository orderItemRepository;
-    private final InventoryRepository inventoryRepository;
     private final UserReceivedCouponRepository userReceivedCouponRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisTransactionUtil redisTransactionUtil;
@@ -70,9 +66,9 @@ public class OrderServiceV4 {
         Orders order = findOrderNotCompleted(orderId);
 
         try {
-            incrementStockUsage(orderId);
+            decrementStockQuantity(orderId);
         } catch (Exception e) {
-            log.error("Failed to increment stock usage for orderId: {}", orderId, e);
+            log.error("Failed to decrement stock quantity for orderId: {}", orderId, e);
             return;
         }
 
@@ -88,8 +84,8 @@ public class OrderServiceV4 {
     public void processOrderCompletionFailure(Long orderId) {
         log.info("Processing order-complete-failed for orderId: {}", orderId);
 
-        // 재고 사용량 롤백
-        decrementStockUsage(orderId);
+        // 재고 수량 복구
+        incrementStockQuantity(orderId);
 
         // 주문 상태: COMPLETED -> FAILED_COMPLETED
         Orders order = findOrderCompleted(orderId);
@@ -106,28 +102,25 @@ public class OrderServiceV4 {
         return order;
     }
 
-    // Redis 에서 주문한 상품의 재고 사용량을 증가
-    private void incrementStockUsage(final Long orderId) {
+    // Redis에서 주문한 상품의 남은 재고 수량을 감소
+    private void decrementStockQuantity(final Long orderId) {
 
         List<OrderItem> orderItems = findOrderItemsSortedByProductId(orderId);
+        Map<String, Integer> requestQuantities = getRequestQuantities(orderItems);
 
-        // 사전 검증
-        Map<String, Integer> requestQuantities = new HashMap<>();
-        validateBeforeIncrement(orderItems, requestQuantities);
-
-        // 재고 사용량 증가 (Redis 트랜잭션 처리)
+        // 재고 수량 감소 (Redis 트랜잭션 처리)
         redisTransactionUtil.transaction(operations -> {
-            requestQuantities.forEach((stockUsageKey, requestQuantity) -> {
-                operations.opsForValue().increment(stockUsageKey, requestQuantity);
+            requestQuantities.forEach((stockKey, requestQuantity) -> {
+                operations.opsForValue().decrement(stockKey, requestQuantity);
             });
         });
 
-        log.info("Incremented stock usage for orderId: {}", orderId);
+        log.debug("Decremented stock quantity for orderId: {}", orderId);
 
         // 재고 히스토리 이벤트 전송
         kafkaProducer.produce("stock-history", StockHistoryMessage.builder()
             .userId(orderItems.get(0).getOrders().getUser().getId())
-            .type("OUT")
+            .type("DECREMENT")
             .createdAt(LocalDateTime.now())
             .historyItems(orderItems.stream()
                 .map(orderItem -> StockHistoryMessage.HistoryItem.builder()
@@ -147,63 +140,37 @@ public class OrderServiceV4 {
     }
 
 
-    private void validateBeforeIncrement(List<OrderItem> orderItems,
-        Map<String, Integer> requestQuantities) {
+    private Map<String, Integer> getRequestQuantities(List<OrderItem> orderItems) {
 
-        List<Long> productIds = orderItems.stream()
-            .map(OrderItem::getProductId)
-            .toList();
-        List<Inventory> inventories = findInventoriesSortedByProductId(productIds);
+        Map<String, Integer> requestQuantities = new HashMap<>();
 
-        IntStream.range(0, productIds.size()).forEach(i -> {
-            OrderItem orderItem = orderItems.get(i);
-            Inventory inventory = inventories.get(i);
-            Long productId = productIds.get(i);
+        orderItems.forEach(orderItem -> {
             int requestQuantity = orderItem.getQuantity();
 
-            String stockUsageKey = "product:" + productId + ":stock:usage";
-            String stockUsageStr = redisTemplate.opsForValue().get(stockUsageKey);
-            int stockUsage = stockUsageStr == null ? 0 : Integer.parseInt(stockUsageStr);
+            String stockKey = "product:" + orderItem.getProductId() + ":stock";
+            String stockQuantityStr = redisTemplate.opsForValue().get(stockKey);
+            int stockQuantity = stockQuantityStr == null ? 0 : Integer.parseInt(stockQuantityStr);
 
-            validateStockUsageAndQuantity(inventory.getStock(), requestQuantity, stockUsage,
-                productId);
-            requestQuantities.put(stockUsageKey, requestQuantity);
+            validateQuantity(requestQuantity, stockQuantity, orderItem.getProductId());
+            requestQuantities.put(stockKey, requestQuantity);
         });
+
+        return requestQuantities;
     }
 
-    private List<Inventory> findInventoriesSortedByProductId(List<Long> productIds) {
+    private void validateQuantity(int requestQuantity, int stockQuantity, Long productId) {
 
-        List<Inventory> inventories = inventoryRepository.findByProductIdsOrderByProductId(
-            productIds);
-        if (inventories.isEmpty() || inventories.size() != productIds.size()) {
-            log.warn("Inventory is not valid for productIds: {}", productIds);
-            throw new CommonException(BError.NOT_VALID, "inventory for products " + productIds);
+        if (stockQuantity <= 0) {
+            log.warn("Stock quantity is zero or negative for productId: {}", productId);
+            throw new CommonException(BError.FAIL_FOR_REASON, "decrement stock quantity",
+                "stock quantity is zero or negative");
         }
-        return inventories;
-    }
 
-    private void validateStockUsageAndQuantity(int totalStock, int requestQuantity, int stockUsage,
-        Long productId) {
-
-        if (totalStock < requestQuantity) {
+        if (stockQuantity < requestQuantity) {
             log.warn("Insufficient stock for productId: {}, requested: {}, available: {}",
-                productId, requestQuantity, totalStock);
-            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
+                productId, requestQuantity, stockQuantity);
+            throw new CommonException(BError.FAIL_FOR_REASON, "decrement stock quantity",
                 "insufficient stock");
-        }
-        if (stockUsage > totalStock) {
-            log.warn(
-                "Stock usage exceeded total stock for productId: {}, totalUsed: {}, available: {}",
-                productId, stockUsage, totalStock);
-            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
-                "stock usage exceeded total stock");
-        }
-        if (stockUsage + requestQuantity > totalStock) {
-            log.warn(
-                "Request quantity exceeded total stock for productId: {}, totalUsed: {}, requested: {}",
-                productId, stockUsage, requestQuantity);
-            throw new CommonException(BError.FAIL_FOR_REASON, "increase stock usage",
-                "request quantity exceeded total stock");
         }
     }
 
@@ -215,7 +182,7 @@ public class OrderServiceV4 {
         return order;
     }
 
-    private void decrementStockUsage(final Long orderId) {
+    private void incrementStockQuantity(final Long orderId) {
 
         List<OrderItem> orderItems = orderItemRepository.findAllByOrdersId(orderId);
         if (orderItems.isEmpty()) {
@@ -223,22 +190,22 @@ public class OrderServiceV4 {
             return;
         }
 
-        // 재고 사용량 복구
+        // 재고 수량 복구
         redisTransactionUtil.transaction(operations -> {
             orderItems.forEach(orderItem -> {
                 Long productId = orderItem.getProductId();
                 int quantity = orderItem.getQuantity();
-                String stockUsageKey = "product:" + productId + ":stock:usage";
-                operations.opsForValue().decrement(stockUsageKey, quantity); // TODO: 음수 방지
+                String stockKey = "product:" + productId + ":stock";
+                operations.opsForValue().increment(stockKey, quantity);
             });
         });
 
-        log.info("Decremented stock usage for orderId: {}", orderId);
+        log.info("Incremented stock quantity for orderId: {}", orderId);
 
         // 재고 히스토리 이벤트 전송
         kafkaProducer.produce("stock-history", StockHistoryMessage.builder()
             .userId(orderItems.get(0).getOrders().getUser().getId())
-            .type("IN")
+            .type("INCREMENT")
             .createdAt(LocalDateTime.now())
             .historyItems(orderItems.stream()
                 .map(orderItem -> StockHistoryMessage.HistoryItem.builder()

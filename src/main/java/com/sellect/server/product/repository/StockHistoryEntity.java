@@ -31,7 +31,7 @@ public class StockHistoryEntity {
 
     Integer quantity;
 
-    String type; // "IN" or "OUT"
+    String type; // "INCREMENT" or "DECREMENT"
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
