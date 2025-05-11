@@ -57,14 +57,14 @@ public class Orders {
             .build();
     }
 
-    public Orders rollbackOrder() {
+    public Orders setOrderStatusToFailedCompleted() {
         return Orders.builder()
             .id(this.id)
             .user(this.user)
             .userReceivedCoupon(this.userReceivedCoupon)
             .totalPrice(this.totalPrice)
             .orderNumber(this.orderNumber)
-            .status(OrderStatus.PENDING)
+            .status(OrderStatus.FAILED_COMPLETED)
             .createdAt(this.createdAt)
             .updatedAt(LocalDateTime.now())
             .deleteAt(this.deleteAt)

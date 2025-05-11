@@ -90,15 +90,15 @@ public class OrderServiceV4 {
     }
 
     @Transactional
-    public void rollbackOrder(Long orderId) {
+    public void processOrderCompletionFailure(Long orderId) {
         log.info("Processing order-complete-failed for orderId: {}", orderId);
 
         // 재고 사용량 롤백
         decrementStockUsage(orderId);
 
-        // 주문 상태 롤백
+        // 주문 상태 -> FAILED_COMPLETED
         Orders order = findOrderCompleted(orderId);
-        rollbackOrdersStatus(order);
+        saveOrderFailedCompletedStatus(order);
     }
 
     public String getPaymentUrl(User user, final Long orderId) {
@@ -302,8 +302,8 @@ public class OrderServiceV4 {
         ordersRepository.save(order.completeOrder());
     }
 
-    private void rollbackOrdersStatus(Orders order) {
-        ordersRepository.save(order.rollbackOrder());
-        log.info("Rolled back order status to PENDING for orderId: {}", order.getId());
+    private void saveOrderFailedCompletedStatus(Orders order) {
+        ordersRepository.save(order.setOrderStatusToFailedCompleted());
+        log.info("set order status to FAILED_COMPLETED for orderId: {}", order.getId());
     }
 }

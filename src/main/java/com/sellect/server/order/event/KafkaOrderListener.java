@@ -51,7 +51,7 @@ public class KafkaOrderListener {
             groupId = "order-complete-failed-group",
             containerFactory = "orderCompleteFailedContainerFactory")
     public void consumeOrderCompleteFailedMessage(OrderCompleteFailedMessage message) {
-        orderService.rollbackOrder(message.getOrderId());
+        orderService.processOrderCompletionFailure(message.getOrderId());
     }
 
     @KafkaListener(topics = "stock-history", groupId = "stock-history-group",
