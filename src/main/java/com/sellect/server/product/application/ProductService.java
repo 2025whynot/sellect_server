@@ -10,11 +10,7 @@ import com.sellect.server.common.exception.enums.BError;
 import com.sellect.server.order.repository.OrderItemRepository;
 import com.sellect.server.product.controller.request.ProductModifyRequest;
 import com.sellect.server.product.controller.request.ProductRegisterRequest;
-import com.sellect.server.product.controller.response.ProductDetailRetrieveBySellerResponse;
-import com.sellect.server.product.controller.response.ProductDetailRetrieveResponse;
-import com.sellect.server.product.controller.response.ProductModifyResponse;
-import com.sellect.server.product.controller.response.ProductRegisterResponse;
-import com.sellect.server.product.controller.response.SellerStatsRetrieveResponse;
+import com.sellect.server.product.controller.response.*;
 import com.sellect.server.product.domain.Inventory;
 import com.sellect.server.product.domain.Product;
 import com.sellect.server.product.domain.ProductImage;
@@ -22,19 +18,15 @@ import com.sellect.server.product.repository.InventoryRepository;
 import com.sellect.server.product.repository.ProductImageRepository;
 import com.sellect.server.product.repository.ProductRepository;
 import com.sellect.server.product.util.StorageUtil;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -242,6 +234,27 @@ public class ProductService {
         );
     }
 
+    /**
+     * 상품 재고 업데이트
+     */
+    @Transactional
+    public void updateStock(Long productId, Integer quantity) {
+        // 재고 조회
+        Inventory inventory = getInventoryByProductId(productId);
+        // 재고 업데이트
+        if (quantity > 0) {
+            inventory.deductStock(quantity);
+        } else {
+            inventory.restoreStock(quantity);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    protected Inventory getInventoryByProductId(Long productId) {
+        return inventoryRepository.findByProductId(productId)
+                .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
+    }
+
     //========================= Seller 전용 =========================//
 
     /**
@@ -321,12 +334,6 @@ public class ProductService {
             .orElse(BigDecimal.ZERO);
 
         return SellerStatsRetrieveResponse.from(totalSales, productIds.size());
-    }
-
-    @Transactional(readOnly = true)
-    protected Inventory getInventoryByProductId(Long productId) {
-        return inventoryRepository.findByProductId(productId)
-            .orElseThrow(() -> new CommonException(BError.NOT_EXIST, "inventory"));
     }
 
     /**
